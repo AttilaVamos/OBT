@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Git branch settings
+
+. ./settings.sh
+
+SHORT_DATE=$(date "+%Y-%m-%d")
+REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
+
+REPORT_PATH=/common/nightly_builds/Coverity
+#RECEIVERS=richard.chapman@lexisnexisrisk.com,gavin.halliday@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
+RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
+
+WEEK_DAY=$(date "+%w")
+WEEk_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
+
+NEXT_TEST_DAY=$(date -d "next Sunday +$COVERITY_TEST_DAY days")
+NEXT_TEST_DAY_NAME=$(date -d "${NEXT_TEST_DAY}" '+%A')
+
+echo "Start Coverity analysis."
+echo "Test day is      : $NEXT_TEST_DAY_NAME"
+echo "Today is         : $WEEk_DAY_NAME"
+echo "Test branch is   : $COVERITY_TEST_BRANCH"
+echo "Current branch is: $BRANCH_ID"
+
+if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BRANCH ) ]]
+then
+    echo "Today is $WEEk_DAY_NAME and current branch is $BRANCH_ID. Perform Coverity analysis."
+
+    #if [[ -f ~/cov-analysis-linux64-8.7.0/bin/cov-build ]]
+    if [[ -f ~/cov-analysis-linux64-2019.03/bin/cov-build ]]
+    then
+        if [[ -f ${REPORT_PATH}/${REPORT_FILE_NAME} ]]
+        then
+            echo "Coverity analysis already done. Skip it."
+        else
+            pushd ~/build/CE/platform/build    
+            rm cov-int -r
+
+            #mv ${REPORT_PATH}/${REPORT_FILE_NAME} ${REPORT_PATH}/${REPORT_FILE_NAME}.prev
+
+            find . -name *.ccfxprep -delete
+            make clean -j
+            #~/cov-analysis-linux64-6.6.1/bin/cov-build --dir cov-int make -j
+            #~/cov-analysis-linux64-8.5.0.3/bin/cov-build --dir cov-int make -j
+            ~/cov-analysis-linux64-2019.03/bin/cov-build --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
+            tar czvf ${REPORT_FILE_NAME} cov-int
+            find . -name *.ccfxprep -delete
+        
+            cp ${REPORT_FILE_NAME} ${REPORT_PATH}/.
+            echo "Send Email to ${RECEIVERS}"
+            echo -e "Hi,\n\nCoverity analysis at ${REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
+       
+            # To upload
+            # When you upload the build can you also include the commit SHA in the version (Gavin)
+            #
+            echo "Get ${BRANCH_ID} branch SHA"
+            pushd ~/build/CE/platform/HPCC-Platform/
+           
+            branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+            
+            echo ${branchCrc}
+            popd
+
+            echo "Uploading started"
+
+            res=$( curl --form token=Z9iZGv5orqz0Kw5UJA9k6A \
+              --form email=${ADMIN_EMAIL_ADDRESS} \
+              --form file=@${REPORT_PATH}/${REPORT_FILE_NAME} \
+              --form version="${BRANCH_ID}-SHA:${branchCrc}" \
+              --form description=" " \
+              https://scan.coverity.com/builds?project=HPCC-Platform 2>&1 )
+        
+            echo "Upload finished."
+            echo "Result: ${res}"
+
+            popd
+       fi
+    else
+        echo "Coverity analysis doesn't installed on this machine."
+    fi
+
+else
+    if [[ $WEEK_DAY -eq $COVERITY_TEST_DAY ]]
+    then
+        echo "Today is $WEEk_DAY_NAME but the current branch: $BRANCH_ID doesn't match to $COVERITY_TEST_BRANCH."
+    else
+        echo "Today is $WEEk_DAY_NAME. Coverity will run on next $NEXT_TEST_DAY_NAME."
+    fi
+fi
+
+echo "End."
+

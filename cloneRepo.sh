@@ -1,0 +1,303 @@
+#!/bin/bash
+#export PS4='+ $LINENO: ' ## single quotes prevent $LINENO being expanded immediately
+#set -ux
+
+declare -f -F WriteLog> /dev/null
+
+if [ $? -ne 0 ]
+then
+    . ~/build/bin/timestampLogger.sh
+fi
+
+# Git branch settings
+
+.  ~/build/bin/settings.sh
+
+KillWatchDogAndWaitToDie()
+{
+    DELAY=10
+    sudo kill $1
+
+    while (true)
+    do 
+        sleep ${DELAY}
+        stillRunning=$( ps aux | grep -c -i '[w]atchdog.py' )
+
+        if [[ ${stillRunning} -eq 0 ]]
+        then 
+            WriteLog "WatchDog ($1) finished." "$2"
+            break
+        fi
+        WriteLog "WatchDog ($1) is still running. Wait ${DELAY} sec and try again." "$2"
+        [ -n "$(pgrep WatchDog)" ] && sudo pkill -9 WatchDog.py
+    done
+
+    rm ./WatchDog.pid
+}
+
+
+CloneRepo()
+{
+    LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
+    CLONE_LOG_FILE=$OBT_BIN_DIR/CloneRepo-${LONG_DATE}.log
+    WATCHDOG_LOG_FILE=${OBT_LOG_DIR}/WatchDog-$(date "+%Y-%m-%d_%H-%M-%S").log
+
+
+    if [ -f "$OBT_BIN_DIR/WatchDog.py" ]
+    then
+        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 900 -r 3600 -v"
+        WriteLog "Start WatchDog: ${watchDogStartCmd}" "${CLONE_LOG_FILE}"
+        WriteLog "Watchdog logfile: ${WATCHDOG_LOG_FILE}" "${CLONE_LOG_FILE}"
+
+        ${watchDogStartCmd} >> ${WATCHDOG_LOG_FILE} 2>&1 &
+        echo $! > ./WatchDog.pid
+        WriteLog "WatchDog pid: $( cat ./WatchDog.pid )." "$CLONE_LOG_FILE"
+
+    fi
+    
+    NO_ERROR=0
+    RECOVERABLE_ERROR=1
+    UNRECOVERABLE_ERROR=2
+    DESTINATION_EXISTS_ERROR=3
+    HTTP_REQUEST_ERROR=4
+
+    tryCount=20
+    tryDelay=2m
+    repo=$1
+    target=$2
+
+    WriteLog "Clone $1  (into '$target')" "${CLONE_LOG_FILE}"
+
+    while true
+    do
+        WriteLog "Try count: ${tryCount}" "${CLONE_LOG_FILE}"
+        res=0
+
+        res=$( git clone $repo $target 2>&1 |                                                                   \
+               while read line;                                                                         \
+               do                                                                                       \
+                   WriteLog "${line}" "${CLONE_LOG_FILE}" > /dev/null;                                  \
+                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'not an empty directory' );  \
+                   if [ $res -ne 0 ];                                                                   \
+                   then                                                                                 \
+                        echo "$DESTINATION_EXISTS_ERROR";                                               \
+                        break;                                                                          \
+                   fi;                                                                                  \
+                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'HTTP request failed' );     \
+                   if [ $res -ne 0 ];                                                                   \
+                   then                                                                                 \
+                        echo "$HTTP_REQUEST_ERROR";                                                     \
+                        break;                                                                          \
+                   fi;                                                                                  \
+                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'unable to access' );        \
+                   if [ $res -ne 0 ];                                                                   \
+                   then                                                                                 \
+                        echo "$HTTP_REQUEST_ERROR";                                                     \
+                        break;                                                                          \
+                   fi;                                                                                  \
+                   res=$( echo "${line}" | egrep -c -i '^fatal' );                                      \
+                   if [ $res -ne 0 ];                                                                   \
+                   then                                                                                 \
+                        echo "$UNRECOVERABLE_ERROR";                                                    \
+                        break;                                                                          \
+                   fi;                                                                                  \
+                   res=$( echo "${line}" | egrep -c -i '^error' );                                      \
+                   if [ $res -ne 0 ];                                                                   \
+                   then                                                                                 \
+                        echo "$RECOVERABLE_ERROR";                                                      \
+                        break;                                                                          \
+                   fi;                                                                                  \
+                done;                                                                                   \
+             );
+
+        if [ "${res}." == "." ] 
+        then 
+            WriteLog "Cloned ! " "${CLONE_LOG_FILE}"
+            break
+        else
+            WriteLog "Error:${res}" "${CLONE_LOG_FILE}"
+
+            case $res in
+                "$RECOVERABLE_ERROR" ) WriteLog "res:'RECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
+                                      # Check/set MTU with 'ip link set eth0 mtu 1400'
+                                      ipResetCMD="ip link set eth0 mtu 1400"    
+                                      WriteLog "Reset link: ${ipResetCMD}" "${CLONE_LOG_FILE}"
+                                      ${ipResetCMD} >> ${CLONE_LOG_FILE} 2>&1 &
+                                      ;;
+
+                "$UNRECOVERABLE_ERROR" ) WriteLog "res:'UNRECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
+                                      # return 1
+                                      ;;
+
+                "$DESTINATION_EXISTS_ERROR" ) WriteLog "res:'DESTINATION_EXISTS_ERROR'. Remove target directory." "${CLONE_LOG_FILE}"
+                                      rm -rf $target
+                                      #mkdir build
+                                      ;;
+                "$HTTP_REQUEST_ERROR" ) WriteLog "res:'HTTP_REQUEST_ERROR'" "${CLONE_LOG_FILE}"
+                                        WriteLog "Try it with SSH: 'git@github.com:hpcc-systems/HPCC-Platform.git'" "${CLONE_LOG_FILE}"
+                                        repo='git@github.com:hpcc-systems/HPCC-Platform.git'
+                                      ;;
+
+            esac
+
+            tryCount=$(( $tryCount-1 ))
+            if [[ $tryCount -ne 0 ]]
+            then
+                WriteLog "Wait for ${tryDelay} to try again." "${CLONE_LOG_FILE}"
+                sleep ${tryDelay}
+                continue
+            else
+                break;
+            fi
+        fi
+    done
+
+    wdPid=$( cat ./WatchDog.pid )
+    WriteLog "Kill WatchDog (${wdPid})." "${CLONE_LOG_FILE}"
+
+    KillWatchDogAndWaitToDie "${wdPid}" "${CLONE_LOG_FILE}"
+
+
+
+    if [[ $tryCount -eq 0 ]]
+    then
+        WriteLog "Give up ! " "${CLONE_LOG_FILE}"
+        # send email to Agyi
+        return 1
+    fi
+    WriteLog "End." "${CLONE_LOG_FILE}"
+    return 0
+}
+
+SubmoduleUpdate()
+{
+    LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
+    SUBMODULE_LOG_FILE=$OBT_BIN_DIR/SubmoduleUpdate-${LONG_DATE}.log
+    WATCHDOG_LOG_FILE=${OBT_LOG_DIR}/WatchDog-$(date "+%Y-%m-%d_%H-%M-%S").log
+
+    if [ -f "$OBT_BIN_DIR/WatchDog.py" ]
+    then
+        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 900 -r 3600 -v"
+        WriteLog "Start WatchDog: ${watchDogStartCmd}" "${SUBMODULE_LOG_FILE}"
+        WriteLog "Watchdog logfile: ${WATCHDOG_LOG_FILE}" "${SUBMODULE_LOG_FILE}"
+        ${watchDogStartCmd} >> ${WATCHDOG_LOG_FILE} 2>&1 &
+        echo $! > ./WatchDog.pid
+        WriteLog "WatchDog pid: $( cat ./WatchDog.pid )." "${SUBMODULE_LOG_FILE}"
+    fi
+
+
+    tryCount=10
+    tryDelay=2m
+
+    export GIT_CURL_VERBOSE=1
+    export GIT_CURL_RETRY=10
+    export CURLOPT_RETRY=10
+    export CURL_RETRY=10
+
+    NO_ERROR=0
+    SINGLE_REVISION_NEEDED_ERROR=1
+    RECOVERABLE_ERROR=2
+    NOT_GIT_REPO_ERROR=3
+
+    WriteLog "git submodule update "$1 "${SUBMODULE_LOG_FILE}"
+    while true
+    do
+        WriteLog "Try count: ${tryCount}" "${SUBMODULE_LOG_FILE}"
+        res=$NO_ERROR
+
+        res=$( git submodule update $1 2>&1 |                                                             \
+               while read line;                                                                           \
+               do                                                                                         \
+                   WriteLog "${line}" "${SUBMODULE_LOG_FILE}" > /dev/null;                                \
+                                                                                                          \
+                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Needed a single revision' );  \
+                   if [ $res -ne 0 ];                                                                     \
+                   then                                                                                   \
+                       echo "$SINGLE_REVISION_NEEDED_ERROR";                                              \
+                       break;                                                                             \
+                   fi;                                                                                    \
+                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Not a git repository' );      \
+                   if [ $res -ne 0 ];                                                                     \
+                   then                                                                                   \
+                       echo "$NOT_GIT_REPO_ERROR";                                                        \
+                       break;                                                                             \
+                   fi;                                                                                    \
+                                                                                                          \
+                   res=$( echo "${line}" | egrep -c -i '^fatal|^error|Killed|failed' );                   \
+                   if [ $res -ne 0 ];                                                                     \
+                   then                                                                                   \
+                       echo "$RECOVERABLE_ERROR";                                                         \
+                       break;                                                                             \
+                   fi;                                                                                    \
+                                                                                                          \
+               done;                                                                                      \
+             );
+
+        if [ "${res}." == "." ] 
+        then 
+            WriteLog "Submodule update finished ! " "${SUBMODULE_LOG_FILE}"
+            break
+        else
+            set -x
+            WriteLog "Error: $res" "${SUBMODULE_LOG_FILE}"
+
+            case $res in
+                "$SINGLE_REVISION_NEEDED_ERROR" ) 
+                                      WriteLog "res:'SINGLE_REVISION_NEEDED_ERROR'" "${SUBMODULE_LOG_FILE}"
+                                      git config --file .gitmodules --get-regexp path | awk '{ print $2 }' |        \
+                                      while read module;                                                            \
+                                      do                                                                            \
+                                          WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}"                      \
+                                          cleanUpCmd='rm -rf "'$module'"'                                           \
+                                          WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}"                     \
+                                          ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                             \
+                                      done; 
+                                      ;;
+
+                "$RECOVERABLE_ERROR" ) WriteLog "res:'RECOVERABLE_ERROR'" "${SUBMODULE_LOG_FILE}"
+                                      git config --file .gitmodules --get-regexp path | awk '{ print $2 }' |        \
+                                      while read submodule;                                                         \
+                                      do                                                                            \
+                                          WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}"                \
+                                          cleanUpCmd2='rm -rf "'${submodule}'"'                                     \
+                                          WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}"                    \
+                                          ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                            \
+                                      done;                                                                          
+                                      ;;                                                                             
+                                                                                                                     
+                 "$NOT_GIT_REPO_ERROR" ) WriteLog "res:'NOT_GIT_REPO_ERROR'" "${SUBMODULE_LOG_FILE}"                   
+                                        tryCount=0
+                                        break                                                                   
+                                        ;;                                                                           
+
+            esac
+            set +x
+            tryCount=$(( $tryCount-1 ))
+            if [[ $tryCount -ne 0 ]]
+            then
+                WriteLog "Wait for ${tryDelay} to try again." "${SUBMODULE_LOG_FILE}"
+                sleep ${tryDelay}
+                continue
+            else
+                break;
+            fi
+        fi
+       
+    done
+
+    wdPid=$( cat ./WatchDog.pid )
+    WriteLog "Kill WatchDog (${wdPid})." "${SUBMODULE_LOG_FILE}"
+
+    KillWatchDogAndWaitToDie "${wdPid}" "${SUBMODULE_LOG_FILE}"
+
+
+    if [[ $tryCount -eq 0 ]]
+    then
+        WriteLog "Give up ! " "${SUBMODULE_LOG_FILE}"
+        # send email to Agyi
+        return 1
+    fi
+    WriteLog "End." "${SUBMODULE_LOG_FILE}"
+    return 0
+
+}
