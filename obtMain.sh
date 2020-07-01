@@ -247,21 +247,34 @@ WriteLog "ulimit: ${res}" "${OBT_LOG_FILE}"
 # Start disk/mem space checker
 #
 
-KillCheckDiskSpace "${OBT_LOG_FILE}"
+if [[ ${DISK_SPACE_MONITOR_START} -eq 1 ]]
+then
+   KillCheckDiskSpace "${OBT_LOG_FILE}"
+   
+   WriteLog "Start disk space checker" "${OBT_LOG_FILE}"
+   
+   ./checkDiskSpace.sh &
+   echo $! > checkdiskspace.pid
+fi
 
-WriteLog "Start disk space checker" "${OBT_LOG_FILE}"
 
-./checkDiskSpace.sh &
+if [[ ${MY_INFO_MONITOR_START} -eq 1 ]]
+then
+    WriteLog "Start myInfo" "${OBT_LOG_FILE}"
+    
+    ./myInfo.sh &
+    echo $! > myinfo.pid
+fi
 
-WriteLog "Start myInfo" "${OBT_LOG_FILE}"
+if [[ ${PORT_MONITOR_START} -eq 1 ]]
+then
+    WriteLog "Start port monitor" "${OBT_LOG_FILE}"
 
-./myInfo.sh &
-
-WriteLog "Start port monitor" "${OBT_LOG_FILE}"
-
-(fn="myPortUsage-"$( date "+%Y-%m-%d_%H-%M-%S" )".log"; while true; do echo $( date "+%y.%m.%d %H:%M:%S" ) >> ${fn}; sudo ss -antp4 >> ${fn}; echo -e "------------------------------------------\n" >> ${fn}; sleep 1; done ) &
-
-echo $! > portlog.pid
+    (fn="myPortUsage-"$( date "+%Y-%m-%d_%H-%M-%S" )".log"; while true; do echo $( date "+%Y.%m.%d %H:%M:%S" ) >> ${fn}; sudo netstat -anp >> ${fn}; echo -e "---------------------------------\n" >> ${fn}; sleep 1; done ) &
+    #(fn="myPortUsage-"$( date "+%Y-%m-%d_%H-%M-%S" )".log"; while true; do echo $( date "+%y.%m.%d %H:%M:%S" ) >> ${fn}; sudo ss -antp4 >> ${fn}; echo -e "------------------------------------------\n" >> ${fn}; sleep 1; done ) &
+    
+    echo $! > portlog.pid
+fi
 
 #
 #----------------------------------------------------
@@ -971,8 +984,14 @@ then
         WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
 
         mkdir -p   ${TARGET_DIR}/test/diagrams
+        mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
+        mkdir -p   ${TARGET_DIR}/test/diagrams/thor
+        mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
 
-        cp *.png ${TARGET_DIR}/test/diagrams/
+        cp perftest*.png ${TARGET_DIR}/test/diagrams/
+        cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
+        cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
+        cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
 
         cp ./perftest*.summary ./perftest.summary
 

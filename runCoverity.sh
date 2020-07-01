@@ -12,20 +12,23 @@ REPORT_PATH=/common/nightly_builds/Coverity
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
 WEEK_DAY=$(date "+%w")
-WEEk_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
+WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
+
+# Only for test upload
+#COVERITY_TEST_DAY=$WEEK_DAY
 
 NEXT_TEST_DAY=$(date -d "next Sunday +$COVERITY_TEST_DAY days")
 NEXT_TEST_DAY_NAME=$(date -d "${NEXT_TEST_DAY}" '+%A')
 
 echo "Start Coverity analysis."
 echo "Test day is      : $NEXT_TEST_DAY_NAME"
-echo "Today is         : $WEEk_DAY_NAME"
+echo "Today is         : $WEEK_DAY_NAME"
 echo "Test branch is   : $COVERITY_TEST_BRANCH"
 echo "Current branch is: $BRANCH_ID"
 
 if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BRANCH ) ]]
 then
-    echo "Today is $WEEk_DAY_NAME and current branch is $BRANCH_ID. Perform Coverity analysis."
+    echo "Today is $WEEK_DAY_NAME and current branch is $BRANCH_ID. Perform Coverity analysis."
 
     #if [[ -f ~/cov-analysis-linux64-8.7.0/bin/cov-build ]]
     if [[ -f ~/cov-analysis-linux64-2019.03/bin/cov-build ]]
@@ -64,12 +67,11 @@ then
 
             echo "Uploading started"
 
-            res=$( curl --form token=Z9iZGv5orqz0Kw5UJA9k6A \
-              --form email=${ADMIN_EMAIL_ADDRESS} \
-              --form file=@${REPORT_PATH}/${REPORT_FILE_NAME} \
-              --form version="${BRANCH_ID}-SHA:${branchCrc}" \
-              --form description=" " \
-              https://scan.coverity.com/builds?project=HPCC-Platform 2>&1 )
+            curlParams="--form token=Z9iZGv5orqz0Kw5UJA9k6A --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
+                 
+            echo "curl params: ${curlParams}"
+
+            res=$( curl ${curlParams} https://scan.coverity.com/builds?project=HPCC-Platform 2>&1 )
         
             echo "Upload finished."
             echo "Result: ${res}"
@@ -83,9 +85,9 @@ then
 else
     if [[ $WEEK_DAY -eq $COVERITY_TEST_DAY ]]
     then
-        echo "Today is $WEEk_DAY_NAME but the current branch: $BRANCH_ID doesn't match to $COVERITY_TEST_BRANCH."
+        echo "Today is $WEEK_DAY_NAME but the current branch: $BRANCH_ID doesn't match to $COVERITY_TEST_BRANCH."
     else
-        echo "Today is $WEEk_DAY_NAME. Coverity will run on next $NEXT_TEST_DAY_NAME."
+        echo "Today is $WEEK_DAY_NAME. Coverity will run on next $NEXT_TEST_DAY_NAME."
     fi
 fi
 

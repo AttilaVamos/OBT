@@ -97,6 +97,9 @@ WriteLog "res:${res}" "${OBT_BUILD_LOG_FILE}"
 WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 
 
+WriteLog "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" "${OBT_BUILD_LOG_FILE}"
+
+
 #
 #----------------------------------------------------
 #

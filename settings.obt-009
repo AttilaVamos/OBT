@@ -181,7 +181,7 @@ else
 fi
 
 
-OBT_SYSTEM=OBT-010
+OBT_SYSTEM=OBT-009
 OBT_SYSTEM_ENV=TestFarm2
 
 BUILD_SYSTEM=${SYSTEM_ID}
@@ -254,12 +254,12 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 
 
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=1  # days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=5  # days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
 SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 
-BUILD_DIR_EXPIRE=1   # days
+BUILD_DIR_EXPIRE=5   # days
 BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
 
@@ -298,7 +298,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=1
+BUILD_DOCS=0
 
 
 #
@@ -490,7 +490,7 @@ COUCHBASE_USER=centos
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=1
+RUN_COVERITY=0
 COVERITY_TEST_DAY=1	# Monday
 COVERITY_TEST_BRANCH=master
 
@@ -503,7 +503,7 @@ COVERITY_TEST_BRANCH=master
 
 # Enable to run WUtest atfter Regression Suite
 # If and only if the Regression Suite execution is enalbled
-RUN_WUTEST=1
+RUN_WUTEST=0
 RUN_WUTEST=$(( $EXECUTE_REGRESSION_SUITE && $RUN_WUTEST ))
 
 
@@ -521,7 +521,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 #
 
 # Enable to run unittests before execute Performance Suite
-RUN_UNITTESTS=1
+RUN_UNITTESTS=0
 UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]
@@ -546,7 +546,7 @@ fi
 #
 
 # Enable to run WUtool test before execute any Suite
-RUN_WUTOOL_TESTS=1
+RUN_WUTOOL_TESTS=0
 
 
 #
@@ -641,10 +641,10 @@ PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
 PERF_TEST_PARALLEL_QUERIES=1
 
 PERF_EXCLUDE_CLASS="-e stress"
-#PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
+#PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
 
-# Don't use these settings on this machine (yet)
-#PERF_FLUSH_DISk_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
+PERF_FLUSH_DISK_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
+# Dont use this setting (yet)
 #PERF_RUNCOUNT="--runcount 2"
 
 PERF_TEST_MODE="STD"
@@ -669,7 +669,7 @@ PERF_CALCTREND_PARAMS=""
 #
 
 # Enable to run ML tests before execute Performance Suite
-RUN_ML_TESTS=1
+RUN_ML_TESTS=0
 
 # 0 - HPCC unistalled after Machine Learning finished on hthor
 # 1 - Machine Learning test doesn't uninstall HPCC after executed tests

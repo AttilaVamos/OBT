@@ -87,38 +87,43 @@ class ReportedTestCasesHistory(object):
          
     def readFile(self):
         #self.stats = { 'Bad': 0,  'Ugly': 0, 'Ugly and Bad': 0, 'Good': 0, 'Known': 0, 'Active': 0 }
-        file = open(self.inFileName, 'rb')
-        lineno = 0
-        for line in file:
-            lineno += 1
-            line = line.strip().strip('\'').replace('\n', '')
-            if len(line) == 0:
-                continue
-            items = line.split(',')
-            
-            if not self.dateIsInRange(items[0]):
-                continue
+        file = None
+        try:
+            file = open(self.inFileName, 'rb')
+            lineno = 0
+            for line in file:
+                lineno += 1
+                line = line.strip().strip('\'').replace('\n', '')
+                if len(line) == 0:
+                    continue
+                items = line.split(',')
                 
-            currentDate = items[0]
-            if currentDate not in self.history:
-                self.history[currentDate] = {}
-                
-            for name, target, type, status in self.grouped(items[1:], 4):
-                #print "%s, %s, %s, %s" % (name, target, type, status)
-                # Collect the tests by the date and target to distinct 
-                # if same test becomes problematic on different target 
-                if name not in self.history[currentDate]:
-                    self.history[currentDate][name] = {}
+                if not self.dateIsInRange(items[0]):
+                    continue
                     
-                if target not in self.history[currentDate][name]:
-                    self.history[currentDate][name][target]={'type':type, 'status': status }
+                currentDate = items[0]
+                if currentDate not in self.history:
+                    self.history[currentDate] = {}
                     
-                # Create uniq test id from test name and target
-                id = name + '#' + target
-                if id not in self.testNames:
-                    self.testNames.append(id)
-            
-        file.close()
+                for name, target, type, status in self.grouped(items[1:], 4):
+                    #print "%s, %s, %s, %s" % (name, target, type, status)
+                    # Collect the tests by the date and target to distinct 
+                    # if same test becomes problematic on different target 
+                    if name not in self.history[currentDate]:
+                        self.history[currentDate][name] = {}
+                        
+                    if target not in self.history[currentDate][name]:
+                        self.history[currentDate][name][target]={'type':type, 'status': status }
+                        
+                    # Create uniq test id from test name and target
+                    id = name + '#' + target
+                    if id not in self.testNames:
+                        self.testNames.append(id)
+        except:
+            pass
+        finally:
+            if file != None:
+                file.close()
         
         lastDay = str(self.newestDay)
         if lastDay in self.history:
@@ -174,7 +179,7 @@ class ReportedTestCasesHistory(object):
             if imagePath == None:
                 historyTableRowHtml += '    <TD>'  + self.wrapText(test, '-') + '</TD>\n'
             else:
-                historyTableRowHtml += '    <TD><a href=\"' + imagePath + test + '-' + target + '-' + str(self.newestDay).replace('-','')[2:] + '.png\" target=\"_blank\">'+ self.wrapText(test, '-') + '</a></TD>\n'
+                historyTableRowHtml += '    <TD><a href=\"' + imagePath + target + '/' + test + '-' + target + '-' + str(self.newestDay).replace('-','')[2:] + '.png\" target=\"_blank\">'+ self.wrapText(test, '-') + '</a></TD>\n'
                     
             for actDate in sorted(self.history):
                 if (test in self.history[actDate]) and (target in self.history[actDate][test]):
@@ -257,13 +262,17 @@ class ReportedTestCasesHistory(object):
         month = int(newDate[5:7])
         day = int(newDate[8:])
         checkDate = date(year,  month,  day)
-        lines = open(self.inFileName, 'r').readlines()
-        lastDateStr = lines[-1][0:10]
-        lastDateYear = int(lastDateStr[0:4])
-        lastDateMonth = int(lastDateStr[5:7])
-        lastDateDay = int(lastDateStr[8:])
-        lastDate = date(lastDateYear,  lastDateMonth,  lastDateDay)
-
+        try:
+            lines = open(self.inFileName, 'r').readlines()
+            lastDateStr = lines[-1][0:10]
+            lastDateYear = int(lastDateStr[0:4])
+            lastDateMonth = int(lastDateStr[5:7])
+            lastDateDay = int(lastDateStr[8:])
+            lastDate = date(lastDateYear,  lastDateMonth,  lastDateDay)
+        except:
+            lines = []
+            lastDate = checkDate + timedelta(days = -1)
+            
         updated = False
         #if (checkDate > self.newestDay) or (checkDate > lastDate):
         if checkDate > lastDate:
@@ -292,7 +301,7 @@ if __name__ == '__main__':
     print "Start..."
 
     path = '.'
-    fileName = "PerformanceIssues-all.csv"
+    fileName = "PerformanceIssues-all2.csv"
 
     # Test with explicit muber of days
     rtch = ReportedTestCasesHistory(fileName,  5,  True)

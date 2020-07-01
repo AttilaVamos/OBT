@@ -51,6 +51,7 @@ KillCheckDiskSpace()
         kill -9 $i
         sleep 1
     done;
+    [[ -f ./checkdiskspace.pid ]] && rm ./checkdiskspace.pid
 
     sleep 1
 
@@ -63,6 +64,8 @@ KillCheckDiskSpace()
         kill -9 $i
         sleep 1
     done;
+    [[ -f ./myinfo.pid ]] && rm ./myinfo.pid
+
 
     sleep 1
 

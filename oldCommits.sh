@@ -5,7 +5,7 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 GetCommitSha()
 {
-    set -x
+    #set -x
     testDate=$1
     sourceDate=$( date -I -d "$testDate - 1 day" )
     
@@ -28,17 +28,17 @@ GetCommitSha()
 
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
-firstDate="2017-10-31"
+firstDate="2020-06-23"
 sourceDate=$firstDate
 testDate=$( date -I -d "$firstDate + 1 day" )
-lastDate="2017-12-08"
+lastDate="2020-07-06"
 
 printf "from %s to %s\n" "$firstDate" "$lastDate"
 printf "#\n" > ${targetFile}
 printf "# from %s to %s\n#\n\n" "$firstDate" "$lastDate" >> ${targetFile}
 pushd ~/HPCC-Platform
 dayCount=0
-commitConts=0
+commitConuts=0
 mark=''
 
 printf "Test date\tsource date\tcommit\n"
@@ -46,13 +46,13 @@ until [[ "$testDate" > "$lastDate" ]]
 do 
     #cmd="git log --after="\""$d_after 00:00"\"" --before="\""$test_date 00:00$"\"" --merges"
     #echo "cmd: $cmd"
-    commit=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' )
+    commit=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00" --merges | grep -A3 'commit' )
     #echo "$commit"
-    sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+    sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
     if [[ -n "$sha" ]]
     then
         testSha=$sha
-        commitConts=$(( $commitConts + 1 ))
+        commitCounts=$(( $commitCounts + 1 ))
         mark=''
     else
         mark="$mark +"
@@ -66,10 +66,11 @@ do
     testDate=$( date -I -d "$sourceDate + 1 day")
     dayCount=$(( $dayCount + 1 ))
 done
-printf "day counts:%d, commit counts: %d\n" $dayCount $commitConts
-
-popd
+printf "day counts:%d, commit counts: %d\n" $dayCount $commitCounts
 
 testDate=$( date -I -d "$firstDate + 6 days" )
 sha=$( GetCommitSha "$testDate" )
-printf "test date %s, sha: %s" "$testDate", "$sha"
+printf "test date %s, sha: %s\n" "$testDate" "$sha"
+
+popd
+

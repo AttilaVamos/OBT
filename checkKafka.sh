@@ -25,6 +25,10 @@ SCRIPTNAME=${0##*/}
 CHECK_LOG_FILE=${OBT_BIN_DIR}/${SCRIPTNAME//.sh/}-${LONG_DATE}.log
 
 tryCount=4
+
+# Add "listeners=PLAINTEXT://127.0.0.1:9092" into config/server.proerties
+# if there is an exception in java.net.InetAddress.getCanonicalHostName()
+
 KAFKA_DIR=~/kafka_2.12-2.4.0
 
 #
@@ -65,6 +69,8 @@ then
 	    rm -fr /tmp/zookeeper /tmp/kafka-logs
 
             bin/zookeeper-server-start.sh config/zookeeper.properties > /dev/null 2>&1 &
+            res=$?
+            WriteLog "Result: $res" "${CHECK_LOG_FILE}"
 
             sleep 40
             
@@ -114,6 +120,8 @@ then
             #continue
         else
             WriteLog "Kafka is OK! " "${CHECK_LOG_FILE}"
+            WriteLog "Broker list: $( echo dump | nc localhost 2181 | grep brokers )" "${CHECK_LOG_FILE}"
+
 	    break
         fi
 		

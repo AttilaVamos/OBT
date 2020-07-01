@@ -194,6 +194,20 @@ else
    WriteLog "Installed version is: $( ${PKG_QRY_CMD} hpccsystems-platform )" "${REGRESS_LOG_FILE}"
 fi
 
+# Should be configurable in settings.sh
+if [[ $SKIP_LIB64_ISSUE -eq 0 ]]
+then
+    if [[ -d "/opt/HPCCSystems/lib64" ]]
+    then
+        WriteLog "There is an unwanted /opt/HPCCSystems/lib64 directory, copy its contents into lib" "${REGRESS_LOG_FILE}"
+        res=$( sudo cp -v /opt/HPCCSystems/lib64/* /opt/HPCCSystems/lib/ 2>&1 )
+        WriteLog "Res: ${res}" "${REGRESS_LOG_FILE}"
+    fi
+else
+    WriteLog "Skip lib64 issue fixing." "${REGRESS_LOG_FILE}"
+fi
+
+
 [ -z $NUMBER_OF_HPCC_COMPONENTS ] && NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
 
 #

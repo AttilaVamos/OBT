@@ -525,17 +525,18 @@ class BuildNotification(object):
         self.msg['Subject'] = self.config.gitBranchName[0].upper()  + self.config.gitBranchName[1:] + ' ' + subjectStatus + subjectError + ". " + self.config.reportObtSystem + " Performance Test Result on " + self.config._buildDate # + " " + subjectSuffix 
 
         # Add links
-        logArchiveLink = self.config.reportDirectoryURL+"/log-archive"
+        logArchiveLink = self.config.reportDirectoryURL+"/test"  #"/log-archive"
 
         msgHTML += "<ul><li><a href=\"" + logArchiveLink + "\" target=\"_blank\">Nightly Build Log Archive</a></li></ul>"
 
         # End HTML
-        msgHTML += "<br><hr>\n"
-        msgHTML += "Links to results in old OBT system (Wiki pages)<br>\n"
-        msgHTML += "<ul>\n"
-        msgHTML += "<li><a href=\"http://10.176.152.123/wiki/index.php/HPCC_Nightly_Builds\" target=\"_blank\">Nightly Builds Web Page</a></li>\n"
-        msgHTML += "<li><a href=\"http://10.176.32.10/builds/\" target=\"_blank\">HPCC Builds Archive</a></li>\n"
-        msgHTML += "</ul>\n"
+        #msgHTML += "<br><hr>\n"
+        #msgHTML += "Links to results in old OBT system (Wiki pages)<br>\n"
+        #msgHTML += "<ul>\n"
+        #msgHTML += "<li><a href=\"http://10.176.152.123/wiki/index.php/HPCC_Nightly_Builds\" target=\"_blank\">Nightly Builds Web Page</a></li>\n"
+        #msgHTML += "<li><a href=\"http://10.176.32.10/builds/\" target=\"_blank\">HPCC Builds Archive</a></li>\n"
+        #msgHTML += "</ul>\n"
+        
         msgHTML += "</body>\n"
         msgHTML += "</html>\n"
 

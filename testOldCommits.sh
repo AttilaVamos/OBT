@@ -22,6 +22,9 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 sourcePath=~/build/CE/platform/HPCC-Platform
 BRANCH_ID=master
 
+TIME_SERVER=$( grep ^server /etc/ntp.conf | head -n 1 | cut -d' ' -f2 )
+
+
 IS_SCL=$( type "scl" 2>&1 )
 if [[ "${IS_SCL}" =~ "not found" ]]
 then 
@@ -127,7 +130,8 @@ do
     ./obtMain.sh perf
     
     #  Restore the correct date with NTPD 
-    sudo ntpdate time.nist.gov
+    #sudo ntpdate time.nist.gov
+    sudo ntpd -gq
     date
     
     # next test date
