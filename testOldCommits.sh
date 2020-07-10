@@ -28,17 +28,17 @@ TIME_SERVER=$( grep ^server /etc/ntp.conf | head -n 1 | cut -d' ' -f2 )
 IS_SCL=$( type "scl" 2>&1 )
 if [[ "${IS_SCL}" =~ "not found" ]]
 then 
-    printf "SCL is not installed."
+    printf "SCL is not installed.\n"
 else 
     id=$( scl -l | grep -c 'devtoolset' )
     if [[ $id -ne 0 ]]
     then
         DEVTOOLSET=$(  scl -l | tail -n 1 )
-        printf "%s is installed." "${DEVTOOLSET}"
+        printf "%s is installed.\n" "${DEVTOOLSET}"
         . scl_source enable ${DEVTOOLSET}
         export CL_PATH=/opt/rh/${DEVTOOLSET}/root/usr;
     else
-        printf "DEVTOOLSET is not installed."
+        printf "DEVTOOLSET is not installed.\n"
     fi
 fi
 
@@ -76,42 +76,41 @@ GetCommitSha()
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
 
-# Forward
-#firsTestDate="2017-11-01"
-#lastTestDate="2017-12-08"
+direction="forward"
+#direction="backward"
 
-
-# Backward
-lastTestDate="2017-08-27"
-firsTestDate="2017-08-21"
-# back 4 weeks
-#firsTestDate=$( date -I -d "$lastTestDate - 27 days")
-# back one week
-#firsTestDate=$( date -I -d "$lastTestDate - 6 days")
-
-
-printf "from %s to %s\n" "$firsTestDate" "$lastTestDate"
 dayCount=0
-direction="backward"
 daySkip=1
 
 if [[ "$direction" == "forward" ]]
 then
-    # forward 
+    # Forward
+    firsTestDate="2020-06-23"
+    lastTestDate="2020-06-24"
+
     testDate=$firsTestDate
 else
-    # backward
+    #  Backward
+    lastTestDate="2017-08-27"
+    firsTestDate="2017-08-21"
+    # back 4 weeks
+    #firsTestDate=$( date -I -d "$lastTestDate - 27 days")
+    # back one week
+    #firsTestDate=$( date -I -d "$lastTestDate - 6 days")
+
     testDate=$lastTestDate
 fi
+
+printf "from %s to %s direction %s\n" "$firsTestDate" "$lastTestDate" "$direction"
 
 sudo service ntpd stop
 
 
 printf "Test date\tcommit\n"
 # forward
-#until [[ "$testDate" > "$lastTestDate" ]]
+until [[ "$testDate" > "$lastTestDate" ]]
 # backward
-until [[ "$testDate" < "$firsTestDate" ]]
+#until [[ "$testDate" < "$firsTestDate" ]]
 do 
     testSha=$( GetCommitSha "$testDate" )
     

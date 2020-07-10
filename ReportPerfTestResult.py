@@ -156,7 +156,7 @@ class BuildNotificationConfig( object ):
         p_date   = re.compile('\s*Date:\s*(.*)$')
         p_commit = re.compile('\s*commit\s*(.*)$')
         self._gitBranch = ''
-        self._gitBranchName = ''
+        self._gitBranchName = 'NotFound'
         gitBranchInfo = ''
         self._gitBranchDate = ''
         self._gitBranchCommit = ''
@@ -178,7 +178,11 @@ class BuildNotificationConfig( object ):
                   continue
 
         except IOError:
-                pass
+               print("IOError in read '" + self.gitLogFileSystem + "'")
+               pass
+        finally:
+            if self._gitBranchName = '':
+                self._gitBranchName = "NotFound"
 
         if self._gitBranchDate != '':
            self._gitBranchDate = self._gitBranchDate.replace(' +0000','') 
