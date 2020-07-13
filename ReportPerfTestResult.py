@@ -181,7 +181,7 @@ class BuildNotificationConfig( object ):
                print("IOError in read '" + self.gitLogFileSystem + "'")
                pass
         finally:
-            if self._gitBranchName = '':
+            if self._gitBranchName == '':
                 self._gitBranchName = "NotFound"
 
         if self._gitBranchDate != '':
