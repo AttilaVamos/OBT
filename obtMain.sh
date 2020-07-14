@@ -511,7 +511,14 @@ fi
     sed  -e '/^ObtSystemHw : \(.*\)/c ObtSystemHw : "'"CPU/Cores: ${NUMBER_OF_CPUS}, RAM: ${MEMORY} GB"'"' ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
 
 
+    WriteLog "Update 'TestMode' in ReportPerfTestResult.ini to TestMode: ${PERF_TEST_MODE}" "${OBT_LOG_FILE}"
+    cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
+    sed  -e '/^TestMode : \(.*\)/c TestMode : '${PERF_TEST_MODE} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
 
+
+    WriteLog "Update 'ObtLogDir' in ReportPerfTestResult.ini to ObtLogDir : ${OBT_LOG_DIR}" "${OBT_LOG_FILE}"
+    cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
+    sed  -e '/^ObtLogDir : \(.*\)/c ObtLogDir : '${OBT_LOG_DIR} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini 
 
 
     # Check if it is an old OBT system with 'urlBase : http://<IP>/data2/...'

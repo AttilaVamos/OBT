@@ -5,10 +5,20 @@
 #import glob
 #import re
 import sys
-import inspect
+#import inspect
 #import traceback
+import linecache
 from datetime import date, timedelta
 from itertools import izip
+
+def PrintException(msg = ''):
+    exc_type, exc_obj, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    linecache.checkcache(filename)
+    line = linecache.getline(filename, lineno, f.f_globals)
+    print 'EXCEPTION IN ({}, LINE {} CODE:"{}"): {}'.format( filename, lineno, line.strip(), msg)
 
 class ReportedTestCasesHistory(object):
     
@@ -41,7 +51,7 @@ class ReportedTestCasesHistory(object):
     
         self.verbose = verbose
         pass
-        
+      
     def dateIsInRange(self,  inDate):
         if self.numberOfDaysUsed == -1:
             # use all of them
@@ -199,17 +209,23 @@ class ReportedTestCasesHistory(object):
             self.historyTable.append(historyTableLine)
             historyTableHtml += historyTableRowHtml
             # Process the last day
+            type = '''
+            state = '''
             try:
                 type = self.history[actDate][test][target]['type']
                 self.stats[type] += 1
                 state = self.states[self.history[actDate][test][target]['status']]
                 self.stats[state] +=1
-            except:
-                print("Exception:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
-                # If exception occured that means this test is not reported at the last day
-                # It becomes neutral
+#            except KeyError as e:
+#                # If exception occured that means this test is not reported at the last day
+#                # It becomes neutral
+#                self.stats['Neutral'] += 1
+#                PrintException(repr(e))
+            except Exception as e:
                 self.stats['Neutral'] += 1
+                PrintException(repr(e)+" On %s the test: %s did not reported in engine: %s." % (actDate, test, target ))
                 pass
+               
             self.stats['testNum'] += 1
             
         self.historyTable.append('\nLegend:')

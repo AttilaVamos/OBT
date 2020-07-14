@@ -48,6 +48,7 @@ class BuildNotificationConfig( object ):
     def __init__(self, options, iniFile = 'ReportPerfTestResult.ini'):
         self._buildDate = options.dateString 
         if not self.buildDate:
+            self.today = datetime.today()
             self._buildDate =  self.today.strftime("%Y-%m-%d")
         
         self._buildTime = options.timeString
@@ -376,7 +377,7 @@ class BuildNotification(object):
             passed = ''
             failed = ''
             file = test+"-performance-test.log" 
-            files = glob.glob( test + \
+            files = glob.glob(  self.config.obtLogDirectory + '/' + test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
             if files: 
                 sortedFiles = sorted( files, key=str.lower, reverse=True )

@@ -609,8 +609,8 @@ then
     WriteLog "Patch environment.xml to use ${PERF_THOR_LOCAL_THOR_PORT_INC} for localThorPortInc for Thor" "${PERF_TEST_LOG}"
     
     #${SUDO} cp /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak
-    ${SUDO} sed -e 's/slavesPerNode="1"/slavesPerNode="'${PERF_THOR_NUMBER_OF_SLAVES}'"/g' \
-                -e 's/localThorPortInc="20"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
+    ${SUDO} sed -e 's/slavesPerNode="\(.*\)"/slavesPerNode="'${PERF_THOR_NUMBER_OF_SLAVES}'"/g' \
+                -e 's/localThorPortInc="\(.*\)"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
                    "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
     
@@ -1067,9 +1067,9 @@ then
     WriteLog "Patch environment.xml to use ${PERF_THOR_LOCAL_THOR_PORT_INC} for localThorPortInc for ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
     ${SUDO} cp /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak
-    ${SUDO} sed -e 's/totalMemoryLimit="1073741824"/totalMemoryLimit="'${MEMSIZE}'"/g' \
-                -e 's/slavesPerNode="1"/slavesPerNode="'${PERF_THOR_NUMBER_OF_SLAVES}'"/g' \
-                -e 's/localThorPortInc="20"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
+    ${SUDO} sed -e 's/totalMemoryLimit="\(.*\)"/totalMemoryLimit="'${MEMSIZE}'"/g' \
+                -e 's/slavesPerNode="\(.*\)"/slavesPerNode="'${PERF_THOR_NUMBER_OF_SLAVES}'"/g' \
+                -e 's/localThorPortInc="\(.*\)"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
                    "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
     #
