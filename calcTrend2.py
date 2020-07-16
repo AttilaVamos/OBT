@@ -15,6 +15,7 @@ from shutil import copyfile
 import sys
 import inspect
 import traceback
+import linecache
 import re
 import ConfigParser
 
@@ -35,14 +36,23 @@ except ImportError:
 
 debug = False
 smallDataSet = False
-# To enable diagramm generation for "only good" cases as well
+# To enable diagram generation for "only good" cases as well
 enableGood = True
 
+def PrintException(msg = ''):
+    exc_type, exc_obj, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    linecache.checkcache(filename)
+    line = linecache.getline(filename, lineno, f.f_globals)
+    print 'EXCEPTION IN ({}, LINE {} CODE:"{}"): {}'.format( filename, lineno, line.strip(), msg)
+
 class TrendReport(object):
-    # To decide time consumpting is increased (>threshold), unaltered (-threshold< <threshold) 
+    # To decide time consumption is increased (>threshold), unaltered (-threshold< <threshold) 
     # or decreased (<-threshold)
     threshold = 5.0  # %
-    results = {}
+    resultsX = {}
     results2 = {}
     maxDatapoints = 180
     maxDataPointsOverhead = 5
@@ -170,10 +180,7 @@ class TrendReport(object):
                     continue
                 cluster = nameItems[1]
                 resultDate = dt.date(2000 + int(nameItems[2][0:2]), int(nameItems[2][2:4]),int(nameItems[2][4:6]))
-#                if 'hthor' in cluster:
-#                    #continue
-#                    pass
-#                        
+
                 if os.stat(fileName).st_size == 0:
                     continue
                     
@@ -241,23 +248,16 @@ class TrendReport(object):
                 print("Wrong file name!")
                 continue
             cluster = nameItems[1]
-            if 'hthor' in cluster:
-#                continue
-                pass
                 
             date = '20' + nameItems[2][0:2] + '.' + nameItems[2][2:4] + '.' + nameItems[2][4:6]
-            #date = '20' + nameItems[2][0:2] + '.' + nameItems[2][2:4] + '.' + nameItems[2][4:6] + '.' + nameItems[3][0:2] + '.' + nameItems[3][2:4] + '.' + nameItems[3][4:6]
             
             if len(nameItems) > 3:
                 self.hpccVersion = nameItems[3]
                     
-            if cluster not in self.results:
-                self.results[cluster] = {}
-                self.numOfRuns[cluster] = 0
-                self.clusterTrends[cluster] = {'Dates' : [], 'Totals' :[], 'ConfigName':''}
-            
             if cluster not in self.results2:
                 self.results2[cluster] = {}
+                self.numOfRuns[cluster] = 0
+                self.clusterTrends[cluster] = {'Dates' : [], 'Totals' :[], 'ConfigName':''}
                 
                 
             self.clusterTrends[cluster]['Dates'].append(date)
@@ -271,36 +271,6 @@ class TrendReport(object):
                     print("Mailformed test name!")
                     continue
                                 
-                if testname not in self.results[cluster] :
-                    self.results[cluster][testname]={'Dates' : [], 'Values' :[],  'Values2' : numpy.array([]),  'avg' : 0.0,  'sigma' : 0.0, 'runsPerDay':[],  'max': [],  'min': [], 'loops' : [] ,  'testDays' : 0, }
-                    # If it is a new test case but there are already test days we should add zero values before to balance the test days
-                
-                if testDay in self.results[cluster][testname]['Dates']:
-                    testDayIndex = self.results[cluster][testname]['Dates'].index(testDay)
-                    self.results[cluster][testname]['Values'][testDayIndex] += value
-                    self.results[cluster][testname]['runsPerDay'][testDayIndex] += 1
-                    if self.results[cluster][testname]['max'][testDayIndex] < value:
-                        self.results[cluster][testname]['max'][testDayIndex] = value
-                    
-                    if self.results[cluster][testname]['min'][testDayIndex] > value:
-                        self.results[cluster][testname]['min'][testDayIndex] = value
-                        
-                    if loop not in self.results[cluster][testname]['loops'][testDayIndex]:
-                        self.results[cluster][testname]['loops'][testDayIndex][loop] = value
-                    else:
-                        self.results[cluster][testname]['loops'][testDayIndex][loop] += value
-                        
-                    pass
-                else:
-                    self.results[cluster][testname]['Dates'].append(testDay)
-                    self.results[cluster][testname]['Values'].append(value)
-                    self.results[cluster][testname]['runsPerDay'].append(1)
-                    self.results[cluster][testname]['max'].append(value)
-                    self.results[cluster][testname]['min'].append(value)
-                    self.results[cluster][testname]['loops'].append({ loop: value})
-                    
-                    pass
-                
                 if testname not in self.results2[cluster] :
                     self.results2[cluster][testname] = { 'Days' : {}, 'Dates': [], 'Values2' : numpy.array([])}
 
@@ -318,36 +288,11 @@ class TrendReport(object):
                     
                 self.results2[cluster][testname]['Days'][testDay]['loops'] += 1
                 
-                #self.results2[cluster][testname]['Values2'] = numpy.append(self.results2[cluster][testname]['Values2'], value)
-                
-                # These two should calculate later
-                #totalTime += value
-                #self.results[cluster][testname]['Values2'] = numpy.append(self.results[cluster][testname]['Values2'], value)
-                
-#                self.results[cluster][testname]['avg'] = self.results[cluster][testname]['Values2'].mean()
-#                self.results[cluster][testname]['sigma'] = self.results[cluster][testname]['Values2'].std()
-
-                # Get the largest number of test day 
-                if self.numOfRuns[cluster] < len(self.results[cluster][testname]['Dates']):
-                    self.numOfRuns[cluster] = len(self.results[cluster][testname]['Dates'])
+               # Get the largest number of test day 
+                if self.numOfRuns[cluster] < len(self.results2[cluster][testname]['Days']):
+                    self.numOfRuns[cluster] = len(self.results2[cluster][testname]['Days'])
                 pass
             
-            # After file processed, should check wheter all testcases appeared in the file
-#            for testname in self.results[cluster]:
-#                 if len(self.results[cluster][testname]['Dates']) != self.numOfRuns[cluster]:
-#                    self.results[cluster][testname]['Dates'].append(testDay)
-#                    self.results[cluster][testname]['Values'].append(0)
-#                    self.results[cluster][testname]['runsPerDay'].append(1)
-#                    self.results[cluster][testname]['max'].append(0)
-#                    self.results[cluster][testname]['min'].append(0)
-#                    self.results[cluster][testname]['loops'].append({ loop: 0})    
-                
-            # These two should calculate later
-            #self.clusterTrends[cluster]['Totals'].append(totalTime)
-            # More than one result pro day
-#            if self.numOfRuns[cluster] < len(self.results[cluster][testname]['Dates']):
-#                self.numOfRuns[cluster] = len(self.results[cluster][testname]['Dates'])
-        
         # More than one result pro day adjust the dates in clusterTrends
         # (not the best way to use dates of each cluster first test case)
         print ("Read done")
@@ -373,8 +318,6 @@ class TrendReport(object):
                     if day not in loopCounts[cluster]['Days']:
                         loopCounts[cluster]['Days'][day] = {}
                         
-#                    dayIndex = self.results[cluster][testname]['Dates'].index(day)
-#                    runCount = self.results[cluster][testname]['runsPerDay'][dayIndex]
                     runCount = self.results2[cluster][testname]['Days'][day]['loops']
                     if runCount not in loopCounts[cluster]['Days'][day]:
                         loopCounts[cluster]['Days'][day][runCount] = 1
@@ -385,23 +328,13 @@ class TrendReport(object):
                 loopCounts[cluster]['Loops'][day] = max(loopCounts[cluster]['Days'][day], key=loopCounts[cluster]['Days'][day].get)
         
         for cluster in sorted(self.clusterTrends):
-#            self.clusterTrends[cluster]['Dates'] = []
-            #for date in self.results[cluster][testname]['Dates']:
             clusterTotalTimes = self.numOfRuns[cluster] * [0]
             clusterTotalTimesPerDay = {} 
             for testname in sorted(self.results2[cluster]):
-                #days = sorted(self.results2[cluster][testname]['Days'])
                 days = sorted(self.clusterTrends[cluster]['Dates'])
                 for day in days:
-#                numOfTestDays = len(self.results2[cluster][testname]['Dates'])
-#                for dayIndex in range(numOfTestDays):
                     dayIndex = days.index(day)
                     date = day #self.results[cluster][testname]['Dates'][dayIndex]
-#                    dateitems = date.split('-')
-#                    newDate = '20' + dateitems[0][0:2] + '.' + dateitems[0][2:4] + '.' + dateitems[0][4:6]
-#                    if newDate not in self.clusterTrends[cluster]['Dates']:
-#                        self.clusterTrends[cluster]['Dates'].append(newDate)
-#                    dailyLoopCount = loopCounts[cluster]['Loops'][date]
 
                     # Calculate average daily value if there were more than one run on that day
                     # Cases:
@@ -427,25 +360,21 @@ class TrendReport(object):
                     #
                     try:
                         value = self.results2[cluster][testname]['Days'][day]['totalValue']
+                        value2 = value
                         testLoopCount = self.results2[cluster][testname]['Days'][day]['loops']
                         if testLoopCount > 1:
-    #                        if (testLoopCount % dailyLoopCount) == 0:
-    #                            # Test executed once per loop or
-    #                            # test executed exactly n times in each loop
-    #                            value = value / dailyLoopCount
                                 value = value / testLoopCount
-    #                    else:
-    #                            # Brrrr... Some test failed/didn't executed in any loop or loops
-    #                            # The test result is invalid keep value as is
-    #                            pass
-                    except KeyError:
+
+                    except KeyError as e:
+                        PrintException(repr(e) + " Missing test result on '%s' with test '%s' in engine '%s'." % (day,  testname,  cluster))
                         value = 0
+                        value2 = numpy.nan
                         if day not in self.results2[cluster][testname]['Days']:
                             self.results2[cluster][testname]['Days'][day] = { 'values' : [], 'totalValue' : 0, 'runsPerDay' : 0,  'max' : value,  'min' : value,  'loops' : 0 }
                         
                     self.results2[cluster][testname]['Days'][day]['average'] = value
                     self.results2[cluster][testname]['Dates'].append(day)
-                    self.results2[cluster][testname]['Values2'] = numpy.append(self.results2[cluster][testname]['Values2'], value)
+                    self.results2[cluster][testname]['Values2'] = numpy.append(self.results2[cluster][testname]['Values2'], value2)
                     
                     if day not in clusterTotalTimesPerDay:
                         clusterTotalTimesPerDay[day] = 0
@@ -466,14 +395,13 @@ class TrendReport(object):
             resultFile = open(resultFileName,  "w")
             resultFile.write("Testcase,avg,sigma,alpha,beta,numOfTests\n")
             for test in sorted(self.results2[cluster]):
-                self.results2[cluster][test]['avg'] = self.results2[cluster][test]['Values2'].mean()
-                self.results2[cluster][test]['sigma'] = self.results2[cluster][test]['Values2'].std()
-                self.results2[cluster][test]['all'] = self.CalcTrend(self.results[cluster][test]['Values'])
+                self.results2[cluster][test]['avg'] = numpy.nanmean(self.results2[cluster][test]['Values2'])
+                self.results2[cluster][test]['sigma'] = numpy.nanstd(self.results2[cluster][test]['Values2'])
+                self.results2[cluster][test]['all'] = self.CalcTrend(self.results2[cluster][test]['Values2'])
                 
                 dataPoints = len(self.results2[cluster][test]['Days'])
                 
                 resultFile.write(test+','+ str(self.results2[cluster][test]['avg']) + ',' + str(self.results2[cluster][test]['sigma']) + ',' + str(self.results2[cluster][test]['all']['alpha']) + ',' + str(self.results2[cluster][test]['all']['beta']) + ',' + str(dataPoints))
-                #for day in sorted(self.results2[cluster][test]['Days']):
                 for day in sorted(days):
                     if day in self.results2[cluster][test]['Days']:
                         resultFile.write(',' + day + ',' + str(self.results2[cluster][test]['Days'][day]['average']))
@@ -484,8 +412,17 @@ class TrendReport(object):
             pass
 
     # Calculate trendline for an iput data array and give back the trend
-    def CalcTrend(self, data):
-        self.myPrint("\t\t",  data)
+    def CalcTrend(self, _data):
+        self.myPrint("\t\t",  _data)
+        # Remove 'nan' values
+        #data = numpy.unique(_data[~numpy.isnan(_data)])
+        try:
+            data = _data[~numpy.isnan(_data)]
+        except TypeError as e:
+            # It is possible the _data is not a numpy array, so it can't convert with numpy functions
+            PrintException(repr(e) + " The _data is %s not a numpy array" % (repr(type(_data))) )
+            data = _data
+           
         n = len(data)
         if n <= 1:
             print("Not enough data!")
@@ -514,8 +451,6 @@ class TrendReport(object):
         
         alpha =  (n * sumxy - sum5) / (n * sumx2 - sum6)  # =(n * sumxy-L3)/(J3*M3-N3)
         beta = (sumy - alpha * sumx) / n
-        #print ("alpha: "+str(alpha))
-        #print ("beta: "+str(beta))
         percentage = 0.0
         if data[0] != 0.0:
             #percentage = (data[1] - data[0]) / data[0] * 100
@@ -594,6 +529,7 @@ class TrendReport(object):
                 date1 = dt.datetime(int(dateItems[0]), int(dateItems[1]),int(dateItems[2]))
                 
             if not isBorderDateUpdated:
+                # If there is larger gap between two datap oint than self.maxDataPointsOverhead (a couple of weeks data missing)
                 if borderDate > date1.date():
                     borderDate =  date1.date()
                 isBorderDateUpdated = True
@@ -665,8 +601,8 @@ class TrendReport(object):
             dataPoints = len(dates2)
             days = dates2[-1] - dates2[0] + 1
             
-            self.results2[cluster][test]['avg'] = self.results2[cluster][test]['Values2'][-dataPoints:].mean()
-            self.results2[cluster][test]['sigma'] = self.results2[cluster][test]['Values2'][-dataPoints:].std()
+            self.results2[cluster][test]['avg'] = numpy.nanmean(self.results2[cluster][test]['Values2'][-dataPoints:])
+            self.results2[cluster][test]['sigma'] = numpy.nanstd(self.results2[cluster][test]['Values2'][-dataPoints:])
             self.results2[cluster][test]['maxDataPoints']  = self.CalcTrend(self.results2[cluster][test]['Values2'][-dataPoints:])            
        
        
@@ -765,14 +701,14 @@ class TrendReport(object):
             testShortName = test.split('-')[0]
             ax.set_ylabel(testShortName + ' execution time (Seconds)')
             
-            ax.legend(loc = 'best')
+            ax.legend(loc = 'best',  framealpha=0.5)
             #plt.show()
             plt.savefig(self.reportPath + test +"-" + cluster + '-' + self.dateStr + ".png")
             fig.clear()
             plt.close(fig)
             pass
-        except:
-            print("No plt")
+        except Exception as e:
+            PrintException(repr(e) + " No diagram generated")
             
         pass
             
@@ -790,7 +726,7 @@ class TrendReport(object):
         today = dt.datetime.today()
         dateStr = today.strftime("%y%m%d")
         pageBreak = False
-        for cluster in sorted(self.results):
+        for cluster in sorted(self.results2):
             print ("Cluster:" + cluster + ' (' +str(self.numOfRuns[cluster]) + ' datasets )')
             if self.enablePdfReport:
                 pdfReport.startNewSection("Performance test result on cluster " + cluster + " on " + today.strftime("%d/%m/%y"),  pageBreak)
@@ -813,23 +749,23 @@ class TrendReport(object):
             averageTimeOfBadTests = 0.0
             numOfUglyBadTests = 0
             averageTimeOfUglyBadTests = 0.0
-            numberOfTests = len(self.results[cluster])
+            numberOfTests = len(self.results2[cluster])
             testIndex = 0
             
             reportFileName = self.reportPath+ "perfreport-" + cluster + "-" + dateStr + ".csv"
             print("reportFileName:" + reportFileName)
             reportFile = open(reportFileName,  "w")
             reportFile.write("Testcase,twoDaysTredValue,twoDaysTred,twoDaysTredPercentage,fiveDaysTredValue,fiveDaysTred,fiveDaysTredPercentage,TredValue,Tred,TredPercentage,avg,sigma,fluctuation\n")
-            for test in sorted(self.results[cluster]):
+            for test in sorted(self.results2[cluster]):
                 testIndex += 1
                 if debug:
                     # Only for generate an example diagram
-                    if not test.startswith('05ab_'):
+                    if (not test.startswith('04ad_')) and (not test.startswith('07dc_')) :
                         continue
                     
                 isShortlisted = False
-                dataPoints = len(self.results[cluster][test]['Values'])
-                lastDataDateStr = self.results[cluster][test]['Dates'][-1]
+                dataPoints = len(self.results2[cluster][test]['Values2'])
+                lastDataDateStr = self.results2[cluster][test]['Dates'][-1]
                 lastDataDate = dt.date(2000+int(lastDataDateStr[2:4]), int(lastDataDateStr[5:7]), int(lastDataDateStr[8:10]))
                 lastDataAgeDays = (dt.date.today() - lastDataDate).days
                 
@@ -840,37 +776,37 @@ class TrendReport(object):
                     continue
                 
                 if dataPoints > 1:
-                    self.results[cluster][test]['twoDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
-                    self.results[cluster][test]['fiveDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
-                    self.results[cluster][test]['thirtyDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
+                    self.results2[cluster][test]['twoDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
+                    self.results2[cluster][test]['fiveDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
+                    self.results2[cluster][test]['thirtyDays'] = {'alpha':0.0,  'beta': 0.0,  'direction':'unaltered',  'percentage': 0.0}
                     
                     if dataPoints >= twoDays:
-                        self.results[cluster][test]['twoDays'] = self.CalcTrend(self.results[cluster][test]['Values'][dataPoints-twoDays:])
-                        if 'unaltered' != self.results[cluster][test]['twoDays']['direction']:
+                        self.results2[cluster][test]['twoDays'] = self.CalcTrend(self.results2[cluster][test]['Values2'][dataPoints-twoDays:])
+                        if 'unaltered' != self.results2[cluster][test]['twoDays']['direction']:
                             isShortlisted = True
                     
                     if dataPoints >= fiveDays:
-                        self.results[cluster][test]['fiveDays'] = self.CalcTrend(self.results[cluster][test]['Values'][dataPoints-fiveDays:])    
-                        if 'unaltered' != self.results[cluster][test]['fiveDays']['direction']:
+                        self.results2[cluster][test]['fiveDays'] = self.CalcTrend(self.results2[cluster][test]['Values2'][dataPoints-fiveDays:])    
+                        if 'unaltered' != self.results2[cluster][test]['fiveDays']['direction']:
                             isShortlisted = True
                                     
                     if dataPoints >= thirtyDays:
-                        self.results[cluster][test]['thirtyDays'] = self.CalcTrend(self.results[cluster][test]['Values'][dataPoints-thirtyDays:])
+                        self.results2[cluster][test]['thirtyDays'] = self.CalcTrend(self.results2[cluster][test]['Values2'][dataPoints-thirtyDays:])
                         
                     pass
-                    if 'unaltered' != self.results[cluster][test]['thirtyDays']['direction']:
+                    if 'unaltered' != self.results2[cluster][test]['thirtyDays']['direction']:
                         isShortlisted = True
                 
                 
                     reportFile.write("%s" % (test ))
-                    reportFile.write(",%f,%s,%f" % (self.results[cluster][test]['twoDays']['alpha'],  self.results[cluster][test]['twoDays']['direction'],  self.results[cluster][test]['twoDays']['percentage'] ))
-                    reportFile.write(",%f,%s,%f" % (self.results[cluster][test]['fiveDays']['alpha'],  self.results[cluster][test]['fiveDays']['direction'],  self.results[cluster][test]['fiveDays']['percentage'] ))
-                    reportFile.write(",%f,%s,%f" % (self.results[cluster][test]['thirtyDays']['alpha'],  self.results[cluster][test]['thirtyDays']['direction'],  self.results[cluster][test]['thirtyDays']['percentage'] ))
+                    reportFile.write(",%f,%s,%f" % (self.results2[cluster][test]['twoDays']['alpha'],  self.results2[cluster][test]['twoDays']['direction'],  self.results2[cluster][test]['twoDays']['percentage'] ))
+                    reportFile.write(",%f,%s,%f" % (self.results2[cluster][test]['fiveDays']['alpha'],  self.results2[cluster][test]['fiveDays']['direction'],  self.results2[cluster][test]['fiveDays']['percentage'] ))
+                    reportFile.write(",%f,%s,%f" % (self.results2[cluster][test]['thirtyDays']['alpha'],  self.results2[cluster][test]['thirtyDays']['direction'],  self.results2[cluster][test]['thirtyDays']['percentage'] ))
                     fluctuation = 0.0
-                    if self.results[cluster][test]['avg']  != 0.0:
-                        fluctuation = self.results[cluster][test]['sigma'] / self.results[cluster][test]['avg'] 
+                    if self.results2[cluster][test]['avg']  != 0.0:
+                        fluctuation = self.results2[cluster][test]['sigma'] / self.results2[cluster][test]['avg'] 
                     
-                    #print("%3d/%3d: cluster:%s, test:%s, mean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (testIndex, numberOfTests, cluster, test, self.results[cluster][test]['avg'], self.results[cluster][test]['sigma'], fluctuation, self.results[cluster][test]['all']['alpha']))
+                    #print("%3d/%3d: cluster:%s, test:%s, mean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (testIndex, numberOfTests, cluster, test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                     print("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster)), 
                     
 #                    # Only for generate example diagram
@@ -991,8 +927,9 @@ class TrendReport(object):
                     totalsFile.write(",%0.2f" % (self.clusterTrends[cluster]['Totals'][index] ))
                     totalsFile.write("\n")
             totalsFile.close()
-        except:
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+        except  Exception as e:
+            PrintException(repr(e) + " Unexpected error")
+            #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
             traceback.print_stack()
             pass
         
@@ -1002,10 +939,6 @@ class TrendReport(object):
             ax = fig.add_subplot(111)
             clusterColors = { 'hthor': 'blue', 'thor': 'red', 'roxie': 'magenta'}
             for cluster in sorted(self.clusterTrends):
-                if 'hthor' == cluster:
-#                    continue
-                    pass
-                
                 # Plot the data
                 dataPoints = min(self.numOfRuns[cluster],  thirtyDays)
                 dates2 = self.createDateSeries(self.clusterTrends[cluster]['Dates'][-dataPoints:], dataPoints)
@@ -1099,9 +1032,10 @@ class TrendReport(object):
                 except:
                     print("No rtch")
                     
-        except IOError as ex:
-            print ("IOError:%s" % (str(ex)))
-        except:
+        except IOError as e:
+            PrintException(repr(e) + " No diagram generated")
+        except Exception as e:
+            PrintException(repr(e) + " No diagram generated")
             pass
     
 

@@ -24,7 +24,7 @@ class HThorPerfResultConfig():
         self.config = ConfigParser.ConfigParser()
         self.config.optionxform = str
         self.engine = 'hthor'
-        
+       
         self.initHThorConfig()
 
     def get( self, section, key ):
@@ -156,6 +156,8 @@ class RoxiePerfResultConfig( HThorPerfResultConfig ):
 class WriteStatsToFile(object):
 
     jobname = "*-161128-*"
+    jobNameSuffix = ""
+    
     #host = "http://10.241.40.12:8010/WsWorkunits/WUQuery.json?PageSize=1000&Sortby=Jobname"  # *-161128-*
     host = "10.241.40.8"
     url = "http://" + host + ":8010/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
@@ -177,7 +179,13 @@ class WriteStatsToFile(object):
         self.host = options.host
         self.url = "http://" + self.host + ":8010/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
         
-        self.clusters = ('hthor', 'thor', 'roxie')
+        if options.jobNameSuffix != "":
+            self.jobNameSuffix = options.jobNameSuffix.replace('#','%23')
+            if not self.jobNameSuffix.startswith('-'):
+                self.jobNameSuffix = '-' + self.jobNameSuffix
+            pass
+        
+        self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
         self.queryHpccVersion()
         
@@ -288,6 +296,7 @@ class WriteStatsToFile(object):
             except:
                 print("Network error in checkJobname('%s', '%s')" % (wuid, jobname))
                 print("BadStatusLine exception with '%s'" % (wuQuery))
+                # ESP server on the other side is crashed and its need some time to recover.
                 time.sleep(20)
                 pass
                 
@@ -380,7 +389,7 @@ class WriteStatsToFile(object):
         today = datetime.today()
         if dateStr == '':
             dateStr = today.strftime("%y%m%d")
-        queryJobname = "*-" + dateStr + "-*"
+        queryJobname = "*" + self.jobNameSuffix + "-" + dateStr + "-*"
         self.myPrint("queryJobname:" + queryJobname)
         url += "&Jobname=" + queryJobname
         print("query:" + url)
@@ -410,6 +419,8 @@ class WriteStatsToFile(object):
                 return False
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
+            
+            print("Number of workinits in result is: %d" % ( len(stats) ))
 
             statFile = open(statFileName,  "w")
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
@@ -442,6 +453,8 @@ class WriteStatsToFile(object):
                 clusterTime = sum / count
                 self.myPrint("\tJobname:" + oldJobName + ", TotalClusterTime:" + str(clusterTime) + " (average of " + str(count) + ")")
                 statFile.write( oldJobName + ","+str(clusterTime)+"\n")
+            else:
+                print("No matching workunit")
 
             statFile.close()
             # Remove old file (name without hpcc version) if exists
@@ -513,6 +526,9 @@ if __name__ == '__main__':
     parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", 
                       help="Show more info. Default is False"
                       , metavar="VERBOSE")
+                      
+    parser.add_option("-j", "--jobnamesuffix",  dest="jobNameSuffix",  default = "",  type = "string" , 
+                        help="Specify workunit job name suffix for query.",  metavar="JOBNAMESUFFIX")
 
     (options, args) = parser.parse_args()
 
