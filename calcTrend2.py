@@ -399,7 +399,8 @@ class TrendReport(object):
                     self.results2[cluster][test]['avg'] = numpy.nanmean(self.results2[cluster][test]['Values2'])
                     self.results2[cluster][test]['sigma'] = numpy.nanstd(self.results2[cluster][test]['Values2'])
                 except AttributeError as e:
-                    PrintException(repr(e) + " Problem with an older numpy.")
+                    if self.verbose:
+                        PrintException(repr(e) + " Problem with an older numpy.")
                     # A hack for an older numpy ehre nonmean() and nanstd() doesn't exists
                     v2 = self.results2[cluster][test]['Values2'][~numpy.isnan(self.results2[cluster][test]['Values2'])]
                     self.results2[cluster][test]['avg'] = numpy.mean(v2)
@@ -613,7 +614,8 @@ class TrendReport(object):
                 self.results2[cluster][test]['avg'] = numpy.nanmean(self.results2[cluster][test]['Values2'][-dataPoints:])
                 self.results2[cluster][test]['sigma'] = numpy.nanstd(self.results2[cluster][test]['Values2'][-dataPoints:])
             except AttributeError as e:
-                PrintException(repr(e) + " Problem with an older numpy.")
+                if self.verbose:
+                    PrintException(repr(e) + " Problem with an older numpy.")
                 # A hack for an older numpy ehre nonmean() and nanstd() doesn't exists
                 v2 = self.results2[cluster][test]['Values2'][~numpy.isnan(self.results2[cluster][test]['Values2'])][-dataPoints:]
                 self.results2[cluster][test]['avg'] = numpy.mean(v2)
@@ -717,7 +719,14 @@ class TrendReport(object):
             testShortName = test.split('-')[0]
             ax.set_ylabel(testShortName + ' execution time (Seconds)')
             
-            ax.legend(loc = 'best',  framealpha=0.5)
+            try:
+                ax.legend(loc = 'best',  framealpha=0.5)
+            except Exception as e:
+                if self.vrbose:
+                    PrintException(repr(e) + " There is an old atplotlib.")
+                    
+                ax.legend(loc = 'best')
+                
             #plt.show()
             plt.savefig(self.reportPath + test +"-" + cluster + '-' + self.dateStr + ".png")
             fig.clear()
