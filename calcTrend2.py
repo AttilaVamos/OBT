@@ -722,7 +722,7 @@ class TrendReport(object):
             try:
                 ax.legend(loc = 'best',  framealpha=0.5)
             except Exception as e:
-                if self.vrbose:
+                if self.verbose:
                     PrintException(repr(e) + " There is an old atplotlib.")
                     
                 ax.legend(loc = 'best')
