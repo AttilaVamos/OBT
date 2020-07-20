@@ -963,6 +963,7 @@ class TrendReport(object):
             fig.subplots_adjust(bottom=0.2)
             ax = fig.add_subplot(111)
             clusterColors = { 'hthor': 'blue', 'thor': 'red', 'roxie': 'magenta'}
+            dataPoints = 0
             for cluster in sorted(self.clusterTrends):
                 # Plot the data
                 dataPoints = min(self.numOfRuns[cluster],  thirtyDays)
