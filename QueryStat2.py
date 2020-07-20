@@ -185,6 +185,28 @@ class WriteStatsToFile(object):
                 self.jobNameSuffix = '-' + self.jobNameSuffix
             pass
         
+        self.dateTransform = False
+        self.newDate = ""
+        if options.dateTransform != "":
+            self.dateTransform = True
+            # Remove '-' from the date and get it length
+            newDate = options.dateTransform.replace('-','')
+            dlen = len(newDate)
+            if dlen == 6:
+                # 'yymmdd' form
+                self.newDate = newDate
+            elif dlen == 8:
+                # 'yyymmdd' form
+                self.newDate = newDate[2:]
+            else:
+                # Invalid date, date transform not allowed
+                self.dateTransform = False
+                print("Invalid date: '%s' for transform, ignored." % (options.dateTransform))
+            
+            if self.dateTransform:
+                print("Using date: '%s' -> '%s' to transform date stamp in jobname(s) and to store result file." % (options.dateTransform, self.newDate))
+            
+            pass
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
         self.queryHpccVersion()
@@ -278,6 +300,9 @@ class WriteStatsToFile(object):
             itemsVersion = sorted(items[1:itemsLen-2])
             #             ECL source name              Sorted version params          
             shortJobname = '-'.join(items[0:1]) + '-' + '-'.join(itemsVersion)
+            
+            if self.dateTransform :
+                items[itemsLen-2] = self.newDate
             #                                    Date and time
             jobname = shortJobname + '-' + '-'.join(items[itemsLen-2:itemsLen])
             #  Add time to distinguish different result on same day
@@ -312,6 +337,10 @@ class WriteStatsToFile(object):
                 if len(versionsFromDebug) > 0: 
                     versionInfo = ''.join(sorted(versionsFromDebug))
                     shortJobname = items[0] + versionInfo
+                    
+                    if self.dateTransform :
+                        items[itemsLen-2] = self.newDate
+                        
                     jobname = shortJobname + '-' + items[itemsLen-2] + '-' + items[itemsLen-1]
                     #  Add time to distinguish different result on same day
                     shortJobname += '-' + items[itemsLen-1]
@@ -410,7 +439,11 @@ class WriteStatsToFile(object):
             except Exception as ex:
                  pass
                  
-            statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-" + self.hpccVersionStr +".csv"
+            if self.dateTransform :
+                statFileName = self.destPath + "perfstat-" + cluster + "-" + self.newDate + "-" + self.hpccVersionStr +".csv"
+            else:
+                statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-" + self.hpccVersionStr +".csv"
+
             print("statFileName:" + statFileName)
             self.resultConfigClass[cluster].set('Result',  'DataFileName',  statFileName)
             
@@ -424,11 +457,12 @@ class WriteStatsToFile(object):
 
             statFile = open(statFileName,  "w")
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
+            rex2 = re.compile("^spray")
             oldShortJobName=''
             oldJobName = ''
             
             for stat in stats:
-                if (rex.match(stat['Jobname']) and (stat['State'] == 'completed')):
+                if (rex.match(stat['Jobname']) or rex2.match(stat['Jobname']) ) and (stat['State'] == 'completed'):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
                     if shortJobName.startswith('12ac_'):
                         pass
@@ -529,7 +563,11 @@ if __name__ == '__main__':
                       
     parser.add_option("-j", "--jobnamesuffix",  dest="jobNameSuffix",  default = "",  type = "string" , 
                         help="Specify workunit job name suffix for query.",  metavar="JOBNAMESUFFIX")
-
+                        
+    parser.add_option("--dt", "--dateTransform",  dest="dateTransform",  default = "",  type = "string" , 
+                        help="Change test(s) execution date to the given one in 'yymmdd', 'yyyymmdd' or parts separated with '-' like 'yy-mm-dd' format like '200625'. (Use it with conjuction with --jobNameSuffix to get results tested on an older commit.)", 
+                        metavar="DATETRANSFOMR")
+                        
     (options, args) = parser.parse_args()
 
     if options.path == None:

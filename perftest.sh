@@ -863,7 +863,7 @@ then
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
     WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
-    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup --pq ${PERF_SETUP_PARALLEL_QUERIES}"
+    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
     
@@ -902,9 +902,9 @@ then
     
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
@@ -1244,7 +1244,7 @@ then
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
     WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
-    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup -t thor,roxie --pq ${PERF_SETUP_PARALLEL_QUERIES}"
+    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup -t thor,roxie --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
     
@@ -1282,9 +1282,9 @@ then
 
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "${CMD}" "${PERF_TEST_LOG}"
@@ -1548,9 +1548,9 @@ then
     
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT}"
+        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "${CMD}" "${PERF_TEST_LOG}"
@@ -1622,8 +1622,16 @@ cd ${OBT_BIN_DIR}
 #if [[ "$PERF_RESULT" == "PASS" ]]
 if [[ true ]]
 then
+    QUERY_STAT2_EXTRA=''
+    [[ ( -n  ${JOB_NAME_SUFFIX}) && ( -n ${PERF_TEST_DATE} ) ]] &&  QUERY_STAT2_EXTRA=" ${JOB_NAME_SUFFIX} --dateTransform ${PERF_TEST_DATE}"
     WriteLog "Collect Performance Test results" "${PERF_TEST_LOG}"
-    ./QueryStat2.py -p ../../Perfstat/ -d '' >> "${PERF_TEST_LOG}" 2>&1
+    CMD="./QueryStat2.py -p ../../Perfstat/ -d ''  ${QUERY_STAT2_EXTRA}"
+
+    ${CMD} >> ${PERF_TEST_LOG} 2>&1
+        
+    retCode=$( echo $? )
+    WriteLog "retcode: ${retCode}"  "${PERF_TEST_LOG}"
+
 
     ARCH_CMD=archivePerfStat.sh
     if [[ -f ../../Perfstat/${ARCH_CMD} ]]
