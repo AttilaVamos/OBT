@@ -377,7 +377,7 @@ class BuildNotification(object):
             passed = ''
             failed = ''
             file = test+"-performance-test.log" 
-            files = glob.glob(  self.config.obtLogDirectory + '/' + test + \
+            files = glob.glob(  test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
             if files: 
                 sortedFiles = sorted( files, key=str.lower, reverse=True )
@@ -388,6 +388,7 @@ class BuildNotification(object):
                 temp = open(file).readlines( )
                 logFiles.append(file)
             except IOError:
+                print("IOError in read '%s'" % (file))
                 continue
             for line in temp:
                 if 'Queries:' in line:
@@ -452,6 +453,8 @@ class BuildNotification(object):
                     pass
                 finally:
                     pass
+        else:
+            print("RegressionLogProcessor not found.")
 
         # Process summary graph
         summaryGraph = glob.glob( self.config.obtLogDirectory + '/perftest-*.png')
@@ -470,6 +473,8 @@ class BuildNotification(object):
             
             # Dont attach the image yet, store it and attach after the email body generated and attached
             embeddedImages.append(img)
+        else:
+            print("Summary graph not found.")
         
         if ReportedTestCasesHistory:
             try:
