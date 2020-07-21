@@ -328,7 +328,8 @@ class TrendReport(object):
                 loopCounts[cluster]['Loops'][day] = max(loopCounts[cluster]['Days'][day], key=loopCounts[cluster]['Days'][day].get)
         
         for cluster in sorted(self.clusterTrends):
-            clusterTotalTimes = self.numOfRuns[cluster] * [0]
+            #clusterTotalTimes = self.numOfRuns[cluster] * [0]
+            clusterTotalTimes = len(self.clusterTrends[cluster]['Dates']) * [0]
             clusterTotalTimesPerDay = {} 
             for testname in sorted(self.results2[cluster]):
                 
