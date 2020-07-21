@@ -52,7 +52,6 @@ class TrendReport(object):
     # To decide time consumption is increased (>threshold), unaltered (-threshold< <threshold) 
     # or decreased (<-threshold)
     threshold = 5.0  # %
-    resultsX = {}
     results2 = {}
     maxDatapoints = 180
     maxDataPointsOverhead = 5
@@ -259,8 +258,9 @@ class TrendReport(object):
                 self.numOfRuns[cluster] = 0
                 self.clusterTrends[cluster] = {'Dates' : [], 'Totals' :[], 'ConfigName':''}
                 
+            if  date not in  self.clusterTrends[cluster]['Dates']:
+                self.clusterTrends[cluster]['Dates'].append(date)
                 
-            self.clusterTrends[cluster]['Dates'].append(date)
             self.clusterTrends[cluster]['ConfigName'] = fileName.replace('.csv', '.cfg')
             file = open(fileName,  "r")
             for line in file:
@@ -331,6 +331,10 @@ class TrendReport(object):
             clusterTotalTimes = self.numOfRuns[cluster] * [0]
             clusterTotalTimesPerDay = {} 
             for testname in sorted(self.results2[cluster]):
+                
+#                if not testname.startswith('80ab_scalesort-scale(16)'):
+#                    continue
+                    
                 days = sorted(self.clusterTrends[cluster]['Dates'])
                 for day in days:
                     dayIndex = days.index(day)
@@ -360,11 +364,12 @@ class TrendReport(object):
                     #
                     try:
                         value = self.results2[cluster][testname]['Days'][day]['totalValue']
-                        value2 = value
                         testLoopCount = self.results2[cluster][testname]['Days'][day]['loops']
                         if testLoopCount > 1:
                                 value = value / testLoopCount
-
+                                
+                        value2 = value
+                        
                     except KeyError as e:
                         PrintException(repr(e) + " Missing test result on '%s' with test '%s' in engine '%s'." % (day,  testname,  cluster))
                         value = 0
@@ -723,14 +728,16 @@ class TrendReport(object):
                 ax.legend(loc = 'best',  framealpha=0.5)
             except Exception as e:
                 if self.verbose:
-                    PrintException(repr(e) + " There is an old atplotlib.")
+                    PrintException(repr(e) + " There is an old matplotlib.")
                     
                 ax.legend(loc = 'best')
                 
             #plt.show()
-            plt.savefig(self.reportPath + test +"-" + cluster + '-' + self.dateStr + ".png")
+            diagramFileName = self.reportPath + test +"-" + cluster + '-' + self.dateStr + ".png"
+            plt.savefig(diagramFileName)
             fig.clear()
             plt.close(fig)
+            print("\t %s created." % (diagramFileName))
             pass
         except Exception as e:
             PrintException(repr(e) + " No diagram generated")
@@ -785,8 +792,9 @@ class TrendReport(object):
                 testIndex += 1
                 if debug:
                     # Only for generate an example diagram
-                    if (not test.startswith('04ad_')) and (not test.startswith('07dc_')) :
+                    if (not test.startswith('04ad_')) and (not test.startswith('07dc_')) and (not test.startswith('80ab_scalesort-scale(16)')):
                         continue
+                    
                     
                 isShortlisted = False
                 dataPoints = len(self.results2[cluster][test]['Values2'])
