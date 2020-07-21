@@ -180,9 +180,17 @@ class WriteStatsToFile(object):
         self.url = "http://" + self.host + ":8010/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
         
         if options.jobNameSuffix != "":
-            self.jobNameSuffix = options.jobNameSuffix.replace('#','%23')
-            if not self.jobNameSuffix.startswith('-'):
+            if not options.jobNameSuffix.startswith('-'):
+                if not options.jobNameSuffix.startswith('#'):
+                    self.jobNameSuffix = '%23' + options.jobNameSuffix
+                else:
+                    self.jobNameSuffix = options.jobNameSuffix.replace('#','%23')
+                
                 self.jobNameSuffix = '-' + self.jobNameSuffix
+            elif options.jobNameSuffix.startswith('-#'):
+                self.jobNameSuffix = options.jobNameSuffix.replace('#','%23')
+            else:
+                self.jobNameSuffix = '-%23' + options.jobNameSuffix[1:]
             pass
         
         self.dateTransform = False
