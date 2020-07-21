@@ -156,6 +156,6 @@ do
 
 done
 
-printf "day counts:%d\n" $dayCount
+printf "day counts:%d\n" "$dayCount"
 
 #sudo service ntpd start

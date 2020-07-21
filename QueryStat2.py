@@ -418,7 +418,11 @@ class WriteStatsToFile(object):
         today = datetime.today()
         if dateStr == '':
             dateStr = today.strftime("%y%m%d")
-        queryJobname = "*" + self.jobNameSuffix + "-" + dateStr + "-*"
+        if self.jobNameSuffix != '':
+            queryJobname = "*" + self.jobNameSuffix + "-*"
+        else:
+            queryJobname = "*-" + dateStr + "-*"
+            
         self.myPrint("queryJobname:" + queryJobname)
         url += "&Jobname=" + queryJobname
         print("query:" + url)
