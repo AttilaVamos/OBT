@@ -28,10 +28,10 @@ GetCommitSha()
 
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
-firstDate="2020-06-23"
+firstDate="2020-06-24"
 sourceDate=$firstDate
 testDate=$( date -I -d "$firstDate + 1 day" )
-lastDate="2020-07-06"
+lastDate="2020-06-27"
 
 printf "from %s to %s\n" "$firstDate" "$lastDate"
 printf "#\n" > ${targetFile}

@@ -8,6 +8,9 @@ from reportlab.lib.styles import getSampleStyleSheet #, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.platypus.tables import *
 from reportlab.platypus.flowables import PageBreak, Spacer
+from reportlab.graphics.charts.lineplots import LinePlot
+from reportlab.graphics.widgets.markers import makeMarker
+from reportlab.graphics.shapes import Drawing
 
 
 class PdfPerfReportGen(object):
@@ -95,8 +98,57 @@ class PdfPerfReportGen(object):
             
         for s in aStyle:
             self.style.append(s)
+    
+    def addDiagram(self,  aDiagramData):
+        dataPoints = len(aDiagramData[1])
+        drawing = Drawing(16*cm, 200)
+#        data = [
+#            ((1,1), (2,2), (2.5,1), (3,3), (4,5)),
+#            ((1,2), (2,3), (2.5,2), (3.5,5), (4,6))
+#        ]
+        data = [
+            ([(i,aDiagramData[2][i]) for i in range(dataPoints)]), 
+            ([(i, i * aDiagramData[3][0] + aDiagramData[3][1]) for i in range(dataPoints)])
+            ]
+        lp = LinePlot()
+        lp.x = 50
+        lp.y = 50
+        lp.height = 150
+        lp.width = 15*cm
+        lp.data = data
+        lp.lineLabelFormat ='values'
+        lp.lineLabelArray = aDiagramData[1]
+        #lp.categoryAxis.categoryNames = aDiagramData[1]
+        lp.joinedLines = 1
+        lp.lines[0].symbol = makeMarker('FilledCircle')
+        lp.lines[1].symbol = makeMarker('Circle')
+        lp.lineLabelFormat = '%0.3f'
+        lp.strokeColor = colors.black
+        lp.xValueAxis.valueMin = -1
+        lp.xValueAxis.valueMax = dataPoints
+        lp.xValueAxis.valueSteps = range(dataPoints)
+        def formatter(val):
+            retVal = aDiagramData[1][val]
+            return retVal
             
+        lp.xValueAxis.labelTextFormat = formatter # '%s' #'%2.1f'
+        lp.yValueAxis.valueMin = min(aDiagramData[2]) * 0.8
+        lp.yValueAxis.valueMax = max(aDiagramData[2]) * 1.2
+        lp.yValueAxis.valueSteps = [min(aDiagramData[2]), max(aDiagramData[2])]
+        drawing.add(lp)
+        self.data.append([aDiagramData[0], drawing])
+        self.style.append(('SPAN',  (1, self.row),  (9, self.row)))
+        self.row += 1
+    
     def addTableRow(self,  aData):
+        # aData is a list of 10 items, where
+        # index           meanings
+        # --------------------------------------------------------
+        # 0               test name
+        # 1,2,3           two days alpha, direction and percentage               
+        # 4,5,6           five days alpha, direction and percentage
+        # 7,8,9           all days alpha, direction and percentage
+        #
         self.data.append(aData)
         if 'increased' in aData[2]:
             self.style.append(('BACKGROUND',(1,self.row),(3,self.row), colors.red))
@@ -143,8 +195,8 @@ class PdfPerfReportGen(object):
             ]
             
         data= [
-            ['01aa_createfixed32-timeactivities(false)',0.010000,'unaltered',0.313972,-0.035900,'unaltered',-1.121525,-0.118625,'unaltered',-2.697862],
-            ['01aa_createfixed32-timeactivities(true)',1.437000,'increased',40.627651,0.280800,'increased',7.872161,0.001383,'unaltered',0.027957], 
+            ['01aa_createfixed32-timeactivities(false)',0.260000,'increased',7.633588,-0.087700,'unaltered',-2.162229,0.003516,'unaltered',0.102547], 
+            ['01aa_createfixed32-timeactivities(true)',0.058000,'unaltered',1.472455,-0.086500,'unaltered',-1.967698,-0.003532,'unaltered',-0.085209], 
             ['01ab_createunorderedappend',1.751000,'unaltered',4.099550,0.514900,'unaltered',1.227794,-2.936405,'unaltered',-3.638127], 
             ['01ac_createorderappend',0.104000,'unaltered',2.512684,-0.019800,'unaltered',-0.457698,-0.149113,'unaltered',-2.466718], 
             ['01ad_createmanycount',0.072000,'unaltered',0.340845,-0.044400,'unaltered',-0.208441,-32.269804,'decreased',-7.904151], 
@@ -159,6 +211,22 @@ class PdfPerfReportGen(object):
             ['01ba_writefixed32',0.033000,'unaltered',0.635838,0.025800,'unaltered',0.504596,-0.092458,'unaltered',-1.468292]
             ]
         
+        diagramXLabes = ['17/01/16','17/01/17','17/01/18','17/01/19','17/01/20']
+        # [4.056, 3.503, 3.523, 3.406, 3.666]
+        # y = -0.0877 * x +3.8939 --> unaltered (-2.1622 %)
+        # [4.396, 4.006, 4.181, 3.939, 3.997]
+        # y = -0.0865 * x +4.3633 --> unaltered (-1.9677 %)
+        
+        diagramData = [
+                [4.056, 3.503, 3.523, 3.406, 3.666], 
+                [4.396, 4.006, 4.181, 3.939, 3.997]
+            ]
+            
+        diagramTrends = [
+            [-0.0877, 3.8939],
+            [-0.0865, 4.3633]
+            ]
+            
         headerStyle=[
          # Header
          ('SPAN',  (0, 0),  (0, 1)),
@@ -191,9 +259,9 @@ class PdfPerfReportGen(object):
         self.newTable()
         self.setTableHeader(headerData, headerStyle)
         #self.setTableHeader()
-        for d in data:
-            self.addTableRow(d)
-            
+        for i in range(len(diagramData)):
+            self.addTableRow(data[i])
+            self.addDiagram([data[i][0], diagramXLabes,  diagramData[i],  diagramTrends[i]]) 
         self.addTableToStory()
         
         self.startNewSection("Thor results:",  True)

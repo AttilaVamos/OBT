@@ -6,7 +6,8 @@
 #
 
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
+   
 import re
 from datetime import datetime,  timedelta
 from optparse import OptionParser
@@ -15,13 +16,13 @@ import sys
 import inspect
 import os
 import traceback
-import ConfigParser
+import configparser
 import time
 
 class HThorPerfResultConfig():
    
     def __init__(self, iniFile = ''):
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.optionxform = str
         self.engine = 'hthor'
        
@@ -37,7 +38,7 @@ class HThorPerfResultConfig():
         try:
             self.config.set( section, key, value )
             
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             self.config.add_section(section)
             self.config.set( section, key, value )
         except:
@@ -88,12 +89,12 @@ class HThorPerfResultConfig():
             
     def resolve(self):
         print("---------------------------------------------")
-        print("%s" % (self.engine))
+        print(("%s" % (self.engine)))
         for section in self.config.sections():
-            print("\t%s" % (section))
+            print(("\t%s" % (section)))
             for option in self.config.options(section):
                 value = self.config.get(section, option)
-                print("\t\toriginal: %s = %s" % (option, value))
+                print(("\t\toriginal: %s = %s" % (option, value)))
                 # TO-DO
                 # Find all "word" starting with '$' and optionally enclosed with '{' and '}' in the value 
                 SetEnvPattern = re.compile("(\$\{?\w+\}?)")
@@ -118,7 +119,7 @@ class HThorPerfResultConfig():
                         
                 # Set the updated/resolved value back to the config.
                 self.config.set(section, option, value)
-                print("\t\tresolved: %s = %s" % (option, value))
+                print(("\t\tresolved: %s = %s" % (option, value)))
         pass
 
 class ThorPerfResultConfig( HThorPerfResultConfig ):
@@ -209,28 +210,28 @@ class WriteStatsToFile(object):
             else:
                 # Invalid date, date transform not allowed
                 self.dateTransform = False
-                print("Invalid date: '%s' for transform, ignored." % (options.dateTransform))
+                print(("Invalid date: '%s' for transform, ignored." % (options.dateTransform)))
             
             if self.dateTransform:
-                print("Using date: '%s' -> '%s' to transform date stamp in jobname(s) and to store result file." % (options.dateTransform, self.newDate))
+                print(("Using date: '%s' -> '%s' to transform date stamp in jobname(s) and to store result file." % (options.dateTransform, self.newDate)))
             
             pass
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
         self.queryHpccVersion()
         
-        print("self.destPath: '" + self.destPath + "'")
-        print("self.host    : '" + self.host + "'")
-        print("self.url     : '" + self.url + "'")
-        print("self.dateStr : '" + str(self.dateStr) + "'")
-        print("self.verbose : " + str(self.verbose))
-        print("hpccVersion  : " + self.hpccVersionStr)
+        print(("self.destPath: '" + self.destPath + "'"))
+        print(("self.host    : '" + self.host + "'"))
+        print(("self.url     : '" + self.url + "'"))
+        print(("self.dateStr : '" + str(self.dateStr) + "'"))
+        print(("self.verbose : " + str(self.verbose)))
+        print(("hpccVersion  : " + self.hpccVersionStr))
         pass
         
     def myPrint(self, Msg, *Args):
         if self.verbose:
             format=''.join(['%s']*(len(Args)+1)) 
-            print(format % tuple([Msg]+map(str,Args)) )
+            print((format % tuple([Msg]+list(map(str,Args))) ))
             
     def run(self):
         # TODO Add '*' to date string to query all missing datafiles from today backward
@@ -246,7 +247,7 @@ class WriteStatsToFile(object):
             files = glob.glob(self.destPath+'perfstat-*.csv')
             files.sort()
             for fileName in files:
-                print("File name: " + fileName)
+                print(("File name: " + fileName))
                 nameItems = fileName.replace('./', '').replace('.csv', '').split('-')
                 if len(nameItems) < 3:
                     print("Wrong file name!")
@@ -265,7 +266,7 @@ class WriteStatsToFile(object):
             stepBack = True
             stepBackCounter = 11
             while stepBack and (stepBackCounter > 0):
-                print("Day: " + dayStr)
+                print(("Day: " + dayStr))
                 if dayStr not in existFiles:
                     existFiles[dayStr] = set()
                     for cluster in self.clusters:
@@ -322,13 +323,13 @@ class WriteStatsToFile(object):
             wuQuery = "http://" + self.host + ":8010/WsWorkunits/WUInfo.json?Wuid="+wuid
             resp = None
             try:
-                response_stream = urllib2.urlopen(wuQuery)
+                response_stream = urllib.request.urlopen(wuQuery)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
             except:
-                print("Network error in checkJobname('%s', '%s')" % (wuid, jobname))
-                print("BadStatusLine exception with '%s'" % (wuQuery))
+                print(("Network error in checkJobname('%s', '%s')" % (wuid, jobname)))
+                print(("BadStatusLine exception with '%s'" % (wuQuery)))
                 # ESP server on the other side is crashed and its need some time to recover.
                 time.sleep(20)
                 pass
@@ -387,7 +388,7 @@ class WriteStatsToFile(object):
         url = 'http://' + self.host + ':8010/WsWorkunits/WUCheckFeatures.json'
         state = 'OK'
         try:
-            response_stream = urllib2.urlopen(url)
+            response_stream = urllib.request.urlopen(url)
             json_response = response_stream.read()
             resp = json.loads(json_response)
             if 'WUCheckFeaturesResponse' in resp:
@@ -401,22 +402,22 @@ class WriteStatsToFile(object):
             pass
         except KeyError as ke:
             state = "Key error:"+ke.str()
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
-        except urllib2.HTTPError as ex:
+        except urllib.error.HTTPError as ex:
             state = "HTTP Error: "+ str(ex.reason)
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             state = "URL Error: "+ str(ex.reason) + " (perhaps service down on host)."
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
         except Exception as ex:
             state = "Unable to query "+ str(ex.reason)
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
         finally:
-            print("State:" + state)
+            print(("State:" + state))
             if state != 'OK':
                 exit()
             print("End.")
@@ -433,7 +434,7 @@ class WriteStatsToFile(object):
             
         self.myPrint("queryJobname:" + queryJobname)
         url += "&Jobname=" + queryJobname
-        print("query:" + url)
+        print(("query:" + url))
         
         self.resultConfigClass[cluster].set('Result',  'Date',  dateStr)
         self.resultConfigClass[cluster].set('Result',  'Query',  url)
@@ -443,7 +444,7 @@ class WriteStatsToFile(object):
         wuCount = 0
         try:
             try:
-                response_stream = urllib2.urlopen(url)
+                response_stream = urllib.request.urlopen(url)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
@@ -456,7 +457,7 @@ class WriteStatsToFile(object):
             else:
                 statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-" + self.hpccVersionStr +".csv"
 
-            print("statFileName:" + statFileName)
+            print(("statFileName:" + statFileName))
             self.resultConfigClass[cluster].set('Result',  'DataFileName',  statFileName)
             
             if'Workunits' not in resp['WUQueryResponse']:
@@ -465,7 +466,7 @@ class WriteStatsToFile(object):
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
             
-            print("Number of workinits in result is: %d" % ( len(stats) ))
+            print(("Number of workinits in result is: %d" % ( len(stats) )))
 
             statFile = open(statFileName,  "w")
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
@@ -506,42 +507,42 @@ class WriteStatsToFile(object):
             # Remove old file (name without hpcc version) if exists
             oldstatFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + ".csv"
             if os.path.exists(oldstatFileName):
-                print("Remove old resultfile '%s'" % (oldstatFileName))
+                print(("Remove old resultfile '%s'" % (oldstatFileName)))
                 os.unlink(oldstatFileName)
                
     
         except KeyError as ke:
             state = "Key error:"+ke.str()
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
-        except urllib2.HTTPError as ex:
+        except urllib.error.HTTPError as ex:
             state = "HTTP Error: "+ str(ex.reason)
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             state = "URL Error: "+ str(ex.reason) + " (perhaps service down on host)."
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
         except ZeroDivisionError as ex:
             state = "ZeroDivisionErr "
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
             
         except Exception as ex:
             state = "Unable to query "+ str(ex.reason)
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
 
         except UnboundLocalError as ex:
             state = "Unbound Local Error "+ str(ex.reason)
-            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
             
         finally:
-            print("State:" + state)
+            print(("State:" + state))
             if wuCount == 0:
                 return False
                 
             if state != 'OK':
                 exit()
-            print("Recieved Workunit count is: %d" %(wuCount))
+            print(("Recieved Workunit count is: %d" %(wuCount)))
             
             self.resultConfigClass[cluster].set('Result',  'WorkunitCount',  str(wuCount))
             self.resultConfigClass[cluster].set('Result',  'Status',  state)
@@ -596,7 +597,7 @@ if __name__ == '__main__':
         wstf = WriteStatsToFile( options)
         wstf.run()
     except Exception as ex:
-        print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+        print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
         traceback.print_stack()
         
     print("End...")

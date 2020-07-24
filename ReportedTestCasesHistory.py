@@ -18,7 +18,7 @@ def PrintException(msg = ''):
     filename = f.f_code.co_filename
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
-    print 'EXCEPTION IN ({}, LINE {} CODE:"{}"): {}'.format( filename, lineno, line.strip(), msg)
+    print ('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
 
 class ReportedTestCasesHistory(object):
     
@@ -314,10 +314,10 @@ class ReportedTestCasesHistory(object):
 #-------------------------------------------
 # Main
 if __name__ == '__main__':
-    print "Start..."
+    print("Start...")
 
     path = '.'
-    fileName = "PerformanceIssues-all2.csv"
+    fileName = "PerformanceIssues-test.csv"
 
     # Test with explicit muber of days
     rtch = ReportedTestCasesHistory(fileName,  5,  True)

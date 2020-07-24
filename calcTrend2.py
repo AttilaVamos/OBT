@@ -17,14 +17,19 @@ import inspect
 import traceback
 import linecache
 import re
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    # Python3
+    import configparser as ConfigParser
+
 
 try:
     import matplotlib as mpl
     mpl.use('Agg')           # use a non-interactive backend
     import matplotlib.pyplot as plt
-except ImportError:
-    print("Error in import matplotlib: %s" % (ImportError.str()) )
+except ImportError as e:
+    print("Error in import matplotlib: %s" % (repr(e)) )
     plt = None
 finally:
     pass
@@ -46,7 +51,7 @@ def PrintException(msg = ''):
     filename = f.f_code.co_filename
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
-    print 'EXCEPTION IN ({}, LINE {} CODE:"{}"): {}'.format( filename, lineno, line.strip(), msg)
+    print ('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
 
 class TrendReport(object):
     # To decide time consumption is increased (>threshold), unaltered (-threshold< <threshold) 
@@ -59,7 +64,7 @@ class TrendReport(object):
     def myPrint(self, Msg, *Args):
         if self.verbose:
             format=''.join(['%s']*(len(Args)+1)) 
-            print format % tuple([Msg]+map(str,Args)) 
+            print( format % tuple([Msg]+map(str,Args)) )
     
     def __init__(self, options):
         if options.dataPath.startswith('~/'):
