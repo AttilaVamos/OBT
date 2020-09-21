@@ -686,52 +686,63 @@ then
     # Check if HPCC can generate core with execute ECL code
     #
     
-    cd ${BIN_HOME}
-
-    WriteLog "Check ECL core generation." "${PERF_TEST_LOG}"
-
-    res=$( ulimit -a | grep '[c]ore' )
-
-    WriteLog "ulimit: ${res}" "${PERF_TEST_LOG}"
-
-    ./checkCoreGen.sh ecl >> "${PERF_TEST_LOG}" 2>&1
-
-    cd ${TEST_ENGINE_HOME}
-
-    # Add Write permission to /var/lib/HPCCSystems and its subdiretories
-    ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
-
-    WriteLog "Check ECL core generation with Regression Test Engine." "${PERF_TEST_LOG}"
-
-    CMD="./ecl-test --suiteDir ${BIN_HOME} --timeout 15 -fthorConnectTimeout=36000 run -t all"
-
-    WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
-    
-    ${CMD} >> ${PERF_TEST_LOG} 2>&1
-        
-    retCode=$( echo $? )
-    WriteLog "retcode: ${retCode}" "${PERF_TEST_LOG}"
-    
-    cores=( $( find /var/lib/HPCCSystems/ -name 'core_*' -type f ) )
-
-    if [ ${#cores[@]} -ne 0 ]
+    if [[ ${PERF_RUN_CORE_TEST} -eq 1 ]]
     then
-        WriteLog "There is/are ${#cores[@]} core file(s) '${cores[*]}'" "${PERF_TEST_LOG}"
-        if [ ${#cores[@]} -eq 3 ]
-        then
-            WriteLog "Core generation is OK!" "${PERF_TEST_LOG}"
-        else
-            WriteLog "Core generation failed on some platform(s)!" "${PERF_TEST_LOG}"
-        fi
-        WriteLog "Clean up." "${PERF_TEST_LOG}"
+        cd ${BIN_HOME}
 
-        ${SUDO} rm -f ${cores[*]}
-        rm eclcc.log
-    else
-        WriteLog "Problem with Core generation!" "${PERF_TEST_LOG}"
+        WriteLog "Check ECL core generation." "${PERF_TEST_LOG}"
+
+        res=$( ulimit -a | grep '[c]ore' )
+
+        WriteLog "ulimit: ${res}" "${PERF_TEST_LOG}"
+
+        ./checkCoreGen.sh ecl >> "${PERF_TEST_LOG}" 2>&1
+
+        cd ${TEST_ENGINE_HOME}
+
+    if  [[ -f ~/build/bin/util.py ]] 
+    then
+        WriteLog "Hack Regression Test Engine." "${PERF_TEST_LOG}"
+        cp ~/build/bin/util.py hpcc/util/util.py
     fi
 
-    rm -rf ${LOG_DIR}/*
+        # Add Write permission to /var/lib/HPCCSystems and its subdiretories
+        ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
+
+        WriteLog "Check ECL core generation with Regression Test Engine." "${PERF_TEST_LOG}"
+
+    CMD="./ecl-test run --suiteDir ${BIN_HOME} --timeout 15 -fthorConnectTimeout=36000 -t all"
+
+        WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
+    
+        ${CMD} >> ${PERF_TEST_LOG} 2>&1
+        
+        retCode=$( echo $? )
+        WriteLog "retcode: ${retCode}" "${PERF_TEST_LOG}"
+    
+        cores=( $( find /var/lib/HPCCSystems/ -name 'core_*' -type f ) )
+
+        if [ ${#cores[@]} -ne 0 ]
+        then
+            WriteLog "There is/are ${#cores[@]} core file(s) '${cores[*]}'" "${PERF_TEST_LOG}"
+            if [ ${#cores[@]} -eq 3 ]
+            then
+                WriteLog "Core generation is OK!" "${PERF_TEST_LOG}"
+            else
+                WriteLog "Core generation failed on some platform(s)!" "${PERF_TEST_LOG}"
+            fi
+            WriteLog "Clean up." "${PERF_TEST_LOG}"
+
+            ${SUDO} rm -f ${cores[*]}
+            rm eclcc.log
+        else
+            WriteLog "Problem with Core generation!" "${PERF_TEST_LOG}"
+        fi
+
+        rm -rf ${LOG_DIR}/*
+    else
+        WriteLog "Check core generation skipped." "${PERF_TEST_LOG}"
+    fi
     
     #
     #---------------------------
@@ -863,7 +874,7 @@ then
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
     WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
-    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
+    CMD="./ecl-test setup --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
     
@@ -884,7 +895,7 @@ then
             ProcessLog "setup_roxie"
         fi
     else
-        WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
+        WriteLog "Skip performance test setup execution!" "${PERF_TEST_LOG}"
         WriteLog "                                      " "${PERF_TEST_LOG}"        
     fi
 
@@ -902,9 +913,9 @@ then
     
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test query --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test run --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
@@ -1244,7 +1255,7 @@ then
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
     WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
-    CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 setup -t thor,roxie --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
+    CMD="./ecl-test setup --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t thor,roxie --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
 
     WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
     
@@ -1282,9 +1293,9 @@ then
 
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test query --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test run --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "${CMD}" "${PERF_TEST_LOG}"
@@ -1548,9 +1559,9 @@ then
     
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 query -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test query --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST} ${JOB_NAME_SUFFIX}"
     else
-        CMD="./ecl-test --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 run -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
+        CMD="./ecl-test run --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t ${TARGET_PLATFORM} ${PERF_EXCLUDE_CLASS} --pq ${PERF_TEST_PARALLEL_QUERIES} ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${JOB_NAME_SUFFIX}"
     fi
 
     WriteLog "${CMD}" "${PERF_TEST_LOG}"

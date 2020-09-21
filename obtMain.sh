@@ -984,7 +984,9 @@ then
 
         WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
 
-        ./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+        WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
+        #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+        python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
 
         WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
 

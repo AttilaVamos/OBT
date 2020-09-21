@@ -28,8 +28,6 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 
 BRANCH_ID=master
 
-#BRANCH_ID=candidate-7.4.x
-
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
@@ -48,14 +46,14 @@ then
 	)
 else
 	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' 'master' )
+	BRANCHES_TO_TEST=( 'candidate-7.6.x' 'candidate-7.8.x' 'candidate-7.10.x' 'master' )
 
 	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_1=("BRANCH_ID=candidate-7.6.x")
-	RUN_2=("BRANCH_ID=candidate-7.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_3=("BRANCH_ID=candidate-7.8.x")
-	RUN_4=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_0=("BRANCH_ID=candidate-7.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_1=("BRANCH_ID=candidate-7.8.x")
+	RUN_2=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_3=("BRANCH_ID=candidate-7.10.x")
+	RUN_4=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
 	RUN_5=("BRANCH_ID=master")
 
 
@@ -567,6 +565,9 @@ PERF_USE_TBBMALLOC=1
 PERF_RUN_HTHOR=1
 PERF_RUN_THOR=1
 PERF_RUN_ROXIE=1
+
+# To controll core generation and logging test
+PERF_RUN_CORE_TEST=1
 
 # Control Performance test cluster
 PERF_NUM_OF_NODES=1

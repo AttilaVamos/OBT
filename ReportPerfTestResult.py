@@ -491,6 +491,9 @@ class BuildNotification(object):
                 print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
                 traceback.print_stack()
                 pass
+        else:
+            print("ReportedTestCasesHistory not found.")
+            self.logReport['stats'] = {}
              
         # It should be a global parameter enableAttachDiagrams or something 
         # similar from .ini
@@ -627,8 +630,9 @@ class BuildNotification(object):
             
             for item in sequence:
                 if item == 'stats':
-                    for statsItem in statsSeq:
-                        logRecordFile.write("%d\t" % (self.logReport[item][statsItem]))
+                    if len(self.logReport['stats']) > 0:
+                        for statsItem in statsSeq:
+                            logRecordFile.write("%d\t" % (self.logReport[item][statsItem]))
                 else:
                     logRecordFile.write("%s\t" % (self.logReport[item]))
                 

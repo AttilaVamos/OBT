@@ -28,8 +28,6 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 
 BRANCH_ID=master
 
-#BRANCH_ID=candidate-7.4.x
-
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
@@ -48,14 +46,14 @@ then
 	)
 else
 	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' 'master' )
+	BRANCHES_TO_TEST=( 'candidate-7.6.x' 'candidate-7.8.x' 'candidate-7.10.x' 'master' )
 
 	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_1=("BRANCH_ID=candidate-7.6.x")
-	RUN_2=("BRANCH_ID=candidate-7.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_3=("BRANCH_ID=candidate-7.8.x")
-	RUN_4=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_0=("BRANCH_ID=candidate-7.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_1=("BRANCH_ID=candidate-7.8.x")
+	RUN_2=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_3=("BRANCH_ID=candidate-7.10.x")
+	RUN_4=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
 	RUN_5=("BRANCH_ID=master")
 
 
@@ -276,11 +274,11 @@ WEB_LOG_ARCHIEVE_DIR_EXPIRE=60 # days
 # Monitors
 #
 
-PORT_MONITOR_START=1
+PORT_MONITOR_START=0
 
-DISK_SPACE_MONITOR_START=1
+DISK_SPACE_MONITOR_START=0
 
-MY_INFO_MONITOR_START=1
+MY_INFO_MONITOR_START=0
 
 
 #
@@ -556,17 +554,20 @@ RUN_WUTOOL_TESTS=0
 #
 
 # Enable rebuild HPCC before execute Performance Suite
-PERF_BUILD=1
+PERF_BUILD=0
 PERF_BUILD_TYPE=RelWithDebInfo
 
-PERF_CONTROL_TBB=0
+PERF_CONTROL_TBB=1
 PERF_USE_TBB=1
-PERF_USE_TBBMALLOC=1
+PERF_USE_TBBMALLOC=0
 
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=1
 PERF_RUN_THOR=1
 PERF_RUN_ROXIE=1
+
+# To controll core generation and logging test
+PERF_RUN_CORE_TEST=0
 
 # Control Performance test cluster
 PERF_NUM_OF_NODES=1
@@ -613,7 +614,7 @@ PERF_ROXIE_MEMSIZE_GB=4
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
 # 1 - execute RE to run Performance Suite
-EXECUTE_PERFORMANCE_SUITE_SETUP=1
+EXECUTE_PERFORMANCE_SUITE_SETUP=0
 
 # Control to Regression Engine
 # 0 - skip Regression Engine execution (dry run to test framework)
@@ -642,10 +643,11 @@ PERF_TEST_PARALLEL_QUERIES=1
 
 PERF_EXCLUDE_CLASS="-e stress"
 #PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
+PERF_QUERY_LIST="02bb_sort*"
 
 PERF_FLUSH_DISK_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
 # Dont use this setting (yet)
-#PERF_RUNCOUNT="--runcount 2"
+#PERF_RUNCOUNT="--runcount 20"
 
 PERF_TEST_MODE="STD"
 

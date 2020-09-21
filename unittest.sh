@@ -344,7 +344,7 @@ do
     fi
     WriteLog "WatchDog (${wdPid}) is still running. Wait ${DELAY} sec and try again." "$UNITTEST_LOG_FILE"
 
-    [ -n "$(pgrep WatchDog)" ] && sudo pkill WatchDog.py
+    [ -n "$(pgrep -f WatchDog.py)" ] && sudo kill -9 $(pgrep -f WatchDog.py)
 
 done
 
