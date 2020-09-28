@@ -566,6 +566,7 @@ do
             failed=$(cat ${inFile} | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
             elapsed=$(cat ${inFile} | sed -n "s/^Elapsed time: \(.*\)$/\1/p")
             #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
+            [ -z $failed ] && failed=1
             [[ $failed -gt 0 ]] && export setupFailed=1
         fi
 
@@ -643,7 +644,10 @@ do
             elapsed=$(cat ${inFile} | sed -n "s/^Elapsed time: \(.*\)$/\1/p")
 
             #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
+            [ -z $failed ] && failed=1
+
             [ $failed -gt 0 ] && export testFailed=1
+
         fi
         
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
