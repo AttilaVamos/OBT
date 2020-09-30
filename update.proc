@@ -3,7 +3,7 @@
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 #set -x
 
-echo "Update start..."
+echo "Update starts ..."
 cw=$(pwd)
 OBT_DIR="$HOME/build/bin"
 
