@@ -24,9 +24,9 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 #
 #----------------------------------------------------
 #
-# from 2016-11-30 onward
+#
 
-BRANCH_ID=master
+BRANCH_ID=candidate-7.8.x
 
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
@@ -62,10 +62,7 @@ else
 	  RUN_1[@]
 	  RUN_2[@]
 	  RUN_3[@]
-	  RUN_4[@]
-	  RUN_5[@]
 	)
-
 fi
 #
 #----------------------------------------------------
@@ -147,7 +144,7 @@ fi
 # Common macros
 
 RELEASE_BASE=$BRANCH_ID
-STAGING_DIR_ROOT=/common/nightly_builds/HPCC/
+STAGING_DIR_ROOT=/tmount/data2/nightly_builds/HPCC
 STAGING_DIR=${STAGING_DIR_ROOT}/$RELEASE_BASE
 
 SHORT_DATE=$(date "+%Y-%m-%d")
@@ -179,8 +176,8 @@ else
 fi
 
 
-OBT_SYSTEM=OBT-010
-OBT_SYSTEM_ENV=TestFarm2
+OBT_SYSTEM=OBT-24
+OBT_SYSTEM_ENV=SmallVM
 
 BUILD_SYSTEM=${SYSTEM_ID}
 RELEASE_TYPE=CE/platform
@@ -205,7 +202,7 @@ ZAP_DIR=$REGRESSION_RESULT_DIR/zap
 
 LOG_DIR=~/HPCCSystems-regression/log
 
-BIN_HOME=~
+BIN_HOME=~/
 
 DEBUG_BUILD_DAY=6
 BUILD_TYPE=RelWithDebInfo
@@ -219,8 +216,8 @@ fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
-MAKE_WSSQL=1
-USE_LIBMEMCACHED=1
+MAKE_WSSQL=0
+USE_LIBMEMCACHED=0
 ECLWATCH_BUILD_STRATEGY=IF_MISSING
 ENABLE_SPARK=0
 SUPPRESS_SPARK=1
@@ -252,13 +249,13 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 
 
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=1  # days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=5  # today + BUILD_DIR_EXPIRE days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
-SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
+SOURCE_DIR_MAX_NUMBER=4 # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
 
-BUILD_DIR_EXPIRE=1   # days
-BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
+BUILD_DIR_EXPIRE=5   # today + BUILD_DIR_EXPIRE days
+BUILD_DIR_MAX_NUMBER=4   # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
 
 
 # Local log archive
@@ -296,7 +293,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=1
+BUILD_DOCS=0
 
 
 #
@@ -324,6 +321,7 @@ then
 
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_REMBED=ON"
 fi
+
 
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
@@ -478,6 +476,7 @@ PYTHON_PLUGIN=''
 COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
 
+
 #echo "Regression exclusion: ${REGRESSION_EXCLUDE_CLASS}"
 
 #
@@ -488,7 +487,7 @@ COUCHBASE_USER=centos
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=1
+RUN_COVERITY=0
 COVERITY_TEST_DAY=1	# Monday
 COVERITY_TEST_BRANCH=master
 
@@ -574,25 +573,13 @@ PERF_NUM_OF_NODES=1
 PERF_IP_OF_NODES=( '127.0.0.1' )
 
 # totalMemoryLimit for Hthor
-PERF_HTHOR_MEMSIZE_GB=4
-
-# For tuning test preparation
-#PERF_HTHOR_MEMSIZE_GB=8     # 2nd run on 2016-11-03  done
-#PERF_HTHOR_MEMSIZE_GB=16    # 2nd run on 2016-11-04  done
-#PERF_HTHOR_MEMSIZE_GB=24    # 2nd run on 2016-11-05  done
-#PERF_HTHOR_MEMSIZE_GB=32    # 2nd run on 2016-11-06  done
-#PERF_HTHOR_MEMSIZE_GB=64    # 2nd run on 2016-11-07  done
-
+#PERF_HTHOR_MEMSIZE_GB=4
+# Set it to 4 GB to reproduce OOm-killer for 
+# 07dc_keyedjoinlimit_hit3.ecl and 07ec_keyedjoinkeylimit_hit3.ecl
+PERF_HTHOR_MEMSIZE_GB=3
 
 # totalMemoryLimit for Thor
-PERF_THOR_MEMSIZE_GB=4
-
-# For tuning test preparation
-#PERF_THOR_MEMSIZE_GB=8      # 2nd run on 2016-11-03 done
-#PERF_THOR_MEMSIZE_GB=16     # 2nd run on 2016-11-04 done
-#PERF_THOR_MEMSIZE_GB=24     # 2nd run on 2016-11-05 done
-#PERF_THOR_MEMSIZE_GB=32     # 2nd run on 2016-11-06 done
-#PERF_THOR_MEMSIZE_GB=64     # 2nd run on 2016-11-07 done
+PERF_THOR_MEMSIZE_GB=3
 
 PERF_THOR_NUMBER_OF_SLAVES=4
 #if not already defined (by the sequencer) then define it
@@ -601,15 +588,7 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=100
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=4
-
-# For tuning test preparation
-#PERF_ROXIE_MEMSIZE_GB=8     # 2nd run on 2016-11-03 done
-#PERF_ROXIE_MEMSIZE_GB=16    # 2nd run on 2016-11-04 done
-#PERF_ROXIE_MEMSIZE_GB=24    # 2nd run on 2016-11-05 done
-#PERF_ROXIE_MEMSIZE_GB=32    # 2nd run on 2016-11-06 done
-#PERF_ROXIE_MEMSIZE_GB=64    # 2nd run on 2016-11-07 done
-
+PERF_ROXIE_MEMSIZE_GB=3
 
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)

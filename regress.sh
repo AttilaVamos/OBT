@@ -210,6 +210,14 @@ fi
 
 [ -z $NUMBER_OF_HPCC_COMPONENTS ] && NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
 
+
+# Hack SELinux
+WriteLog  "Hack SELinux." "${REGRESS_LOG_FILE}"
+
+sudo chcon -R unconfined_u:object_r:user_home_t:s0 /home/hpcc/.ssh/
+
+
+
 #
 #---------------------------
 #

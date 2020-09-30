@@ -51,6 +51,8 @@ CreateMyCrashCpp()
 CreateMyCrashEcl()
 {
     WriteLog "Create $ECL_SOURCE_NAME source file..." "${CRASH_TEST_LOG_FILE}"
+
+    [[ ! -d ecl ]] && mkdir ecl
     
     echo 'boolean seg() := beginc++ #option action' >  $ECL_SOURCE_NAME
     echo '    #include <csignal>'                   >> $ECL_SOURCE_NAME

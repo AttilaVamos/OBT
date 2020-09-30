@@ -218,9 +218,11 @@ ulimit -s 81920
 
 WriteLog "Increase number of user process to 262144." "${OBT_LOG_FILE}"
 ulimit -u 524288
+#ulimit -u 262144 # for small VM
 
 WriteLog "Increase number of open files to 262144." "${OBT_LOG_FILE}"
 ulimit -n 524288
+#ulimit -n 262144 # for small VM
 
 res=$( ulimit -a | egrep '[pr]ocesses|open|stack' )
 
