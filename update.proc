@@ -54,3 +54,6 @@ fi
 echo "End @ "$( date "+%Y-%m-%d %H:%M:%S" )"."   >> ${logFile} 2>&1
 echo "------------------------------------------" >> ${logFile} 2>&1
 echo ""   >> ${logFile} 2>&1
+
+bash -c " sleep 1; echo \"self update\"; cp update.proc update.sh "
+
