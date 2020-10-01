@@ -542,7 +542,20 @@ fi
     cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
     sed  -e '/^ObtLogDir : \(.*\)/c ObtLogDir : '${OBT_LOG_DIR} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini 
 
-
+    if [ -n "$OBT_ID" ]
+    then
+        sender=${OBT_ID,,}
+        
+        WriteLog "Update 'Sender' in BuildNotification.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
+        cp -f ./BuildNotification.ini ./BuildNotification.bak
+        sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini 
+    
+        WriteLog "Update 'Sender' in ReportPerfTestResult.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
+        cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
+        sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
+    
+    fi
+    
     # Check if it is an old OBT system with 'urlBase : http://<IP>/data2/...'
     isOldOBT=$(  cat BuildNotification.ini | grep -c -i 'data2' )
 
