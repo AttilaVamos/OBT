@@ -492,6 +492,16 @@ fi
     sed  -e '/^ThorChannelsPerSlave : \(.*\)/c ThorChannelsPerSlave : '${PERF_NUMBER_OF_THOR_CHANNELS} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
  
 
+    WriteLog "Update 'urlBase ' in BuildNotification.ini to ${URL_BASE}" "${OBT_LOG_FILE}"
+    cp -f ./BuildNotification.ini ./BuildNotification.bak
+    sed  -e '/^urlBase : \(.*\)/c urlBase : '${URL_BASE} ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini
+    
+    
+    WriteLog "Update 'shareBase ' in BuildNotification.ini to ${STAGING_DIR_ROOT}" "${OBT_LOG_FILE}"
+    cp -f ./BuildNotification.ini ./BuildNotification.bak
+    sed  -e '/^shareBase : \(.*\)/c shareBase : '${STAGING_DIR_ROOT} ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini
+    
+    
 
     WriteLog "Update 'ObtSystem' in BuildNotification.ini to ${OBT_SYSTEM}" "${OBT_LOG_FILE}"
     cp -f ./BuildNotification.ini ./BuildNotification.bak
@@ -501,6 +511,16 @@ fi
     WriteLog "Update 'ObtSystem' in ReportPerfTestResult.ini to ${OBT_SYSTEM}" "${OBT_LOG_FILE}"
     cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
     sed  -e '/^ObtSystem : \(.*\)/c ObtSystem : '${OBT_SYSTEM} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
+    
+    
+    WriteLog "Update 'ObtSystemEnv ' in BuildNotification.ini to ${OBT_SYSTEM_ENV}" "${OBT_LOG_FILE}"
+    cp -f ./BuildNotification.ini ./BuildNotification.bak
+    sed  -e '/^ObtSystemEnv  : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini
+    
+    
+    WriteLog "Update 'ObtSystemEnv ' in ReportPerfTestResult.ini to ${OBT_SYSTEM}" "${OBT_LOG_FILE}"
+    cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
+    sed  -e '/^ObtSystemEnv  : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
 
 
     WriteLog "Update 'ObtSystemHw in BuildNotification.ini to CPU/Cores: ${NUMBER_OF_CPUS}, RAM: ${MEMORY} GB" "${OBT_LOG_FILE}"

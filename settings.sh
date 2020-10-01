@@ -146,6 +146,7 @@ fi
 #
 # Common macros
 
+URL_BASE=http://10.246.32.16/common/nightly_builds/HPCC
 RELEASE_BASE=$BRANCH_ID
 STAGING_DIR_ROOT=/common/nightly_builds/HPCC/
 STAGING_DIR=${STAGING_DIR_ROOT}/$RELEASE_BASE

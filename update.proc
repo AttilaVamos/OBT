@@ -39,7 +39,7 @@ then
     then
     	cp -v $OBT_ID/settings.sh $OBT_DIR/settings.sh  >> ${logFile} 2>&1
     else
-	echo "OBT_ID is not defined, using default settings.sh." >> ${logFile} 2>&1
+	    echo "OBT_ID is not defined, using default settings.sh." >> ${logFile} 2>&1
         echo "OBT_ID is not defined, using default settings.sh." 
     fi
 
