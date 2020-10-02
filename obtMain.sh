@@ -515,12 +515,12 @@ fi
     
     WriteLog "Update 'ObtSystemEnv ' in BuildNotification.ini to ${OBT_SYSTEM_ENV}" "${OBT_LOG_FILE}"
     cp -f ./BuildNotification.ini ./BuildNotification.bak
-    sed  -e '/^ObtSystemEnv  : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini
+    sed  -e '/^ObtSystemEnv : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini
     
     
-    WriteLog "Update 'ObtSystemEnv ' in ReportPerfTestResult.ini to ${OBT_SYSTEM}" "${OBT_LOG_FILE}"
+    WriteLog "Update 'ObtSystemEnv ' in ReportPerfTestResult.ini to ${OBT_SYSTEM_ENV}" "${OBT_LOG_FILE}"
     cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
-    sed  -e '/^ObtSystemEnv  : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
+    sed  -e '/^ObtSystemEnv : \(.*\)/c ObtSystemEnv : '${OBT_SYSTEM_ENV} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
 
 
     WriteLog "Update 'ObtSystemHw in BuildNotification.ini to CPU/Cores: ${NUMBER_OF_CPUS}, RAM: ${MEMORY} GB" "${OBT_LOG_FILE}"
