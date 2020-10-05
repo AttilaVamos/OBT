@@ -49,12 +49,10 @@ else
 	BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
 
 	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+	RUN_0=("BRANCH_ID=candidate-7.8.x")
 	RUN_1=("BRANCH_ID=candidate-7.10.x")
-	RUN_2=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_3=("BRANCH_ID=candidate-7.12.x")
-	RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-	RUN_5=("BRANCH_ID=master")
+	RUN_2=("BRANCH_ID=candidate-7.12.x")
+	RUN_3=("BRANCH_ID=master")
 
 
 	RUN_ARRAY=(
@@ -143,6 +141,7 @@ fi
 #
 # Common macros
 
+URL_BASE=http://10.240.32.242/data2/nightly_builds/HPCC
 RELEASE_BASE=$BRANCH_ID
 STAGING_DIR_ROOT=/tmount/data2/nightly_builds/HPCC
 STAGING_DIR=${STAGING_DIR_ROOT}/$RELEASE_BASE
