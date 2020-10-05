@@ -51,7 +51,7 @@ else
 	# For versioning
 	RUN_0=("BRANCH_ID=candidate-7.8.x")
 	RUN_1=("BRANCH_ID=candidate-7.10.x")
-    RUN_3=("BRANCH_ID=candidate-7.12.x")
+	RUN_3=("BRANCH_ID=candidate-7.12.x")
 	RUN_5=("BRANCH_ID=master")
 
 	RUN_ARRAY=(
