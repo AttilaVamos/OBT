@@ -15,7 +15,7 @@ do
     else
         # 2. check if current "Suite: thor" in regress log file
 
-	echo -n " $logFile"
+    echo -n " $logFile"
         isThor=$(  egrep  'Suite: ' $logFile | tail -n 1 | egrep -c 'thor' )
 
         if [[ $isThor -eq 0 ]]

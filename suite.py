@@ -90,7 +90,7 @@ class Suite:
                     skipResult = eclfile.testSkip(self.name)
 
                 if not skipResult['skip']:
-		    exclude=False
+                    exclude=False
                     exclusionReason=''
                     if isSetup:
                         exclude = eclfile.testExclusion('setup')

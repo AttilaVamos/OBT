@@ -48,7 +48,7 @@ then
     WriteLog "Kill node_exporter to free port 9092" "${CHECK_LOG_FILE}"
     res=$( sudo pkill -f -9 node_exporter 2>&1)
     WriteLog "Rs: ${res}" "${CHECK_LOG_FILE}"
-    	
+        
     unset -v JAVA_HOME
     WriteLog "JAVA_HOME: '${JAVA_HOME}' " "${CHECK_LOG_FILE}"
 
@@ -66,7 +66,7 @@ then
             WriteLog "Zookeeper stoped! Start it! " "${CHECK_LOG_FILE}"
 
             #sudo rm -fr logs
-	    rm -fr /tmp/zookeeper /tmp/kafka-logs
+        rm -fr /tmp/zookeeper /tmp/kafka-logs
 
             bin/zookeeper-server-start.sh config/zookeeper.properties > /dev/null 2>&1 &
             res=$?
@@ -74,8 +74,8 @@ then
 
             sleep 40
             
-	    tryCount=$(( $tryCount-1 ))
-	    continue
+        tryCount=$(( $tryCount-1 ))
+        continue
         else
             WriteLog "Zookeeper is OK! " "${CHECK_LOG_FILE}"
         fi
@@ -100,31 +100,31 @@ then
             #echo "Done"
             
             echo "Start Kafka"
-	    bin/kafka-server-start.sh config/server.properties > /dev/null 2>&1 &
-	    sleep 40
+        bin/kafka-server-start.sh config/server.properties > /dev/null 2>&1 &
+        sleep 40
            
             #kafkaState=$( ps ax | egrep -c '[k]afka.Kafka' )
-	    #WriteLog "Kafka State: ${kafkaState}." "${CHECK_LOG_FILE}"
-	    
+        #WriteLog "Kafka State: ${kafkaState}." "${CHECK_LOG_FILE}"
+        
             #if [[ $kafkaState -eq 0 ]]
             #then
-	    #    WriteLog "Kafka didn't started. Stop Zookepper, clean=up and try again." "${CHECK_LOG_FILE}"
-	    #    
-	    #	WriteLog "Kill Zookeeper" "${CHECK_LOG_FILE}"
-	    #   res=$( sudo pkill -f zook )
+        #    WriteLog "Kafka didn't started. Stop Zookepper, clean=up and try again." "${CHECK_LOG_FILE}"
+        #    
+        #   WriteLog "Kill Zookeeper" "${CHECK_LOG_FILE}"
+        #   res=$( sudo pkill -f zook )
             #   WriteLog "Rs: ${res}" "${CHECK_LOG_FILE}"
             #
             #    #ps aux | grep '[z]ook' | awk '{ print $2 }' | sort -r | while read id; do echo "id:$id"; WriteLog "$(kill -9 $id)" "${CHECK_LOG_FILE}"; sleep 20;done
-	    #    rm -fr /tmp/zookeeper  /tmp/kafka-log
-	    #fi
+        #    rm -fr /tmp/zookeeper  /tmp/kafka-log
+        #fi
             #continue
         else
             WriteLog "Kafka is OK! " "${CHECK_LOG_FILE}"
             WriteLog "Broker list: $( echo dump | nc localhost 2181 | grep brokers )" "${CHECK_LOG_FILE}"
 
-	    break
+        break
         fi
-		
+        
     done
     
     if [[ $tryCount -eq 0 ]]

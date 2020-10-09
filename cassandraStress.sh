@@ -37,21 +37,21 @@ do
         ShowRes "$res"  
         # echo $res
 
-	pass=$( echo ${res} | grep '<Result_18>Done' )
-	if [ -z "${pass}" ]
-	then
-		echo "Fail"
-		echo "Fail" >> ${RESFILE}
-	else
-		echo "Pass"
-		echo "Pass" >> ${RESFILE}
+    pass=$( echo ${res} | grep '<Result_18>Done' )
+    if [ -z "${pass}" ]
+    then
+        echo "Fail"
+        echo "Fail" >> ${RESFILE}
+    else
+        echo "Pass"
+        echo "Pass" >> ${RESFILE}
 
 
-	fi
+    fi
 
         echo "" >> ${LOGFILE}
 
-	sleep 10
+    sleep 10
 
         echo "------------------------------------------"
         echo "------------------------------------------" >> ${LOGFILE}

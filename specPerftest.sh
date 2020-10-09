@@ -3,6 +3,8 @@ INNER_LOOP_COUNT=10
 TARGET="hthor"
 TEST_SET="02bb_sort.ecl"
 
+START_STACK_MONITOR=1
+
 clear
 
 ulimit -s 81920
@@ -15,7 +17,19 @@ echo "ulimits: $( ulimit -a | egrep '[pr]ocesses|open|stack|core' )"
 printf " Outter loop         : %6d\n" "${OUTTER_LOOP_COUNT}"
 printf " inner loop          : %6d\n" "${INNER_LOOP_COUNT}"
 printf " number of executions: %6d\n" "$(( $OUTTER_LOOP_COUNT * $INNER_LOOP_COUNT ))"
-printf " Test set            : '%s'\n\n" "${TEST_SET}"
+printf " Test set            : '%s'\n" "${TEST_SET}"
+printf " Target(s)           : '%s'\n\n" "${TARGET}"
+
+STACK_MONITOR_PID=
+
+if [[ $START_STACK_MONITOR -eq 1 ]]
+then
+    printf "Start Stack monitor..." 
+    $HOME/build/bin/stackMonitor.sh > /dev/null 2>&1 &
+    STACK_MONITOR_PID=$(pgrep stackMonitor)
+    printf "Stack monitor pid : %d\n" "$STACK_MONITOR_PID"
+    printf "Res: '%s'\n" "$res"
+fi
 
 pushd ~/build/CE/platform/HPCC-Platform/testing/regress/
 
@@ -32,7 +46,7 @@ do
 
         CMD="./ecl-test query -t ${TARGET} --suiteDir /home/vamosax/perftest/PerformanceTesting/PerformanceTesting --timeout -1 -fthorConnectTimeout=36000 -e stress --pq 1 --flushDiskCache --flushDiskCachePolicy 1 --jobnamesuffix ${suffix} ${TEST_SET}"
 
-	${CMD}
+    ${CMD}
 
         echo "-------------------------------------"
     done
@@ -46,6 +60,13 @@ done
 popd
 
 sudo /etc/init.d/hpcc-init start
+if [[ -n $STACK_MONITOR_PID ]]
+then
+    printf "Kill stack monitor (pid:%s)\n" "$STACK_MONITOR_PID"
+    sudo kill -9 $STACK_MONITOR_PID
+    STACK_MONITOR_PID=$(pidof stackMonitor)
+    [[ -z $STACK_MONITOR_PID ]] && echo "Killed" || echo "Failed to kill"
+fi
 
 
 echo "End."

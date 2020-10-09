@@ -366,8 +366,8 @@ then
         #gdb --batch --quiet -ex "set interactive-mode off" -ex "thread apply all bt" -ex "quit" ${UNITTEST_BIN} $core >> "$core.trace" 2>&1
         eval ${GDB_CMD} ${UNITTEST_BIN} $core >> "$core.trace" 2>&1
 
-	echo "Backtrace of $core" >> unittests.summary
-	cat "$core.trace" >> unittests.summary
+    echo "Backtrace of $core" >> unittests.summary
+    cat "$core.trace" >> unittests.summary
         echo "" >> unittests.summary
 
     done
@@ -388,7 +388,7 @@ then
     for  largeFile in ${NUM_OF_LARGE_LEFTOVER_FILES[@]}
     do
         WriteLog "Remove large leftover file: '$largeFile'." "$UNITTEST_LOG_FILE"
-	rm $largeFile
+    rm $largeFile
     done
 else
     WriteLog "No large leftover file found." "$UNITTEST_LOG_FILE"

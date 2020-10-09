@@ -185,13 +185,13 @@ ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/hpccsystems-platform?community*$PKG_EXT > 
 
 if [ $? -ne 0 ]
 then
-   echo "TestResult:FAILED" >> install.summary 
-   WriteLog "Install HPCC-Platform FAILED" "${REGRESS_LOG_FILE}"
-   exit
+    echo "TestResult:FAILED" >> install.summary 
+    WriteLog "Install HPCC-Platform FAILED" "${REGRESS_LOG_FILE}"
+    exit
 else
-   echo "TestResult:PASSED" >> install.summary
-   WriteLog "Install HPCC-Platform PASSED" "${REGRESS_LOG_FILE}"
-   WriteLog "Installed version is: $( ${PKG_QRY_CMD} hpccsystems-platform )" "${REGRESS_LOG_FILE}"
+    echo "TestResult:PASSED" >> install.summary
+    WriteLog "Install HPCC-Platform PASSED" "${REGRESS_LOG_FILE}"
+    WriteLog "Installed version is: $( ${PKG_QRY_CMD} hpccsystems-platform )" "${REGRESS_LOG_FILE}"
 fi
 
 # Should be configurable in settings.sh
@@ -215,8 +215,6 @@ fi
 WriteLog  "Hack SELinux." "${REGRESS_LOG_FILE}"
 
 sudo chcon -R unconfined_u:object_r:user_home_t:s0 /home/hpcc/.ssh/
-
-
 
 #
 #---------------------------
@@ -303,26 +301,6 @@ WriteLog "cd ${TEST_ROOT}" "${REGRESS_LOG_FILE}"
 
 cd  ${TEST_ROOT}
 
-
-# This code can cause problem if between the build HPCC and execute 
-# this (regression test) something is merged into the target branch.
-
-#WriteLog "Get test from github" "${REGRESS_LOG_FILE}"
-#
-## git clone https://github.com/hpcc-systems/HPCC-Platform.git 
-#
-#cRes=$( CloneRepo "https://github.com/hpcc-systems/HPCC-Platform.git" )
-#if [[ 0 -ne  $? ]]
-#then
-#    WriteLog "Repo clone failed ! Result is: ${cres}" "${REGRESS_LOG_FILE}"
-#    exit -1
-#else
-#    WriteLog "Repo clone success !" "${REGRESS_LOG_FILE}"
-#fi
-
-#[ ! -d build ] && mkdir -p build
-#cd HPCC-Platform
-
 #
 #----------------------------------------------------
 #
@@ -346,10 +324,8 @@ echo $res >> ${GIT_2DAYS_LOG}
 
 WriteLog "Update git submodule" "${REGRESS_LOG_FILE}"
 
-#git submodule update --init --recursive
-
-#subRes=$( SubmoduleUpdate "--init --recursive")
-subRes=$( SubmoduleUpdate "--init" )
+subRes=$( SubmoduleUpdate "--init --recursive")
+#subRes=$( SubmoduleUpdate "--init" )
 
 if [[ 0 -ne  $? ]]
 then
@@ -465,7 +441,7 @@ then
     done
     echo "Done."
 else
-   echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in not found."
+    echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in not found."
 fi
 
 # Should check the content(lentgh) of REGRESSION_EXCLUDE_CLASS and REGRESSION_EXCLUDE_FILES
@@ -512,9 +488,9 @@ rm -rf ${LOG_DIR}/*
 
 if [[ $( ps aux | egrep -c '[t]horMonitor' ) -ge 1 ]] 
 then
-	WriteLog "Kill thorMonitor..." "${REGRESS_LOG_FILE}"
-	sudo pkill thorMonitor
-	WriteLog "Done." "${REGRESS_LOG_FILE}"
+    WriteLog "Kill thorMonitor..." "${REGRESS_LOG_FILE}"
+    sudo pkill thorMonitor
+    WriteLog "Done." "${REGRESS_LOG_FILE}"
 fi
 
 WriteLog "Restart thorMonitor" "${REGRESS_LOG_FILE}"
@@ -605,8 +581,6 @@ do
         WriteLog "Skip regression suite setup execution on ${cluster}!" "${REGRESS_LOG_FILE}"
         WriteLog "                                                    " "${REGRESS_LOG_FILE}"        
     fi
-
-
 done
 
 # -----------------------------------------------------
@@ -637,7 +611,6 @@ do
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"
     if [ ${EXECUTE_REGRESSION_SUITE} -ne 0 ]
     then
-
         ${CMD} >> ${REGRESS_LOG_FILE} 2>&1 
 
         retCode=$( echo $? )
@@ -657,7 +630,7 @@ do
             [ $failed -gt 0 ] && export testFailed=1
 
         fi
-        
+
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
 
         if [[ (${retCode} -eq 0) && ($hasError -eq 0) ]] 
@@ -727,7 +700,6 @@ WriteLog "res: ${res}" "${REGRESS_LOG_FILE}"
 
 popd
 
-
 WriteLog "Copy regression test ZAP files to ${TARGET_DIR}/test/ZAP" "${REGRESS_LOG_FILE}"
 
 if [ ! -e ${TARGET_DIR}/test/ZAP ]
@@ -740,6 +712,8 @@ WriteLog "cp ${ZAP_DIR}/* ${TARGET_DIR}/test/ZAP/" "${REGRESS_LOG_FILE}"
 cp ${ZAP_DIR}/* ${TARGET_DIR}/test/ZAP/
 
 
+# Moved into archiveLogs.sh
+#
 # Check if any core file generated. If yes, create stack trace with gdb
 #
 #NUM_OF_REGRESSION_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' -type f -exec printf "%s\n" '{}' \; ) )

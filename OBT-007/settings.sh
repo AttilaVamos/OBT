@@ -36,9 +36,9 @@ then
     RUN_2=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_0[@]
-        RUN_1[@]
-        RUN_2[@]
+      RUN_0[@]
+      RUN_1[@]
+      RUN_2[@]
     )
 else
     # For obtSequencer.sh 
@@ -53,12 +53,12 @@ else
     RUN_5=("BRANCH_ID=master")
 
     RUN_ARRAY=(
-        RUN_0[@]
-        RUN_1[@]
-        RUN_2[@]
-        RUN_3[@]
-        RUN_4[@]
-        RUN_5[@]
+      RUN_0[@]
+      RUN_1[@]
+      RUN_2[@]
+      RUN_3[@]
+      RUN_4[@]
+      RUN_5[@]
     )
 fi
 #
@@ -92,6 +92,7 @@ else
     if [[ $NUMBER_OF_CPUS -le 4 ]]
     then
         [[ $NUMBER_OF_CPUS -gt 2 ]] && TEST_PARALLEL_QUERIES=$(( $NUMBER_OF_CPUS - 2 )) || TEST_PARALLEL_QUERIES=1
+        
     fi
 fi
 
@@ -150,12 +151,14 @@ if [ -z $OBT_TIMESTAMP ]
 then 
     OBT_TIMESTAMP=$(date "+%H-%M-%S")
     export OBT_TIMESTAMP
+    
 fi
 
 if [ -z $OBT_DATESTAMP ] 
 then 
     OBT_DATESTAMP=${SHORT_DATE}
     export OBT_DATESTAMP
+    
 fi
 
 
@@ -171,7 +174,7 @@ else
 fi
 
 
-OBT_SYSTEM=OBT-010
+OBT_SYSTEM=OBT-007
 OBT_SYSTEM_ENV=TestFarm2
 OBT_SYSTEM_STACKSIZE=81920
 OBT_SYSTEM_NUMBER_OF_PROCESS=524288
@@ -210,7 +213,7 @@ WEEK_DAY=$(date "+%w")
 if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
 then
     BUILD_TYPE=Debug
-fi
+fi    
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
@@ -246,12 +249,12 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 #
 
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=1  # days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=5  # days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
 SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 
-BUILD_DIR_EXPIRE=1   # days
+BUILD_DIR_EXPIRE=5   # days
 BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
 
@@ -268,11 +271,12 @@ WEB_LOG_ARCHIEVE_DIR_EXPIRE=60 # days
 # Monitors
 #
 
-PORT_MONITOR_START=1
+PORT_MONITOR_START=0
 
-DISK_SPACE_MONITOR_START=1
+DISK_SPACE_MONITOR_START=0
 
-MY_INFO_MONITOR_START=1
+MY_INFO_MONITOR_START=0
+
 
 #
 #----------------------------------------------------
@@ -288,7 +292,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=1
+BUILD_DOCS=0
 
 
 #
@@ -327,7 +331,7 @@ AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
     # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
+        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
     # (Perhaps it is some bug, but this is areally old branch, so exclude)
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
 fi
@@ -337,10 +341,10 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-        # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+    # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-        # (Perhaps it is some bug, but this is areally old branch, so exclude)
-        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
+    # (Perhaps it is some bug, but this is areally old branch, so exclude)
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
@@ -433,8 +437,8 @@ COUCHBASE_USER=centos
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=1
-COVERITY_TEST_DAY=1    # Monday
+RUN_COVERITY=0
+COVERITY_TEST_DAY=1 # Monday
 COVERITY_TEST_BRANCH=master
 
 #
@@ -445,7 +449,7 @@ COVERITY_TEST_BRANCH=master
 
 # Enable to run WUtest atfter Regression Suite
 # If and only if the Regression Suite execution is enalbled
-RUN_WUTEST=1
+RUN_WUTEST=0
 RUN_WUTEST=$(( $EXECUTE_REGRESSION_SUITE && $RUN_WUTEST ))
 
 
@@ -463,7 +467,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 #
 
 # Enable to run unittests before execute Performance Suite
-RUN_UNITTESTS=1
+RUN_UNITTESTS=0
 UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]
@@ -488,7 +492,7 @@ fi
 #
 
 # Enable to run WUtool test before execute any Suite
-RUN_WUTOOL_TESTS=1
+RUN_WUTOOL_TESTS=0
 
 
 #
@@ -498,20 +502,20 @@ RUN_WUTOOL_TESTS=1
 #
 
 # Enable rebuild HPCC before execute Performance Suite
-PERF_BUILD=1
+PERF_BUILD=0
 PERF_BUILD_TYPE=RelWithDebInfo
 
-PERF_CONTROL_TBB=0
+PERF_CONTROL_TBB=1
 PERF_USE_TBB=1
-PERF_USE_TBBMALLOC=1
+PERF_USE_TBBMALLOC=0
 
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=1
 PERF_RUN_THOR=1
-PERF_RUN_ROXIE=1
+PERF_RUN_ROXIE=0
 
 # To controll core generation and logging test
-PERF_RUN_CORE_TEST=1
+PERF_RUN_CORE_TEST=0
 
 # Control Performance test cluster
 PERF_NUM_OF_NODES=1
@@ -535,7 +539,7 @@ PERF_ROXIE_MEMSIZE_GB=4
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
 # 1 - execute RE to run Performance Suite
-EXECUTE_PERFORMANCE_SUITE_SETUP=1
+EXECUTE_PERFORMANCE_SUITE_SETUP=0
 
 # Control to Regression Engine
 # 0 - skip Regression Engine execution (dry run to test framework)
@@ -565,10 +569,12 @@ PERF_TEST_PARALLEL_QUERIES=1
 # Example:
 #PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
 PERF_EXCLUDE_CLASS="-e stress"
+#PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
+PERF_QUERY_LIST="02bb_sort*"
 
-# Don't use these settings on this machine (yet)
-#PERF_FLUSH_DISk_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
-#PERF_RUNCOUNT="--runcount 2"
+PERF_FLUSH_DISK_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
+# Dont use this setting (yet)
+PERF_RUNCOUNT="--runcount 20"
 
 PERF_TEST_MODE="STD"
 
@@ -593,7 +599,7 @@ PERF_CALCTREND_PARAMS=""
 #
 
 # Enable to run ML tests before execute Performance Suite
-RUN_ML_TESTS=1
+RUN_ML_TESTS=0
 
 # 0 - HPCC unistalled after Machine Learning finished on hthor
 # 1 - Machine Learning test doesn't uninstall HPCC after executed tests
@@ -645,4 +651,3 @@ set +a
 
 [[ -f ${OBT_BIN_DIR}/utils.sh ]] && . ${OBT_BIN_DIR}/utils.sh
 
-# End of settings.sh

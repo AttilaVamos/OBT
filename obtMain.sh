@@ -213,16 +213,14 @@ WriteLog "pwd:$(pwd)" "${OBT_LOG_FILE}"
 # Increase number of user process
 #
 
-WriteLog "Increase stack size to 40960." "${OBT_LOG_FILE}"
-ulimit -s 81920
+WriteLog "Increase stack size to ${OBT_SYSTEM_STACKSIZE}." "${OBT_LOG_FILE}"
+ulimit -s ${OBT_SYSTEM_STACKSIZE}
 
-WriteLog "Increase number of user process to 262144." "${OBT_LOG_FILE}"
-ulimit -u 524288
-#ulimit -u 262144 # for small VM
+WriteLog "Increase number of user process to ${OBT_SYSTEM_NUMBER_OF_PROCESS}." "${OBT_LOG_FILE}"
+ulimit -u ${OBT_SYSTEM_NUMBER_OF_PROCESS}
 
-WriteLog "Increase number of open files to 262144." "${OBT_LOG_FILE}"
-ulimit -n 524288
-#ulimit -n 262144 # for small VM
+WriteLog "Increase number of open files to ${OBT_SYSTEM_NUMBER_OF_FILES}." "${OBT_LOG_FILE}"
+ulimit -n ${OBT_SYSTEM_NUMBER_OF_FILES}
 
 res=$( ulimit -a | egrep '[pr]ocesses|open|stack' )
 
@@ -277,6 +275,17 @@ then
     
     echo $! > portlog.pid
 fi
+
+if [[ ${HTHOR_STACK_MONITOR_START} -eq 1 ]]
+then
+    WriteLog "Hthor start stack monitor" "${OBT_LOG_FILE}"
+
+    (fn="HthorStackUsage-"$( date "+%Y-%m-%d_%H-%M-%S" )".log"; while true; do echo $( date "+%Y.%m.%d %H:%M:%S" ) >> ${fn}; sudo netstat -anp >> ${fn}; echo -e "---------------------------------\n" >> ${fn}; sleep 1; done ) &
+    #(fn="myPortUsage-"$( date "+%Y-%m-%d_%H-%M-%S" )".log"; while true; do echo $( date "+%y.%m.%d %H:%M:%S" ) >>$
+
+    echo $! > hthorStackMonitorLog.pid
+fi
+
 
 #
 #----------------------------------------------------
@@ -553,7 +562,6 @@ fi
         WriteLog "Update 'Sender' in ReportPerfTestResult.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
         cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
         sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
-    
     fi
     
     # Check if it is an old OBT system with 'urlBase : http://<IP>/data2/...'
@@ -561,7 +569,6 @@ fi
 
     if [[ $isOldOBT -ne 0 ]]
     then
-
         # Get Log Server ip from mount 
         # (The logserver directory mounted as a share, it can read from the output of mount)
 
@@ -573,7 +580,6 @@ fi
 
         WriteLog "Update log server IP of 'urlBase' in ReportPerfTestResult.ini" "${OBT_LOG_FILE}"
         sed -e '/^urlBase : \(.*\)/c # Updated by OBT @ '"$( date '+%Y-%m-%d %H:%M:%S' )"' \nurlBase : http:\/\/'"${logServerIP}"'\/data2\/nightly_builds\/HPCC' ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
-
     fi
 
     WriteLog "Update success !" "${OBT_LOG_FILE}"
@@ -597,7 +603,7 @@ then
 
     if [[ 0 -ne  $? ]]
     then
-	ExitEpilog "${OBT_LOG_FILE}" "-1"
+        ExitEpilog "${OBT_LOG_FILE}" "-1"
     fi
 
 
@@ -615,7 +621,6 @@ else
     WriteLog "****************************" "${OBT_LOG_FILE}"
     WriteLog " Skip build HPCC Platform..." "${OBT_LOG_FILE}"
     WriteLog "                            " "${OBT_LOG_FILE}"   
-        
 fi
 
 
@@ -657,12 +662,11 @@ then
     WriteLog "***********************" "${OBT_LOG_FILE}"
     WriteLog " Execute Unit tests    " "${OBT_LOG_FILE}"
     WriteLog "                       " "${OBT_LOG_FILE}"
-    
+
     res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/hpccsystems-platform?community*.rpm 2>&1 )
 
     echo "${res}" > install.log
     WriteLog "Install result is:\n${res}" "${OBT_LOG_FILE}"
-
 
     cd ${OBT_BIN_DIR}
 
@@ -786,8 +790,6 @@ else
 fi
 
 
-
-
 if [ $RUN_REGRESSION -eq 1 ]
 then
     #
@@ -828,7 +830,6 @@ then
         [ ! -d ${TARGET_DIR}/test ] && mkdir -p   ${TARGET_DIR}/test
         [ -f uninstall.log ] && cp uninstall.log     ${TARGET_DIR}/test/
         [ -f uninstall.summary ] && cp uninstall.summary ${TARGET_DIR}/test/
-
     fi
 
     redisMonitors=$( pgrep redis-cli )
@@ -864,21 +865,19 @@ then
         WriteLog "Execute: ${WUTEST_BIN} " "${OBT_LOG_FILE}"
         set -x
 
-	LOG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
+        LOG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
         WUTEST_LOG_FILE="${WUTEST_LOG_DIR}/wutest-${LOG_DATE}.log"
         WUTEST_SUMMARY_FILE=${WUTEST_LOG_DIR}/wutest.summary
 
-
         ${WUTEST_CMD} >> $WUTEST_LOG_FILE 2>&1
 
-	WriteLog "Archieve wutest results directory: '${WUTEST_RESULT_DIR}' " "${OBT_LOG_FILE}"
-	# Pack the result directory into ${WUTEST_LOG_DIR}
+        WriteLog "Archieve wutest results directory: '${WUTEST_RESULT_DIR}' " "${OBT_LOG_FILE}"
+        # Pack the result directory into ${WUTEST_LOG_DIR}
         zip ${WUTEST_LOG_DIR}/wutest-result-${LOG_DATE} ${WUTEST_RESULT_DIR}/*
-
 
         # Create wutest.summary file
         # [INFO] Success count: 22
-	# [INFO] Failure count: 24
+        # [INFO] Failure count: 24
         INFO=$( egrep -i '\[INFO\] (succ|fail)' ${WUTEST_LOG_FILE} )
 
         if [ -n "$INFO" ]
@@ -892,19 +891,17 @@ then
 
             total=$(( $success + $failure ))
 
-	    WriteLog "TestResult:wutest:total:${total} passed:${success} failed:${failure}"  "${OBT_LOG_FILE}"    
+            WriteLog "TestResult:wutest:total :${total} passed:${success} failed:${failure}"  "${OBT_LOG_FILE}"    
             echo "TestResult:wutest:total:${total} passed:${success} failed:${failure}" >> $WUTEST_SUMMARY_FILE   
-
         else
             WriteLog "Wrong result generated." "${OBT_LOG_FILE}"
-
         fi
          
         set +x
 
         cd ${OBT_BIN_DIR}
 
-	# -----------------------------------------------------
+        # -----------------------------------------------------
         # 
         # Uninstall HPCC
         # 
@@ -920,8 +917,6 @@ then
         [ ! -d ${TARGET_DIR}/test ] && mkdir -p   ${TARGET_DIR}/test
         [ -f uninstall.log ] && cp uninstall.log     ${TARGET_DIR}/test/
         [ -f uninstall.summary ] && cp uninstall.summary ${TARGET_DIR}/test/
-
- 
     else
         WriteLog "wutest not found." "${OBT_LOG_FILE}"
     fi
@@ -930,15 +925,12 @@ then
     WriteLog "***********************" "${OBT_LOG_FILE}"
     WriteLog "     Wutest done.      " "${OBT_LOG_FILE}"
     WriteLog "                       " "${OBT_LOG_FILE}"
-
 else
     WriteLog "                       " "${OBT_LOG_FILE}"    
     WriteLog "***********************" "${OBT_LOG_FILE}"
     WriteLog "   Skip wutest test    " "${OBT_LOG_FILE}"
     WriteLog "                       " "${OBT_LOG_FILE}"
 fi
-
-
 
 
 if [ $RUN_COVERAGE -eq 1 ]
@@ -1010,40 +1002,42 @@ then
 
     if [[ 0 -eq  $? ]]
     then
-
         WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
 
         mkdir -p   ${TARGET_DIR}/test/perf
 
         cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 
-        WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
+        if [ $PERF_ENABLE_CALCTREND -eq 1 ]
+        then
+            WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
 
-        WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
-        #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
-        python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
+            #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+            python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
 
-        WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
+            WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
 
-        mkdir -p   ${TARGET_DIR}/test/diagrams
-        mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
-        mkdir -p   ${TARGET_DIR}/test/diagrams/thor
-        mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
+            mkdir -p   ${TARGET_DIR}/test/diagrams
+            mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
+            mkdir -p   ${TARGET_DIR}/test/diagrams/thor
+            mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
 
-        cp perftest*.png ${TARGET_DIR}/test/diagrams/
-        cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
-        cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
-        cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+            cp perftest*.png ${TARGET_DIR}/test/diagrams/
+            cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
+            cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
+            cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+        else
+             WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
+        fi
 
         cp ./perftest*.summary ./perftest.summary
 
         WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
 
         ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} >> "${OBT_LOG_FILE}" 2>&1
-
     else
         WriteLog "Build for performane test is failed." "${OBT_LOG_FILE}"
-
     fi
     WriteLog "Performance test done." "${OBT_LOG_FILE}"
 
@@ -1055,7 +1049,6 @@ else
     WriteLog "***********************" "${OBT_LOG_FILE}"
     WriteLog " Skip Performance test " "${OBT_LOG_FILE}"
     WriteLog "                       " "${OBT_LOG_FILE}"    
-        
 fi
 
 
@@ -1124,7 +1117,6 @@ else
     ./archiveLogs.sh obt-exit timestamp=${OBT_TIMESTAMP}
 fi
 
-
 #
 # Delete the generated settings.inc
 #
@@ -1132,8 +1124,6 @@ fi
 WriteLog "Delete the generated settings.inc" "${OBT_LOG_FILE}"
 
 [ -f settings.inc ] && rm -f settings.inc
-
-
 
 WriteLog "End of OBT." "${OBT_LOG_FILE}"
 

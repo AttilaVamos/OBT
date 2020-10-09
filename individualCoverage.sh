@@ -124,18 +124,18 @@ ListTestCases()
 CleanUpCoverageData()
 {
     WriteLog "Clean-up coverage data" "${COVERAGE_LOG_FILE}"
-	echo "Clean-up coverage data"
+    echo "Clean-up coverage data"
 
     sudo find ${BUILD_DIR} -name "*.dir" -type d -exec chmod -R 777 {} \; 
     res=$( sudo lcov --zerocounters --directory ${BUILD_DIR} 2>&1 )
-	retCode=$( echo $? )
-	if [ ${retCode} -ne 0 ]
-	then
-		WriteLog "Error in cleanup! retCode:"$retCode" res:"$res "${COVERAGE_LOG_FILE}"
-		echo "Error in cleanup! retCode:"$retCode" res:"$res
+    retCode=$( echo $? )
+    if [ ${retCode} -ne 0 ]
+    then
+        WriteLog "Error in cleanup! retCode:"$retCode" res:"$res "${COVERAGE_LOG_FILE}"
+        echo "Error in cleanup! retCode:"$retCode" res:"$res
 
-		exit
-	fi
+        exit
+    fi
 }
  
 
@@ -146,21 +146,21 @@ GenerateCoverageReport()
     # zip -r  ${COVERAGE_ROOT}/coverage_$1_gcxx.zip /home/ati/HPCC-Platform-build/ -i *.gc*
 
     WriteLog "Generate coverage data for $1" "${COVERAGE_LOG_FILE}"
-	echo "Generate coverage data for $1"
+    echo "Generate coverage data for $1"
 
     res=$( sudo lcov --quiet --capture --directory ${BUILD_DIR} --output-file ${COVERAGE_ROOT}/hpcc_$1_coverage.lcov 2>&1 )
-	if [ ${retCode} -ne 0 ]
-	then
-		WriteLog "Error in processsing! retCode:"$retCode" res:"$res "${COVERAGE_LOG_FILE}"
-		echo "Error in processing! retCode:"$retCode" res:"$res
+    if [ ${retCode} -ne 0 ]
+    then
+        WriteLog "Error in processsing! retCode:"$retCode" res:"$res "${COVERAGE_LOG_FILE}"
+        echo "Error in processing! retCode:"$retCode" res:"$res
 
-		exit
-	else
-		if [ -n "$res" ]
-		then
-			echo $res > ${COVERAGE_ROOT}/hpcc_$1_coverage.log
-		fi
-	fi
+        exit
+    else
+        if [ -n "$res" ]
+        then
+            echo $res > ${COVERAGE_ROOT}/hpcc_$1_coverage.log
+        fi
+    fi
 
 
 }
@@ -246,13 +246,13 @@ sudo ${BIN_DIR}/stop.sh
 
 if [[ $START_UP -eq 1 ]]
 then
-	WriteLog "Collect coverage for start-stop only" "${COVERAGE_LOG_FILE}" 
-	echo "Collect coverage for start-stop only"
+    WriteLog "Collect coverage for start-stop only" "${COVERAGE_LOG_FILE}" 
+    echo "Collect coverage for start-stop only"
 
-	GenerateCoverageFor "" "" "Start-Stop"
+    GenerateCoverageFor "" "" "Start-Stop"
 else
-	WriteLog "Skip coverage for start-stop" "${COVERAGE_LOG_FILE}" 
-	echo "Skip coverage for start-stop"
+    WriteLog "Skip coverage for start-stop" "${COVERAGE_LOG_FILE}" 
+    echo "Skip coverage for start-stop"
 fi
 
 #
@@ -263,46 +263,46 @@ fi
 if [[ $ONLY_STARTUP -eq 0 ]]
 then
 
-	WriteLog "Start generate coverage for individual test cases" "${COVERAGE_LOG_FILE}" 
-	echo "Start generate coverage for individual test cases"
-	
-	index=1
-	pwd=$( pwd )
-	
-	cd ${TEST_HOME}
-	
-	for test in ${testCases[@]}
-	do
-	    
-	    msg=$( printf "%3d/%3d. %s\n" ${index} ${maxTestCase} ${test} )
-	    echo $msg
-	    WriteLog "${msg}" "${COVERAGE_LOG_FILE}"
-	
-	    if true
-	    then
-	        GenerateCoverageFor ${test} ${TARGET} "${test}-${TARGET}"
-	    else
-	        cmd="ecl run -t ${TARGET} ecl/${test}"
-	        echo "CMD:${cmd}"
-	        #res=$( $cmd 2>&1 )
-	        echo $res
-	        echo ""
-	    fi
-	
-	    index=$(($index+1))
-	
-	
-		if [[ $FIRST_OINLY -eq 1 ]]
-		then
-			WriteLog "It was a first only call. Stop testing more test cases." "${COVERAGE_LOG_FILE}" 
-			echo "It was a first only call.  Stop testing more test cases."
-	
-			break
-		fi
-	
-	done
-	
-	cd ${pwd}
+    WriteLog "Start generate coverage for individual test cases" "${COVERAGE_LOG_FILE}" 
+    echo "Start generate coverage for individual test cases"
+    
+    index=1
+    pwd=$( pwd )
+    
+    cd ${TEST_HOME}
+    
+    for test in ${testCases[@]}
+    do
+        
+        msg=$( printf "%3d/%3d. %s\n" ${index} ${maxTestCase} ${test} )
+        echo $msg
+        WriteLog "${msg}" "${COVERAGE_LOG_FILE}"
+    
+        if true
+        then
+            GenerateCoverageFor ${test} ${TARGET} "${test}-${TARGET}"
+        else
+            cmd="ecl run -t ${TARGET} ecl/${test}"
+            echo "CMD:${cmd}"
+            #res=$( $cmd 2>&1 )
+            echo $res
+            echo ""
+        fi
+    
+        index=$(($index+1))
+    
+    
+        if [[ $FIRST_OINLY -eq 1 ]]
+        then
+            WriteLog "It was a first only call. Stop testing more test cases." "${COVERAGE_LOG_FILE}" 
+            echo "It was a first only call.  Stop testing more test cases."
+    
+            break
+        fi
+    
+    done
+    
+    cd ${pwd}
 fi
 
 echo "End."

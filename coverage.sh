@@ -91,7 +91,7 @@ ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
 #make -j 8 package >> ${COVERAGE_LOG_FILE} 2>&1
 # Won't work with 
 CMD="make -j ${NUMBER_OF_CPUS} package"
-	
+    
 ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
 
 if [ $? -ne 0 ] 
@@ -120,14 +120,14 @@ echo "Build ${buildResult} at "${CURRENT_DATE} >> ${BUILD_LOG} 2>&1
 if [ "$buildResult" = "FAILED" ]
 then
 
-	echo "No Coverage result." >> ./coverage.summary
+    echo "No Coverage result." >> ./coverage.summary
 
-	cp ./coverage.summary $COVERAGE_ROOT/
+    cp ./coverage.summary $COVERAGE_ROOT/
 
-	# send email to Agyi
+    # send email to Agyi
         echo "Coverage build Failed! Check the logs!" | mailx -s "Problem with Coverage" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-	
-	exit
+    
+    exit
 fi
 
 #----------------------------------------------------
@@ -185,14 +185,14 @@ fi
 
 #if [ -f ${filepath} ]
 #then
-#	WriteLog "Patching ${fielpath} to exclude on Roxie" "${COVERAGE_LOG_FILE}"
-#	echo "Patching ${fielpath} to exclude on Roxie"
+#   WriteLog "Patching ${fielpath} to exclude on Roxie" "${COVERAGE_LOG_FILE}"
+#   echo "Patching ${fielpath} to exclude on Roxie"
 #
-#	(echo "//noroxie"; cat ${filepath}) >${filepath}_new
-#	mv ${filepath}_new ${filepath}
+#   (echo "//noroxie"; cat ${filepath}) >${filepath}_new
+#   mv ${filepath}_new ${filepath}
 #else
-#	WriteLog "${fielpath} not found to exclude on Roxie" "${COVERAGE_LOG_FILE}"
-#	echo "${fielpath} not found to exclude on Roxie"
+#   WriteLog "${fielpath} not found to exclude on Roxie" "${COVERAGE_LOG_FILE}"
+#   echo "${fielpath} not found to exclude on Roxie"
 #fi
 
 
@@ -216,12 +216,12 @@ lcov --zerocounters --directory .
 res=$( grep 'umask' -c /etc/HPCCSystems/environment.conf )
 if [[ ${res} -eq 0 ]]
 then
-	echo ""
-	echo "Patch environment.conf file. Add 'umask=0' at the end."
-	echo "Patch environment.conf file. Add 'umask=0' at the end." >> ${BUILD_LOG} 2>&1
+    echo ""
+    echo "Patch environment.conf file. Add 'umask=0' at the end."
+    echo "Patch environment.conf file. Add 'umask=0' at the end." >> ${BUILD_LOG} 2>&1
 
-	sudo cp /etc/HPCCSystems/environment.conf /etc/HPCCSystems/environment.conf-orig
-	sudo bash -c 'echo "umask=0" >>/etc/HPCCSystems/environment.conf'
+    sudo cp /etc/HPCCSystems/environment.conf /etc/HPCCSystems/environment.conf-orig
+    sudo bash -c 'echo "umask=0" >>/etc/HPCCSystems/environment.conf'
 fi
 
 # --------------------------------------------------------------
@@ -236,10 +236,10 @@ ${SUDO} service hpcc-init start
 
 if [[ $BUILD_ONLY -eq 1 ]]
 then
-	WriteLog "That was a build only run. Exit." "${COVERAGE_LOG_FILE}"
-	echo "That was a build only run. Exit."
+    WriteLog "That was a build only run. Exit." "${COVERAGE_LOG_FILE}"
+    echo "That was a build only run. Exit."
 
-	exit
+    exit
 
 fi
 

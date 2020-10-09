@@ -4,9 +4,9 @@ echo "param:'"$1"'"
 
 if [ "$1." = "." ]
 then
-	REGRESSION_ONLY=
+    REGRESSION_ONLY=
 else
-	REGRESSION_ONLY=1
+    REGRESSION_ONLY=1
 fi
 
 #echo "Regression only:"$REGRESSION_ONLY
@@ -64,10 +64,10 @@ KillCheckDiskSpace()
 
     for i in $pids
     do 
-	WriteLog "kill pid:"${i} "${OBT_LOG_FILE}"
-	echo 'kill: '$i
-	kill -9 $i
-	sleep 1
+    WriteLog "kill pid:"${i} "${OBT_LOG_FILE}"
+    echo 'kill: '$i
+    kill -9 $i
+    sleep 1
     done;
 
     sleep 1
@@ -80,7 +80,7 @@ ControlC()
 
     WriteLog "User break (Ctrl-c)!" "${OBT_LOG_FILE}"
 
-	exitCode=$( echo $? )
+    exitCode=$( echo $? )
 
     ExitEpilog "exitCode"
 
@@ -100,7 +100,7 @@ ExitEpilog()
 
     ~/build/bin/archiveLogs.sh obt
 
-	exit $1
+    exit $1
 }
 
 #
@@ -118,12 +118,12 @@ trap ControlC SIGTERM
 
 if [ -z "$REGRESSION_ONLY" ]
 then
-	echo "Execute regression, coverage, performance thor and performance roxie tests."
-	WriteLog "Execute regression, coverage, performance thor and performance roxie tests." "${OBT_LOG_FILE}"
+    echo "Execute regression, coverage, performance thor and performance roxie tests."
+    WriteLog "Execute regression, coverage, performance thor and performance roxie tests." "${OBT_LOG_FILE}"
 
 else
-	echo "Execute regression test only."
-	WriteLog "Execute regression test only." "${OBT_LOG_FILE}"
+    echo "Execute regression test only."
+    WriteLog "Execute regression test only." "${OBT_LOG_FILE}"
 
 fi
 
@@ -160,9 +160,9 @@ WriteLog "Un-install HPCC Systems" "${OBT_LOG_FILE}"
 
 if [ -f /opt/HPCCSystems/sbin/complete-uninstall.sh ]
 then
-	sudo /opt/HPCCSystems/sbin/complete-uninstall.sh 
+    sudo /opt/HPCCSystems/sbin/complete-uninstall.sh 
 else
-	WriteLog "HPCC Systems isn't istalled." "${OBT_LOG_FILE}"
+    WriteLog "HPCC Systems isn't istalled." "${OBT_LOG_FILE}"
 fi
 
 diskSpace=$( df -h | grep 'dev/[sv]da1' | awk '{print $1": "$4}')
@@ -189,23 +189,23 @@ MEMORY_LIMIT=$(( $MEMORY_LIMIT_GB * (2 ** 20) ))
 
 if [[ $freeMem -lt ${MEMORY_LIMIT} ]]
 then
-	cassandraPID=$( ps ax  | grep '[c]assandra' | awk '{print $1}' )
+    cassandraPID=$( ps ax  | grep '[c]assandra' | awk '{print $1}' )
 
-	WriteLog "Free memory too low, kill Cassandra (pid: "${cassandraPID}" )" "${OBT_LOG_FILE}"
+    WriteLog "Free memory too low, kill Cassandra (pid: "${cassandraPID}" )" "${OBT_LOG_FILE}"
 
-	kill -9 ${cassandraPID}
-	sleep 1m
+    kill -9 ${cassandraPID}
+    sleep 1m
 
-	freeMem=$( free | egrep "^(Mem)" | awk '{print $4 }' )
-	if [[ $freeMem -lt ${MEMORY_LIMIT} ]]
-	then
-		WriteLog "The free memory ("${freeMem}" kB) is too low! Can't start HPCC Systems!! Give it up!" "${OBT_LOG_FILE}"
-		
-		# send email to Agyi
-		echo "After the kill Cassandra the OBT Free memory ("${freeMem}" kB) is still too low! OBT stopped!" | mailx -s "OBT Memory problem" -u root  "attila.vamos@gmail.com"
+    freeMem=$( free | egrep "^(Mem)" | awk '{print $4 }' )
+    if [[ $freeMem -lt ${MEMORY_LIMIT} ]]
+    then
+        WriteLog "The free memory ("${freeMem}" kB) is too low! Can't start HPCC Systems!! Give it up!" "${OBT_LOG_FILE}"
+        
+        # send email to Agyi
+        echo "After the kill Cassandra the OBT Free memory ("${freeMem}" kB) is still too low! OBT stopped!" | mailx -s "OBT Memory problem" -u root  "attila.vamos@gmail.com"
 
-		#ExitEpilog
-	fi
+        #ExitEpilog
+    fi
 fi
 
 #
@@ -417,22 +417,22 @@ echo "Regression test done"
 if [ -z "$REGRESSION_ONLY" ]
 then
 
-	WriteLog "Execute Coverage test" "${OBT_LOG_FILE}"
-	echo "Execute Coverage test"
+    WriteLog "Execute Coverage test" "${OBT_LOG_FILE}"
+    echo "Execute Coverage test"
 
 
-	cd ~/build/bin
+    cd ~/build/bin
 
-	./coverage.sh
-	cp ~/test/coverage.summary   ${TARGET_DIR}/test/
+    ./coverage.sh
+    cp ~/test/coverage.summary   ${TARGET_DIR}/test/
 
-	WriteLog "Archive coverage testing logs" "${OBT_LOG_FILE}"
-	echo "Archive coverage testing logs"
+    WriteLog "Archive coverage testing logs" "${OBT_LOG_FILE}"
+    echo "Archive coverage testing logs"
 
-	./archiveLogs.sh coverage
+    ./archiveLogs.sh coverage
 
-	WriteLog "Coverage test done." "${OBT_LOG_FILE}"
-	echo "Coverage test done."
+    WriteLog "Coverage test done." "${OBT_LOG_FILE}"
+    echo "Coverage test done."
 fi
 
 #
@@ -443,30 +443,30 @@ fi
 
 if [ -z "$REGRESSION_ONLY" ]
 then
-	WriteLog "Execute Performance test" "${OBT_LOG_FILE}"
-	echo "Execute Performance test"
+    WriteLog "Execute Performance test" "${OBT_LOG_FILE}"
+    echo "Execute Performance test"
 
-	cd ~/build/bin
+    cd ~/build/bin
 
-	./perftest.sh
+    ./perftest.sh
 
-	WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
-	echo "Copy log files to ${TARGET_DIR}/test/perf"
+    WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
+    echo "Copy log files to ${TARGET_DIR}/test/perf"
 
-	mkdir -p   ${TARGET_DIR}/test/perf
+    mkdir -p   ${TARGET_DIR}/test/perf
 
-	cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
+    cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 
 
-	WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
-	echo "Send Email notification about Performance test"
+    WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
+    echo "Send Email notification about Performance test"
 
-	cd ~/build/bin
+    cd ~/build/bin
 
-	./ReportPerfTestResult.py
+    ./ReportPerfTestResult.py
 
-	WriteLog "Performance test done." "${OBT_LOG_FILE}"
-	echo "Performance test done."
+    WriteLog "Performance test done." "${OBT_LOG_FILE}"
+    echo "Performance test done."
 
 
 fi

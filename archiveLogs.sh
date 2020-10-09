@@ -115,7 +115,7 @@ do
                     ARCHIVE_NAME=$param
                     ;;
 
-	obt-exit*)  WriteLog "mode:OBT-exit-cleanup (log files move into archive, skip copy to wiki)" "${ARCHIVE_LOG_DIR}"
+    obt-exit*)  WriteLog "mode:OBT-exit-cleanup (log files move into archive, skip copy to wiki)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
                     MOVE_TO_ZIP_FLAG=-m
                     DO_ARCHIVE=0
@@ -158,18 +158,18 @@ do
                     IS_COVERAGE=1
                     ;;
 
-	ml*)	    WriteLog "mode:ML (files move into archive)" "${ARCHIVE_LOG_DIR}"
+    ml*)        WriteLog "mode:ML (files move into archive)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
                     MOVE_TO_ZIP_FLAG=-m
                     ;;
 
 
-	time*)      TIMESTAMP=${param//time*=/}
+    time*)      TIMESTAMP=${param//time*=/}
                     WriteLog "Archive timestamp is: '${TIMESTAMP}'" "${ARCHIVE_LOG_DIR}"
                     ;;
 
-	nopub*)     WriteLog "Do not publish archive." "${ARCHIVE_LOG_DIR}"
-		    DO_ARCHIVE=0
+    nopub*)     WriteLog "Do not publish archive." "${ARCHIVE_LOG_DIR}"
+            DO_ARCHIVE=0
                     ;;
 
         *)          MOVE_LOG_TO_ZIP_FLAG=''
@@ -274,7 +274,7 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "roxie*.log"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "environment*"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "BuildNotification.ini"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "			  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "settings.*"	     		"${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip " "           "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "settings.*"                "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 
 
 
@@ -397,7 +397,7 @@ then
 
             coreSize=$( ls -l $core | awk '{ print $5}' )
 
-	    #if [ ! -f "$core.trace" ]
+        #if [ ! -f "$core.trace" ]
             #then
                 WriteLog "Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
                 #base=$( dirname $core )
@@ -424,12 +424,12 @@ then
             zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
             sudo rm $core $core.trace
-	
+    
         done
         
         echo 'Done.' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
-	# send email to Agyi about core files
+    # send email to Agyi about core files
         echo "During to process ${ARCHIVE_NAME} there are ${#cores[*]} core file(s) found in ${HPCC_BINARY_DIR} generated in ${OBT_SYSTEM} on ${BRANCH_ID} branch at ${OBT_TIMESTAMP//-/:}. You should check them." | mailx -s "Core files generated" -u $USER  ${ADMIN_EMAIL_ADDRESS}
 
 
@@ -503,7 +503,6 @@ then
     done
         
     echo 'Done.' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
-
 else
     WriteLog "There is no core file in '${OBT_LOG_DIR}" "${ARCHIVE_LOG_DIR}"
     echo 'There is no core file in '${OBT_LOG_DIR} >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
@@ -525,12 +524,11 @@ then
     
     WriteLog "Copy archive into wiki ( ${REMOTE_ARCHIVE_TARGET_DIR} )." "${ARCHIVE_LOG_DIR}"
     
-    
     if [ ! -d ${REMOTE_ARCHIVE_TARGET_DIR} ]
     then
         mkdir $REMOTE_ARCHIVE_TARGET_DIR
     fi
-    
+
     if [ -d ${REMOTE_ARCHIVE_TARGET_DIR} ]
     then
         WriteLog "cp ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}* ${REMOTE_ARCHIVE_TARGET_DIR}/" "${ARCHIVE_LOG_DIR}"

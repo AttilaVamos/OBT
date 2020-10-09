@@ -329,7 +329,7 @@ then
         WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
 
         buildResult=FAILED
-	export buildResult
+    export buildResult
 
         exit -2
 
@@ -375,7 +375,7 @@ then
         WriteLog "Result:${res}" "${PERF_TEST_LOG}"
         COMMIT_ID=$SHA
     else
-	COMMIT_ID=$( git log -1 | grep '^commit' | cut -d' ' -f 2 )
+    COMMIT_ID=$( git log -1 | grep '^commit' | cut -d' ' -f 2 )
         COMMIT_ID=${COMMIT_ID:0:8}
     fi
 
@@ -489,7 +489,7 @@ then
     then
         WriteLog "Build failed: build has errors " "${PERF_TEST_LOG}"
         buildResult=FAILED
-	export buildResult
+    export buildResult
         exit 1
     else
         ls -l hpcc*${PKG_EXT} >/dev/null 2>&1
@@ -1100,16 +1100,16 @@ then
     then
         WriteLog "Multinode cluster is enabled." "${PERF_TEST_LOG}"
 
-  	# Push config file
+    # Push config file
         WriteLog "Push config file... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-	sudo /opt/HPCCSystems/sbin/hpcc-push.sh -s ${OBT_BIN_DIR}/multinode_perf_cluster.xml.work -t /etc/HPCCSystems/environment.xml
+    sudo /opt/HPCCSystems/sbin/hpcc-push.sh -s ${OBT_BIN_DIR}/multinode_perf_cluster.xml.work -t /etc/HPCCSystems/environment.xml
 
-	WriteLog "Start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+    WriteLog "Start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
         # install  package to the nodes
         sudo /opt/HPCCSystems/sbin/install-cluster.sh ${BUILD_HOME}/${HPCC_PACKAGE}
 
-	# Start the cluster
-	sudo /opt/HPCCSystems/sbin/hpcc-run.sh -a hpcc-init start -n $PERF_NUM_OF_NODES
+    # Start the cluster
+    sudo /opt/HPCCSystems/sbin/hpcc-run.sh -a hpcc-init start -n $PERF_NUM_OF_NODES
 
     else
         
@@ -1649,10 +1649,10 @@ then
     then
         pushd  ../../Perfstat 
         cmd="./${ARCH_CMD}"
-	WriteLog "Arcieve old stat files: ${cmd}" "${PERF_TEST_LOG}"
+    WriteLog "Arcieve old stat files: ${cmd}" "${PERF_TEST_LOG}"
         res=$( ${cmd} 2>&1 )
-	popd
-	WriteLog "res: ${res}" "${PERF_TEST_LOG}" 
+    popd
+    WriteLog "res: ${res}" "${PERF_TEST_LOG}" 
     fi
 
 else

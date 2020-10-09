@@ -26,11 +26,11 @@ CheckIfNoSessionIsRunning()
 
         checkCount=$(( $checkCount + 1 ))
         if [[ $(( $checkCount % 12 )) -eq 0 ]]
-	then
+    then
             echo "At $(date "+%Y.%m.%d %H:%M:%S") the previous OBT session is still running on ${OBT_SYSTEM}!" | mailx -s "Overlapped sessions on ${OBT_SYSTEM}" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-	fi
+    fi
 
-	# Give it some time to finish
+    # Give it some time to finish
         sleep 5m
     done
 

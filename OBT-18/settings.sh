@@ -3,7 +3,6 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 set -a
 
-
 #
 #----------------------------------------------------
 #
@@ -20,47 +19,43 @@ SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
 
-
 #
 #----------------------------------------------------
 #
-# from 2016-11-30 onward
 
 BRANCH_ID=master
 
-
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
-	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
+    # For obtSequencer.sh 
+    BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
 
-	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.4.x")
-	RUN_1=("BRANCH_ID=candidate-7.6.x")
-	RUN_2=("BRANCH_ID=candidate-7.8.x")
+    # For versioning
+    RUN_0=("BRANCH_ID=candidate-7.4.x")
+    RUN_1=("BRANCH_ID=candidate-7.6.x")
+    RUN_2=("BRANCH_ID=candidate-7.8.x")
 
-	RUN_ARRAY=(
-	  RUN_0[@]
-	  RUN_1[@]
-	  RUN_2[@]
-	)
+    RUN_ARRAY=(
+      RUN_0[@]
+      RUN_1[@]
+      RUN_2[@]
+    )
 else
-	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.6.x' 'candidate-7.8.x' 'candidate-7.10.x' 'master' )
+    # For obtSequencer.sh 
+    BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
 
-	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.8.x")
-	RUN_1=("BRANCH_ID=candidate-7.10.x")
-	RUN_3=("BRANCH_ID=candidate-7.12.x")
-	RUN_5=("BRANCH_ID=master")
+    # For versioning (This is small VM, so no multi channel tests)
+    RUN_0=("BRANCH_ID=candidate-7.8.x")
+    RUN_1=("BRANCH_ID=candidate-7.10.x")
+    RUN_3=("BRANCH_ID=candidate-7.12.x")
+    RUN_5=("BRANCH_ID=master")
 
-	RUN_ARRAY=(
-	  RUN_0[@]
-	  RUN_1[@]
-	  RUN_3[@]
-	  RUN_5[@]
-	)
-
+    RUN_ARRAY=(
+      RUN_0[@]
+      RUN_1[@]
+      RUN_3[@]
+      RUN_5[@]
+    )
 fi
 #
 #----------------------------------------------------
@@ -177,6 +172,10 @@ fi
 
 OBT_SYSTEM=OBT-18
 OBT_SYSTEM_ENV=SmallVM
+OBT_SYSTEM_STACKSIZE=81920
+OBT_SYSTEM_NUMBER_OF_PROCESS=262144
+OBT_SYSTEM_NUMBER_OF_FILES=262144
+
 
 BUILD_SYSTEM=${SYSTEM_ID}
 RELEASE_TYPE=CE/platform
@@ -246,7 +245,6 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 # House keeping
 #
 
-
 # When old 'HPCC-Platform' and 'build' directories exipre
 SOURCE_DIR_EXPIRE=5  # today + BUILD_DIR_EXPIRE days, this is a small VM with 120 GB disk
 
@@ -276,7 +274,6 @@ DISK_SPACE_MONITOR_START=1
 
 MY_INFO_MONITOR_START=1
 
-
 #
 #----------------------------------------------------
 #
@@ -284,7 +281,6 @@ MY_INFO_MONITOR_START=1
 #
 
 GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrace for all threads\n==========================" -ex "thread apply all bt" -ex "echo \n Registers:\n==========================\n" -ex "info reg" -ex "echo \n Disas:\n==========================\n" -ex "disas" -ex "quit"'
-
 
 #
 #----------------------------------------------------
@@ -306,8 +302,8 @@ SUPRESS_PLUGINS=''
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]] 
 then
-	# Supresss Azure on CenOS 6
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
+    # Supresss Azure on CenOS 6
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
 fi
 
 
@@ -317,25 +313,23 @@ if [[ " ${REMBED_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]]
 then
     # There is an R environmet and Rembed.cpp incompatibility on the candidate-64.34 branch,
     # so don't build it
-
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_REMBED=ON"
 fi
-
 
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-	# Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
+    # Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
 fi
 
 AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-	# Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+    # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-	# (Perhaps it is some bug, but this is areally old branch, so exclude)
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
+    # (Perhaps it is some bug, but this is areally old branch, so exclude)
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
 fi
 
 BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
@@ -343,10 +337,10 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-	# Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+    # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-	# (Perhaps it is some bug, but this is areally old branch, so exclude)
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
+    # (Perhaps it is some bug, but this is areally old branch, so exclude)
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
@@ -357,7 +351,6 @@ fi
 #
 # Regression tests macros
 #
-
 
 # Use complete-uninstall.sh to wipe HPCC
 REGRESSION_WIPE_OFF_HPCC=1
@@ -394,9 +387,7 @@ then
 fi
 
 
-# It is fail on CentOS 6 -> Should modify Regression Test Engine 
-# (remove -k 2 paramter from timeout command in isSudoer() utility function)
-#
+# Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES=""
@@ -422,50 +413,9 @@ then
     REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-#REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 REGRESSION_EXCLUDE_CLASS=""
 
 PYTHON_PLUGIN=''
-
-#if [ -f $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in ]
-#then
-#   echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in"
-#
-#    additionalPlugins=($( cat $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in | egrep '^additionalPlugins'| cut -d= -f2 ))
-#    for plugin in ${additionalPlugins[*]}
-#    do
-#        upperPlugin=${plugin^^}
-#        echo "plugin: $upperPlugin"
-#        case $upperPlugin in
-#            
-#            PYTHON2*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-#                        then
-#                            REGRESSION_EXCLUDE_CLASS="-e python3"
-#                        else
-#                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python3"
-#                        fi
-#                        
-#                        PYTHON_PLUGIN="-DSUPPRESS_PY3EMBED=ON -DINCLUDE_PY3EMBED=OFF"
-#                        ;;
-#                        
-#            PYTHON3*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-#                        then
-#                            REGRESSION_EXCLUDE_CLASS="-e python2"
-#                        else
-#                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python2"
-#                        fi
-#                      
-#                        PYTHON_PLUGIN="-DSUPPRESS_PY2EMBED=ON -DINCLUDE_PY2EMBED=OFF"
-#                        ;;
-#                        
-#            *)          # Do nothing yet
-#                        ;;
-#        esac
-#    done
-#    echo "Done."
-#else
-#   echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in not found."
-#fi
 
 # To use local installation
 #COUCHBASE_SERVER=$LOCAL_IP_STR
@@ -474,9 +424,6 @@ PYTHON_PLUGIN=''
 # Need to add private key into .ssh directory to use remote couchbase server
 COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
-
-
-#echo "Regression exclusion: ${REGRESSION_EXCLUDE_CLASS}"
 
 #
 #----------------------------------------------------
@@ -487,9 +434,8 @@ COUCHBASE_USER=centos
 # Enable to run Coverity build and upload result
 
 RUN_COVERITY=0
-COVERITY_TEST_DAY=1	# Monday
+COVERITY_TEST_DAY=1 # Monday
 COVERITY_TEST_BRANCH=master
-
 
 #
 #----------------------------------------------------
@@ -619,8 +565,9 @@ PERF_WIPE_OFF_HPCC=0
 PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
 PERF_TEST_PARALLEL_QUERIES=1
 
-PERF_EXCLUDE_CLASS="-e stress"
+# Example:
 #PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
+PERF_EXCLUDE_CLASS="-e stress"
 
 # Don't use these settings on this machine (yet)
 #PERF_FLUSH_DISk_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
@@ -635,10 +582,11 @@ fi
 
 if [ -n "$PERF_RUNCOUNT" ]
 then
-	loop=$( echo $PERF_RUNCOUNT | awk '{ print $2}' )
-	PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
+    loop=$( echo $PERF_RUNCOUNT | awk '{ print $2}' )
+    PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
 fi
 
+PERF_ENABLE_CALCTREND=0
 PERF_CALCTREND_PARAMS=""
 
 #

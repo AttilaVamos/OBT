@@ -293,13 +293,13 @@ do
     if [[ "${ping_res}" =~ "unknown" ]]
     then 
         WriteLog "Error: '${ping_res}'. Wait ${PING_TRY_DELAY} for retry." "${OBT_BUILD_LOG_FILE}"
-	sleep ${PING_TRY_DELAY}
+    sleep ${PING_TRY_DELAY}
     else
         WriteLog "The 'packages.couchbase.com' is accessible" "${OBT_BUILD_LOG_FILE}"
         WriteLog "Ping: ${ping_res}" "${OBT_BUILD_LOG_FILE}"
 
-	PING_1=$( echo "$ping_res" | head -n 1)
-	WriteLog "${PING_1}\n" "${OBT_LOG_DIR}/packages_couchbase_com.ping"
+    PING_1=$( echo "$ping_res" | head -n 1)
+    WriteLog "${PING_1}\n" "${OBT_LOG_DIR}/packages_couchbase_com.ping"
         break
     fi
 

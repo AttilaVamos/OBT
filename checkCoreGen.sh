@@ -124,7 +124,7 @@ then
         WriteLog "Execute ${CPP_BIN_NAME} to create core dump!" "${CRASH_TEST_LOG_FILE}"
         res=$( ./${CPP_BIN_NAME} 2>&1 )
         WriteLog "res: $?." "${CRASH_TEST_LOG_FILE}"
-	        
+            
         cores=( $( find . -maxdepth 1 -name 'core*' -type f ) )
         if [ ${#cores[@]} -ne 0 ]
         then
@@ -138,7 +138,7 @@ then
         fi
     fi
 else
-	
+    
     if [ ! -f $ECL_SOURCE_NAME ]
     then
         WriteLog "There is not $ECL_SOURCE_NAME source file." "${CRASH_TEST_LOG_FILE}"
@@ -158,7 +158,7 @@ else
     res=$( ecl run -t roxie ./${ECL_SOURCE_NAME} 2>&1 )
     WriteLog "res: $?." "${CRASH_TEST_LOG_FILE}"
 
-	        
+            
     cores=( $( find /var/lib/HPCCSystems/ -name 'core_*' -type f ) )
 
     if [ ${#cores[@]} -ne 0 ]

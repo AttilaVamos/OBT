@@ -53,13 +53,15 @@ GetCommitSha()
     # to restore whole commit tree
     git checkout -f ${BRANCH_ID} > /dev/null 2>&1
     
-    sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+    #sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+    sha=$( git rev-list -n 1 --before="$testDate 00:00" --merges  master --first-parent )
     until [[ -n "$sha" ]]
     do
         # step one day back
         sourceDate=$( date -I -d "$sourceDate - 1 day" )
         # Get SHA
-        sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+        #sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00$" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+        sha=$( git rev-list -n 1 --before="$testDate 00:00" --merges  master --first-parent )
     done
 
     # to restore whole commit tree

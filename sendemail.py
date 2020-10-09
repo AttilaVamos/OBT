@@ -41,17 +41,17 @@ def createMsg(config):
     for test in tests:
         file = test+"-performance-test.log" 
         print file
-	try:
-	        temp = open(file).readlines( )
-	        part = MIMEBase('application', 'octet-stream')
-	        part.set_payload( '\n'.join(temp))
-	        Encoders.encode_base64(part)
-	        part.add_header('Content-Disposition', 'attachment; filename="%s"' % file)
-	        msgText.attach(part)
-	except:
-		pass
-	finally:
-		pass
+    try:
+            temp = open(file).readlines( )
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload( '\n'.join(temp))
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"' % file)
+            msgText.attach(part)
+    except:
+        pass
+    finally:
+        pass
 
     os.chdir( curDir ) 
 
@@ -63,9 +63,9 @@ def send(config):
        server = config.get( 'Email', 'SMTPServer' )
 
        try:
-           smtpObj = smtplib.SMTP( server, 25 )
-	   smtpObj.set_debuglevel(99)
-           smtpObj.sendmail( fromaddr, toList, msgText.as_string() )
+            smtpObj = smtplib.SMTP( server, 25 )
+            smtpObj.set_debuglevel(99)
+            smtpObj.sendmail( fromaddr, toList, msgText.as_string() )
        except smtplib.SMTPException:
            print( "Error: unable to send email" )
        
