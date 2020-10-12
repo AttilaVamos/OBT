@@ -52,6 +52,7 @@ else
     RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
     RUN_5=("BRANCH_ID=master")
 
+
     RUN_ARRAY=(
       RUN_0[@]
       RUN_1[@]
@@ -205,15 +206,16 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
+# Always build in Debug mode
 DEBUG_BUILD_DAY=6
-BUILD_TYPE=RelWithDebInfo
+BUILD_TYPE=Debug
 
 WEEK_DAY=$(date "+%w")
 
 if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
 then
     BUILD_TYPE=Debug
-fi    
+fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
@@ -249,12 +251,12 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 #
 
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=5  # days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=1  # days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
 SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 
-BUILD_DIR_EXPIRE=5   # days
+BUILD_DIR_EXPIRE=1   # days
 BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
 
@@ -271,12 +273,11 @@ WEB_LOG_ARCHIEVE_DIR_EXPIRE=60 # days
 # Monitors
 #
 
-PORT_MONITOR_START=0
+PORT_MONITOR_START=1
 
-DISK_SPACE_MONITOR_START=0
+DISK_SPACE_MONITOR_START=1
 
-MY_INFO_MONITOR_START=0
-
+MY_INFO_MONITOR_START=1
 
 #
 #----------------------------------------------------
@@ -292,7 +293,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=0
+BUILD_DOCS=1
 
 
 #
@@ -323,7 +324,7 @@ fi
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-    # Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
+    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
 fi
 
@@ -417,7 +418,7 @@ then
     REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-REGRESSION_EXCLUDE_CLASS=""
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 
 PYTHON_PLUGIN=''
 
@@ -449,7 +450,7 @@ COVERITY_TEST_BRANCH=master
 
 # Enable to run WUtest atfter Regression Suite
 # If and only if the Regression Suite execution is enalbled
-RUN_WUTEST=0
+RUN_WUTEST=1
 RUN_WUTEST=$(( $EXECUTE_REGRESSION_SUITE && $RUN_WUTEST ))
 
 
@@ -467,7 +468,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 #
 
 # Enable to run unittests before execute Performance Suite
-RUN_UNITTESTS=0
+RUN_UNITTESTS=1
 UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]
@@ -492,7 +493,7 @@ fi
 #
 
 # Enable to run WUtool test before execute any Suite
-RUN_WUTOOL_TESTS=0
+RUN_WUTOOL_TESTS=1
 
 
 #
@@ -599,7 +600,7 @@ PERF_CALCTREND_PARAMS=""
 #
 
 # Enable to run ML tests before execute Performance Suite
-RUN_ML_TESTS=0
+RUN_ML_TESTS=1
 
 # 0 - HPCC unistalled after Machine Learning finished on hthor
 # 1 - Machine Learning test doesn't uninstall HPCC after executed tests
