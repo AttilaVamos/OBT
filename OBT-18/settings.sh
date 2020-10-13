@@ -413,7 +413,7 @@ then
     REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-REGRESSION_EXCLUDE_CLASS=""
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 
 PYTHON_PLUGIN=''
 
@@ -424,6 +424,9 @@ PYTHON_PLUGIN=''
 # Need to add private key into .ssh directory to use remote couchbase server
 COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
+
+REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
+REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
 #
 #----------------------------------------------------
