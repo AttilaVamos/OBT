@@ -46,7 +46,7 @@ WriteLog "Kafka dir: ${KAFKA_DIR}" "${CHECK_LOG_FILE}"
 if [ -d ${KAFKA_DIR} ]
 then
     WriteLog "Kill node_exporter to free port 9092" "${CHECK_LOG_FILE}"
-    res=$( [[ -n "$( pgrep -f node_exporter )" ]] && sudo kill -9 $(pgrep -f node_exporter) || echo "Not found") 2>&1)
+    res=$( [[ -n "$( pgrep -f node_exporter )" ]] && sudo kill -9 $(pgrep -f node_exporter) || echo "Not found" 2>&1)
     WriteLog "Res: ${res}" "${CHECK_LOG_FILE}"
         
     unset -v JAVA_HOME
