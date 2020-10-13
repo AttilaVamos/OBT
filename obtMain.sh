@@ -564,6 +564,24 @@ fi
         sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
     fi
     
+    if [[ -n "$REGRESSION_REPORT_RECEIVERS" ]]
+    then
+        WriteLog "Update 'Receivers' in BuildNotification.ini to Receivers : ${REGRESSION_REPORT_RECEIVERS}" "${OBT_LOG_FILE}"
+        cp -f ./BuildNotification.ini ./BuildNotification.bak
+        sed  -e '/^Receivers : \(.*\)/c Receivers : '"${REGRESSION_REPORT_RECEIVERS}" ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini 
+    else
+        WriteLog "The 'REGRESSION_REPORT_RECEIVERS' not defined in settings.sh keep the original value" "${OBT_LOG_FILE}"
+    fi
+    
+    if [[ -n "$REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT" ]]
+    then
+        WriteLog "Update 'ReceiversWhenNewCommit' in BuildNotification.ini to ReceiversWhenNewCommit : ${REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT}" "${OBT_LOG_FILE}"
+        cp -f ./BuildNotification.ini ./BuildNotification.bak
+        sed  -e '/^ReceiversWhenNewCommit : \(.*\)/c ReceiversWhenNewCommit : '"${REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT}" ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini 
+    else
+        WriteLog "The 'REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT' not defined in settings.sh keep the original value" "${OBT_LOG_FILE}"
+    fi
+    
     # Check if it is an old OBT system with 'urlBase : http://<IP>/data2/...'
     isOldOBT=$(  cat BuildNotification.ini | grep -c -i 'data2' )
 
