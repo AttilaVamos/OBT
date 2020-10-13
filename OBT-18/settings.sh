@@ -23,7 +23,7 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 #----------------------------------------------------
 #
 
-BRANCH_ID=master
+BRANCH_ID=candidate-7.8.x
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
