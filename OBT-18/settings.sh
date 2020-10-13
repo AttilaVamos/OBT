@@ -413,7 +413,7 @@ then
     REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
+REGRESSION_EXCLUDE_CLASS=""
 
 PYTHON_PLUGIN=''
 
