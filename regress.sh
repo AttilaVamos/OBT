@@ -89,21 +89,26 @@ WriteLog "Done" "${REGRESS_LOG_FILE}"
 # Check MySQL server state
 #
 
-WriteLog "Check MySQL server state" "${REGRESS_LOG_FILE}"
-
-./checkMySQL.sh
-
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check MySQL server state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check MySQL server state" "${REGRESS_LOG_FILE}"
+    ./checkMySQL.sh
+fi
 
 #
 #----------------------------------------------------
 #
 # Check Cassandra state
 #
-
-WriteLog "Check Cassandra state" "${REGRESS_LOG_FILE}"
-
-./checkCassandra.sh
-
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check Cassandra state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check Cassandra state" "${REGRESS_LOG_FILE}"
+    ./checkCassandra.sh
+fi
 
 #
 #----------------------------------------------------
@@ -111,10 +116,13 @@ WriteLog "Check Cassandra state" "${REGRESS_LOG_FILE}"
 # Check Memcached state
 #
 
-WriteLog "Check Memcached state" "${REGRESS_LOG_FILE}"
-
-./checkMemcached.sh
-
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check Memcached state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check Memcached state" "${REGRESS_LOG_FILE}"
+    ./checkMemcached.sh
+fi
 
 #
 #----------------------------------------------------
@@ -122,10 +130,13 @@ WriteLog "Check Memcached state" "${REGRESS_LOG_FILE}"
 # Check Redis state
 #
 
-WriteLog "Check Redis state" "${REGRESS_LOG_FILE}"
-
-./checkRedis.sh
-
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check Redis state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check Redis state" "${REGRESS_LOG_FILE}"
+    ./checkRedis.sh
+fi
 
 #
 #----------------------------------------------------
@@ -133,10 +144,13 @@ WriteLog "Check Redis state" "${REGRESS_LOG_FILE}"
 # Check Kafka state
 #
 
-WriteLog "Check Kafka state" "${REGRESS_LOG_FILE}"
-
-./checkKafka.sh
-
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check Kafka state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check Kafka state" "${REGRESS_LOG_FILE}"
+    ./checkKafka.sh
+fi
 
 #
 #----------------------------------------------------
@@ -144,9 +158,14 @@ WriteLog "Check Kafka state" "${REGRESS_LOG_FILE}"
 # Check Couchbase state
 #
 
-WriteLog "Check Couchbase state" "${REGRESS_LOG_FILE}"
+if [[ "$REGRESSION_EXCLUDE_CLASS" =~ "embedded,3rdparty" ]]
+then
+    WriteLog "Check Couchbase state skipped" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Check Couchbase state" "${REGRESS_LOG_FILE}"
+    ./checkCouchbase.sh
+fi
 
-./checkCouchbase.sh
 #
 #----------------------------------------------------
 #
