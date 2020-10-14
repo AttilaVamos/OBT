@@ -374,9 +374,9 @@ fi
 WriteLog "Patch regression engine " "${REGRESS_LOG_FILE}"
 
 MODULE="util.py"
-MODULE_PATH="~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/util"
+MODULE_PATH="$HOME/build/CE/platform/HPCC-Platform/testing/regress/hpcc/util"
 
-if [[ -f "~/build/bin/$MODULE" ]]
+if [[ -f ~/build/bin/$MODULE ]]
 then
     WriteLog "Copy $MODULE..." "${REGRESS_LOG_FILE}"
     mv $MODULE_PATH/$MODULE $MODULE_PATH/$MODULE-back 
