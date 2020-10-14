@@ -373,18 +373,21 @@ fi
 
 WriteLog "Patch regression engine " "${REGRESS_LOG_FILE}"
 
-if [[ -f ~/build/bin/logger.py ]]
+MODULE="util.py"
+MODULE_PATH="~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/util"
+
+if [[ -f "~/build/bin/$MODULE" ]]
 then
-    WriteLog "Copy logger.py..." "${REGRESS_LOG_FILE}"
-    mv ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py-back 
-    cp ~/build/bin/logger.py ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/.
-    if [[ -f ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py ]]
+    WriteLog "Copy $MODULE..." "${REGRESS_LOG_FILE}"
+    mv $MODULE_PATH/$MODULE $MODULE_PATH/$MODULE-back 
+    cp ~/build/bin/$MODULE $MODULE_PATH/$MODULE
+    if [[ -f $MODULE_PATH/$MODULE ]]
     then
         WriteLog "   Success, remove backup." "${REGRESS_LOG_FILE}"
-        rm ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py-back
+        rm $MODULE_PATH/$MODULE-back
     else
         WriteLog "   Failed, restore original." "${REGRESS_LOG_FILE}"
-        mv ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py-back ~/build/CE/platform/HPCC-Platform/testing/regress/hpcc/common/logger.py
+        mv $MODULE_PATH/$MODULE-back $MODULE_PATH/$MODULE
     fi
 else
     WriteLog "No patch exists." "${REGRESS_LOG_FILE}"
