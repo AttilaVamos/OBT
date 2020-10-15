@@ -165,6 +165,33 @@ CloneRepo()
         # send email to Agyi
         return 1
     fi
+    
+    # Get the latest Regression Test Engine 
+    WriteLog "Get the latest Regression Test Engine..." "${CLONE_LOG_FILE}"
+    [[ ! -d $REGRESSION_TEST_ENGINE_HOME ]]  && mkdir -p $REGRESSION_TEST_ENGINE_HOME
+    
+    pushd $target
+    
+    # Check Regression Test Engine version by last commit id of master branch
+    branch=$( git status | egrep 'On branch' | cut -d' ' -f 3 )
+    [[ "$branch" != "master" ]] && echo "res: $(git checkout master)"
+    
+    newCommitId=$( git log -1 | grep '^commit'  | cut -d ' ' -f 2)
+    [[ -f $REGRESSION_TEST_ENGINE_HOME/commit.id ]] && oldCommitId=$( cat $REGRESSION_TEST_ENGINE_HOME/commit.id ) || oldCommitId="none"
+    
+    if [[ "$oldCommitId" != "$newCommitId" ]]
+    then
+        WriteLog "There is a newest version ($newCommitId) in GitHub (we have $oldCommitId) get it." "${CLONE_LOG_FILE}"
+        # Copy latest Regression Test Engine into <OBT binary dir>/rte directory
+        cp -v testing/regress/ecl-test* $REGRESSION_TEST_ENGINE_HOME/.
+        cp -v -r testing/regress/hpcc $REGRESSION_TEST_ENGINE_HOME/hpcc
+        echo "$newCommitId" > $REGRESSION_TEST_ENGINE_HOME/commit.id
+    else
+        WriteLog "We have the latest version." "${CLONE_LOG_FILE}"
+    fi
+    
+    popd
+    
     WriteLog "End." "${CLONE_LOG_FILE}"
     return 0
 }
