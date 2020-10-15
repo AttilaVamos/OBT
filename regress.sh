@@ -374,7 +374,7 @@ fi
 WriteLog "Patch regression engine " "${REGRESS_LOG_FILE}"
 
 MODULE="util.py"
-MODULE_PATH="$HOME/build/CE/platform/HPCC-Platform/testing/regress/hpcc/util"
+MODULE_PATH="$REGRESSION_TEST_ENGINE_HOME/hpcc/util"
 
 if [[ -f ~/build/bin/$MODULE ]]
 then
