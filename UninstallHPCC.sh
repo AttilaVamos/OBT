@@ -66,6 +66,9 @@ UninstallHPCC()
     
     if [[ $wipeOut -eq 1 && -f /opt/HPCCSystems/sbin/complete-uninstall.sh ]]
     then
+        WriteLog "Stop HPCC Platform before remove it." "$logFile"
+        StopHpcc "$logFile"
+        
         WriteLog "Use 'complete-uninstall.sh' to remove HPCC." "$logFile"
         # Check '-p' parameter
         purge=$( /opt/HPCCSystems/sbin/complete-uninstall.sh -h | while read l; do [[ "${l}" =~ "-p, " ]] && echo "-p"; done )

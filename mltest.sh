@@ -498,7 +498,7 @@ then
     WriteLog "ML_TEST_HOME  : ${ML_TEST_HOME}" "${ML_TEST_LOG}"
     WriteLog "ML_ENGINE_HOME: ${ML_ENGINE_HOME}" "${ML_TEST_LOG}"
     
-    CMD="${TEST_ENGINE_HOME}/ecl-test --config ${TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES} run -t ${TARGET_PLATFORM}"
+    CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES} run -t ${TARGET_PLATFORM}"
 
     WriteLog "CMD: '${CMD}'" "${ML_TEST_LOG}"
     
@@ -602,7 +602,7 @@ then
     #
     # Remove ECL-Bundles
     #
-    WriteLog "Remove ECL-Bundles" "${ML_TEST_LOG}"
+    #WriteLog "Remove ECL-Bundles" "${ML_TEST_LOG}"
     
     #rm -rf ${PERF_TEST_ROOT}/PerformanceTesting
     
@@ -634,9 +634,9 @@ cd ${OBT_BIN_DIR}
 # Stop HPCC Systems
 #
 
-WriteLog "Stop HPCC Systems ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+#WriteLog "Stop HPCC Systems ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
 
-StopHpcc "${ML_TEST_LOG}"
+#StopHpcc "${ML_TEST_LOG}"
 
 WriteLog "End of Machine Learning test" "${ML_TEST_LOG}"
 
