@@ -36,9 +36,9 @@ then
     RUN_2=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-      RUN_0[@]
-      RUN_1[@]
-      RUN_2[@]
+        RUN_0[@]
+        RUN_1[@]
+        RUN_2[@]
     )
 else
     # For obtSequencer.sh 
@@ -52,14 +52,13 @@ else
     RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
     RUN_5=("BRANCH_ID=master")
 
-
     RUN_ARRAY=(
-      RUN_0[@]
-      RUN_1[@]
-      RUN_2[@]
-      RUN_3[@]
-      RUN_4[@]
-      RUN_5[@]
+        RUN_0[@]
+        RUN_1[@]
+        RUN_2[@]
+        RUN_3[@]
+        RUN_4[@]
+        RUN_5[@]
     )
 fi
 #
@@ -93,7 +92,6 @@ else
     if [[ $NUMBER_OF_CPUS -le 4 ]]
     then
         [[ $NUMBER_OF_CPUS -gt 2 ]] && TEST_PARALLEL_QUERIES=$(( $NUMBER_OF_CPUS - 2 )) || TEST_PARALLEL_QUERIES=1
-        
     fi
 fi
 
@@ -152,14 +150,12 @@ if [ -z $OBT_TIMESTAMP ]
 then 
     OBT_TIMESTAMP=$(date "+%H-%M-%S")
     export OBT_TIMESTAMP
-    
 fi
 
 if [ -z $OBT_DATESTAMP ] 
 then 
     OBT_DATESTAMP=${SHORT_DATE}
     export OBT_DATESTAMP
-    
 fi
 
 
@@ -190,7 +186,7 @@ OBT_LOG_DIR=${BUILD_DIR}/bin
 OBT_BIN_DIR=${BUILD_DIR}/bin
 BUILD_HOME=${BUILD_DIR}/${RELEASE_TYPE}/build
 SOURCE_HOME=${BUILD_DIR}/${RELEASE_TYPE}/HPCC-Platform
-
+REGRESSION_TEST_ENGINE_HOME=$OBT_BIN_DIR/rte
 
 GIT_2DAYS_LOG=${OBT_LOG_DIR}/git_2days.log
 GLOBAL_EXCLUSION_LOG=${OBT_LOG_DIR}/GlobalExclusion.log
@@ -332,7 +328,7 @@ AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
     # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
+    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
     # (Perhaps it is some bug, but this is areally old branch, so exclude)
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
 fi
@@ -342,10 +338,10 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-    # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-    # (Perhaps it is some bug, but this is areally old branch, so exclude)
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
+        # (Perhaps it is some bug, but this is areally old branch, so exclude)
+        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
@@ -442,7 +438,7 @@ REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,att
 # Enable to run Coverity build and upload result
 
 RUN_COVERITY=0
-COVERITY_TEST_DAY=1 # Monday
+COVERITY_TEST_DAY=1    # Monday
 COVERITY_TEST_BRANCH=master
 
 #
@@ -655,3 +651,4 @@ set +a
 
 [[ -f ${OBT_BIN_DIR}/utils.sh ]] && . ${OBT_BIN_DIR}/utils.sh
 
+# End of settings.sh

@@ -319,7 +319,7 @@ fi
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-    # Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
+    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
 fi
 
@@ -337,7 +337,7 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-        # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
         # (Perhaps it is some bug, but this is areally old branch, so exclude)
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
