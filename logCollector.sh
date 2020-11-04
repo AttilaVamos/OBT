@@ -1,4 +1,8 @@
+#!/usr/bin/bash
+
 echo "Start $0"
+
+pushd $HOME
 
 echo "Start hthor log collection..."
 exec find /common/nightly_builds/HPCC/ -iname 'hthor.*.log' -type f -print | sort | zip -u HthorLogCollection -@ > HthorLogCollection.log &
@@ -28,14 +32,15 @@ wait
 
 echo "All processes are finished, upload results.."
 
-rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/*Collection*.zip ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-010/LogCollections/.
+#rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/*Collection*.zip ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-010/LogCollections/.
+rsync -va -e 'ssh -i ~/hpcc_keypair.pem' ~/*LogCollection* centos@10.240.62.177:/home/centos/${OBT_ID}
 
 echo "Upload done."
 
 echo "Clean-up /common (delete all results older than 90 days)"
 find /common/nightly_builds/HPCC/ -maxdepth 2 -mtime +90 -type d -print -exec rm -rf '{}' \;
 
-echo "Clen-up done."
+echo "Clean-up done."
 
 echo "End."
 
