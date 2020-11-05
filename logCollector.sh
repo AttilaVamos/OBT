@@ -51,10 +51,10 @@ rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection* centos@${
 
 echo "Upload done."
 
-echo "Clean-up /common (delete all results older than 90 days)"
-find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +90 -type d -print -exec rm -rf '{}' \;
+#echo "Clean-up /common (delete all results older than 90 days)"
+#find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +90 -type d -print -exec rm -rf '{}' \;
 
-echo "Clean-up done."
+#echo "Clean-up done."
 
 echo "End."
 
