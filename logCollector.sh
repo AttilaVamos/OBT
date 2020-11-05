@@ -5,7 +5,7 @@ then
     . ~/build/bin/setings.sh
 else
     echo "File: '~/build/bin/settings.sh' not found. Exit."
-    exit(-1)
+    exit -1
 fi
 
 SSH_KEYFILE="~/hpcc_keypair.pem"
