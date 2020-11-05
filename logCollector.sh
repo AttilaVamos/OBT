@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 if [[ -f ~/build/bin/settings.sh ]] 
 then
