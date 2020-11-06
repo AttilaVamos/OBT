@@ -88,7 +88,7 @@ then
         
                 sleep 30
             else
-                WriteLog "Couchbase is up!" "${COUCHBASE_CHECK_LOG_FILE}"
+                WriteLog "Couchbase is up in this system (IP:$LOCAL_IP_STR)!" "${COUCHBASE_CHECK_LOG_FILE}"
                 
                 break
             fi
