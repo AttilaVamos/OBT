@@ -3,7 +3,6 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 set -a
 
-
 #
 #----------------------------------------------------
 #
@@ -20,47 +19,47 @@ SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
 
-
 #
 #----------------------------------------------------
 #
-# from 2016-11-30 onward
 
 BRANCH_ID=master
 
-
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
-	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
+    # For obtSequencer.sh 
+    BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
 
-	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.4.x")
-	RUN_1=("BRANCH_ID=candidate-7.6.x")
-	RUN_2=("BRANCH_ID=candidate-7.8.x")
+    # For versioning
+    RUN_0=("BRANCH_ID=candidate-7.4.x")
+    RUN_1=("BRANCH_ID=candidate-7.6.x")
+    RUN_2=("BRANCH_ID=candidate-7.8.x")
 
-	RUN_ARRAY=(
-	  RUN_0[@]
-	  RUN_1[@]
-	  RUN_2[@]
-	)
+    RUN_ARRAY=(
+        RUN_0[@]
+        RUN_1[@]
+        RUN_2[@]
+    )
 else
-	# For obtSequencer.sh 
-	BRANCHES_TO_TEST=( 'candidate-7.6.x' 'candidate-7.8.x' 'candidate-7.10.x' 'master' )
+    # For obtSequencer.sh 
+    BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
 
-	# For versioning
-	RUN_0=("BRANCH_ID=candidate-7.8.x")
-	RUN_1=("BRANCH_ID=candidate-7.10.x")
-	RUN_3=("BRANCH_ID=candidate-7.12.x")
-	RUN_5=("BRANCH_ID=master")
+    # For versioning
+    RUN_0=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_1=("BRANCH_ID=candidate-7.10.x")
+    RUN_2=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_3=("BRANCH_ID=candidate-7.12.x")
+    RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_5=("BRANCH_ID=master")
 
-	RUN_ARRAY=(
-	  RUN_0[@]
-	  RUN_1[@]
-	  RUN_3[@]
-	  RUN_5[@]
-	)
-
+    RUN_ARRAY=(
+        RUN_0[@]
+        RUN_1[@]
+        RUN_2[@]
+        RUN_3[@]
+        RUN_4[@]
+        RUN_5[@]
+    )
 fi
 #
 #----------------------------------------------------
@@ -93,7 +92,6 @@ else
     if [[ $NUMBER_OF_CPUS -le 4 ]]
     then
         [[ $NUMBER_OF_CPUS -gt 2 ]] && TEST_PARALLEL_QUERIES=$(( $NUMBER_OF_CPUS - 2 )) || TEST_PARALLEL_QUERIES=1
-        
     fi
 fi
 
@@ -152,14 +150,12 @@ if [ -z $OBT_TIMESTAMP ]
 then 
     OBT_TIMESTAMP=$(date "+%H-%M-%S")
     export OBT_TIMESTAMP
-    
 fi
 
 if [ -z $OBT_DATESTAMP ] 
 then 
     OBT_DATESTAMP=${SHORT_DATE}
     export OBT_DATESTAMP
-    
 fi
 
 
@@ -175,8 +171,11 @@ else
 fi
 
 
-OBT_SYSTEM=OBT-18
-OBT_SYSTEM_ENV=SmallVM
+OBT_SYSTEM=OBT-117
+OBT_SYSTEM_ENV=OpenStackVM
+OBT_SYSTEM_STACKSIZE=81920
+OBT_SYSTEM_NUMBER_OF_PROCESS=524288
+OBT_SYSTEM_NUMBER_OF_FILES=524288
 
 BUILD_SYSTEM=${SYSTEM_ID}
 RELEASE_TYPE=CE/platform
@@ -187,7 +186,7 @@ OBT_LOG_DIR=${BUILD_DIR}/bin
 OBT_BIN_DIR=${BUILD_DIR}/bin
 BUILD_HOME=${BUILD_DIR}/${RELEASE_TYPE}/build
 SOURCE_HOME=${BUILD_DIR}/${RELEASE_TYPE}/HPCC-Platform
-
+REGRESSION_TEST_ENGINE_HOME=$OBT_BIN_DIR/rte
 
 GIT_2DAYS_LOG=${OBT_LOG_DIR}/git_2days.log
 GLOBAL_EXCLUSION_LOG=${OBT_LOG_DIR}/GlobalExclusion.log
@@ -201,7 +200,7 @@ ZAP_DIR=$REGRESSION_RESULT_DIR/zap
 
 LOG_DIR=~/HPCCSystems-regression/log
 
-BIN_HOME=~/
+BIN_HOME=~
 
 DEBUG_BUILD_DAY=6
 BUILD_TYPE=RelWithDebInfo
@@ -211,12 +210,12 @@ WEEK_DAY=$(date "+%w")
 if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
 then
     BUILD_TYPE=Debug
-fi    
+fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
-MAKE_WSSQL=0
-USE_LIBMEMCACHED=0
+MAKE_WSSQL=1
+USE_LIBMEMCACHED=1
 ECLWATCH_BUILD_STRATEGY=IF_MISSING
 ENABLE_SPARK=0
 SUPPRESS_SPARK=1
@@ -234,7 +233,7 @@ ESP_IP=127.0.0.1
 # For our multi node performance cluster:
 #ESP_IP=10.241.40.5
 
-LOCAL_IP_STR=$( /sbin/ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
+LOCAL_IP_STR=$( ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
@@ -246,15 +245,14 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 # House keeping
 #
 
-
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=5  # today + BUILD_DIR_EXPIRE days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=1  # days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
-SOURCE_DIR_MAX_NUMBER=4 # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
+SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 
-BUILD_DIR_EXPIRE=5   # today + BUILD_DIR_EXPIRE days
-BUILD_DIR_MAX_NUMBER=4   # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
+BUILD_DIR_EXPIRE=1   # days
+BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
 
 # Local log archive
@@ -276,7 +274,6 @@ DISK_SPACE_MONITOR_START=1
 
 MY_INFO_MONITOR_START=1
 
-
 #
 #----------------------------------------------------
 #
@@ -285,14 +282,13 @@ MY_INFO_MONITOR_START=1
 
 GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrace for all threads\n==========================" -ex "thread apply all bt" -ex "echo \n Registers:\n==========================\n" -ex "info reg" -ex "echo \n Disas:\n==========================\n" -ex "disas" -ex "quit"'
 
-
 #
 #----------------------------------------------------
 #
 # Doc build macros
 #
 
-BUILD_DOCS=0
+BUILD_DOCS=1
 
 
 #
@@ -306,8 +302,8 @@ SUPRESS_PLUGINS=''
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]] 
 then
-	# Supresss Azure on CenOS 6
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
+    # Supresss Azure on CenOS 6
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
 fi
 
 
@@ -317,25 +313,23 @@ if [[ " ${REMBED_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]]
 then
     # There is an R environmet and Rembed.cpp incompatibility on the candidate-64.34 branch,
     # so don't build it
-
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_REMBED=ON"
 fi
-
 
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-	# Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
+    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
 fi
 
 AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-	# Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
-        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-	# (Perhaps it is some bug, but this is areally old branch, so exclude)
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
+    # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
+    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
+    # (Perhaps it is some bug, but this is areally old branch, so exclude)
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
 fi
 
 BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
@@ -343,10 +337,10 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-	# Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-	# (Perhaps it is some bug, but this is areally old branch, so exclude)
-	SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
+        # (Perhaps it is some bug, but this is areally old branch, so exclude)
+        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
@@ -357,7 +351,6 @@ fi
 #
 # Regression tests macros
 #
-
 
 # Use complete-uninstall.sh to wipe HPCC
 REGRESSION_WIPE_OFF_HPCC=1
@@ -394,9 +387,7 @@ then
 fi
 
 
-# It is fail on CentOS 6 -> Should modify Regression Test Engine 
-# (remove -k 2 paramter from timeout command in isSudoer() utility function)
-#
+# Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES=""
@@ -422,61 +413,20 @@ then
     REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-#REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 REGRESSION_EXCLUDE_CLASS=""
 
 PYTHON_PLUGIN=''
 
-#if [ -f $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in ]
-#then
-#   echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in"
-#
-#    additionalPlugins=($( cat $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in | egrep '^additionalPlugins'| cut -d= -f2 ))
-#    for plugin in ${additionalPlugins[*]}
-#    do
-#        upperPlugin=${plugin^^}
-#        echo "plugin: $upperPlugin"
-#        case $upperPlugin in
-#            
-#            PYTHON2*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-#                        then
-#                            REGRESSION_EXCLUDE_CLASS="-e python3"
-#                        else
-#                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python3"
-#                        fi
-#                        
-#                        PYTHON_PLUGIN="-DSUPPRESS_PY3EMBED=ON -DINCLUDE_PY3EMBED=OFF"
-#                        ;;
-#                        
-#            PYTHON3*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-#                        then
-#                            REGRESSION_EXCLUDE_CLASS="-e python2"
-#                        else
-#                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python2"
-#                        fi
-#                      
-#                        PYTHON_PLUGIN="-DSUPPRESS_PY2EMBED=ON -DINCLUDE_PY2EMBED=OFF"
-#                        ;;
-#                        
-#            *)          # Do nothing yet
-#                        ;;
-#        esac
-#    done
-#    echo "Done."
-#else
-#   echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in not found."
-#fi
-
 # To use local installation
-#COUCHBASE_SERVER=$LOCAL_IP_STR
-#COUCHBASE_USER=$USER
+COUCHBASE_SERVER=$LOCAL_IP_STR
+COUCHBASE_USER=$USER
 
 # Need to add private key into .ssh directory to use remote couchbase server
-COUCHBASE_SERVER=10.240.62.177
-COUCHBASE_USER=centos
+#COUCHBASE_SERVER=10.240.62.177
+#COUCHBASE_USER=centos
 
-
-#echo "Regression exclusion: ${REGRESSION_EXCLUDE_CLASS}"
+REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
+REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
 #
 #----------------------------------------------------
@@ -486,10 +436,9 @@ COUCHBASE_USER=centos
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=0
-COVERITY_TEST_DAY=1	# Monday
+RUN_COVERITY=1
+COVERITY_TEST_DAY=1    # Monday
 COVERITY_TEST_BRANCH=master
-
 
 #
 #----------------------------------------------------
@@ -572,13 +521,10 @@ PERF_NUM_OF_NODES=1
 PERF_IP_OF_NODES=( '127.0.0.1' )
 
 # totalMemoryLimit for Hthor
-#PERF_HTHOR_MEMSIZE_GB=4
-# Set it to 4 GB to reproduce OOm-killer for 
-# 07dc_keyedjoinlimit_hit3.ecl and 07ec_keyedjoinkeylimit_hit3.ecl
-PERF_HTHOR_MEMSIZE_GB=3
+PERF_HTHOR_MEMSIZE_GB=4
 
 # totalMemoryLimit for Thor
-PERF_THOR_MEMSIZE_GB=3
+PERF_THOR_MEMSIZE_GB=4
 
 PERF_THOR_NUMBER_OF_SLAVES=4
 #if not already defined (by the sequencer) then define it
@@ -587,7 +533,7 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=100
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=3
+PERF_ROXIE_MEMSIZE_GB=4
 
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
@@ -619,8 +565,9 @@ PERF_WIPE_OFF_HPCC=0
 PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
 PERF_TEST_PARALLEL_QUERIES=1
 
-PERF_EXCLUDE_CLASS="-e stress"
+# Example:
 #PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
+PERF_EXCLUDE_CLASS="-e stress"
 
 # Don't use these settings on this machine (yet)
 #PERF_FLUSH_DISk_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
@@ -635,10 +582,11 @@ fi
 
 if [ -n "$PERF_RUNCOUNT" ]
 then
-	loop=$( echo $PERF_RUNCOUNT | awk '{ print $2}' )
-	PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
+    loop=$( echo $PERF_RUNCOUNT | awk '{ print $2}' )
+    PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
 fi
 
+PERF_ENABLE_CALCTREND=1
 PERF_CALCTREND_PARAMS=""
 
 #
@@ -700,3 +648,4 @@ set +a
 
 [[ -f ${OBT_BIN_DIR}/utils.sh ]] && . ${OBT_BIN_DIR}/utils.sh
 
+# End of settings.sh

@@ -87,13 +87,12 @@ then
                 WriteLog "Res: ${res}" "${COUCHBASE_CHECK_LOG_FILE}"
         
                 sleep 30
-                tryCount=$(( $tryCount-1 ))
-                continue
             else
                 WriteLog "Couchbase is up!" "${COUCHBASE_CHECK_LOG_FILE}"
                 
                 break
             fi
+            tryCount=$(( $tryCount-1 ))
         done
         if [[ $tryCount -eq 0 ]]
         then
