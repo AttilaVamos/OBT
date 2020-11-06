@@ -96,14 +96,14 @@ then
         done
         if [[ $tryCount -eq 0 ]]
         then
-            WriteLog "Couchbase won't start! Give up and send Email to Agyi!" "${COUCHBASE_CHECK_LOG_FILE}"
+            WriteLog "Couchbase doesn't start on this system (IP:$LOCAL_IP_STR)! Give up and send Email to Agyi!" "${COUCHBASE_CHECK_LOG_FILE}"
             # send email to Agyi
-            echo "Couchbase won't start!" | mailx -s "Problem with Couchbase" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+            echo "Couchbase Doesn't start on this system (IP:$LOCAL_IP_STR)!" | mailx -s "Problem with Couchbase" -u $USER  ${ADMIN_EMAIL_ADDRESS}
         fi
     else
-        WriteLog "Couchbase  not installed in this system! Give up and send Email to Agyi!" "${COUCHBASE_CHECK_LOG_FILE}"
+        WriteLog "Couchbase not installed in this system (IP:$LOCAL_IP_STR)! Give up and send Email to Agyi!" "${COUCHBASE_CHECK_LOG_FILE}"
         # send email to Agyi
-        echo "Couchbase  not installed in this sysytem!" | mailx -s "Problem with Couchbase" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+        echo "Couchbase  not installed in this system (IP:$LOCAL_IP_STR)!" | mailx -s "Problem with Couchbase" -u $USER  ${ADMIN_EMAIL_ADDRESS}
 
     fi
 else
@@ -136,9 +136,9 @@ EOF
 
     if [[ $remoteIsUp -eq 1 ]]
     then
-        WriteLog "Remote server is up" "${COUCHBASE_CHECK_LOG_FILE}"
+        WriteLog "Remote server (IP:$COUCHBASE_SERVER) is up" "${COUCHBASE_CHECK_LOG_FILE}"
     else
-        WriteLog "Remote server is down" "${COUCHBASE_CHECK_LOG_FILE}"
+        WriteLog "Remote server (IP:$COUCHBASE_SERVER) is down." "${COUCHBASE_CHECK_LOG_FILE}"
         # send email to Agyi
         echo "On $LOCAL_IP_STR the $0 is failed to check Couchbase server on $COUCHBASE_SERVER !" | mailx -s "Problem with Couchbase" -u $USER  ${ADMIN_EMAIL_ADDRESS}
     fi
