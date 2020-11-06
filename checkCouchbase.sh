@@ -124,7 +124,7 @@ EOF
 
     remoteIsUp=$( for line in "${res}";                                                          \
         do                                                                                       \
-            if [[ "$line" =~ "Couchbase is up!" ]];                                              \
+            if [[ "$line" =~ "Couchbase is up" ]];                                              \
             then                                                                                 \
                 echo "1";                                                                        \
                 break;                                                                           \
