@@ -89,7 +89,6 @@ else
     if [[ $NUMBER_OF_CPUS -le 4 ]]
     then
         [[ $NUMBER_OF_CPUS -gt 2 ]] && TEST_PARALLEL_QUERIES=$(( $NUMBER_OF_CPUS - 2 )) || TEST_PARALLEL_QUERIES=1
-        
     fi
 fi
 
@@ -148,14 +147,12 @@ if [ -z $OBT_TIMESTAMP ]
 then 
     OBT_TIMESTAMP=$(date "+%H-%M-%S")
     export OBT_TIMESTAMP
-    
 fi
 
 if [ -z $OBT_DATESTAMP ] 
 then 
     OBT_DATESTAMP=${SHORT_DATE}
     export OBT_DATESTAMP
-    
 fi
 
 
@@ -170,7 +167,7 @@ else
     DAFILESRV_STOP="${SUDO} service dafilesrv stop"
 fi
 
-
+OBT_MAIN_PARAM="regress"
 OBT_SYSTEM=OBT-24
 OBT_SYSTEM_ENV=SmallVM
 OBT_SYSTEM_STACKSIZE=81920
@@ -211,7 +208,7 @@ WEEK_DAY=$(date "+%w")
 if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
 then
     BUILD_TYPE=Debug
-fi    
+fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
@@ -320,7 +317,7 @@ fi
 SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
-    # Old libcurl on Centos 6.x so eclude this from 7.6.x and perhaps later versions
+    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
 fi
 
@@ -328,7 +325,7 @@ AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
 then
     # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
+    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
     # (Perhaps it is some bug, but this is areally old branch, so exclude)
     SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
 fi
@@ -338,10 +335,10 @@ if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
-    # Old libcurl on Centos 6.x so eclude this from master and perhaps later versions
+        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
         # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-    # (Perhaps it is some bug, but this is areally old branch, so exclude)
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
+        # (Perhaps it is some bug, but this is areally old branch, so exclude)
+        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
@@ -438,7 +435,7 @@ REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,att
 # Enable to run Coverity build and upload result
 
 RUN_COVERITY=0
-COVERITY_TEST_DAY=1 # Monday
+COVERITY_TEST_DAY=1    # Monday
 COVERITY_TEST_BRANCH=master
 
 #
@@ -590,7 +587,7 @@ then
     PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
 fi
 
-PERF_ENABLE_CALCTREND=0
+PERF_ENABLE_CALCTREND=1
 PERF_CALCTREND_PARAMS=""
 
 #
@@ -652,3 +649,4 @@ set +a
 
 [[ -f ${OBT_BIN_DIR}/utils.sh ]] && . ${OBT_BIN_DIR}/utils.sh
 
+# End of settings.sh

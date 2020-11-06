@@ -170,7 +170,7 @@ else
     DAFILESRV_STOP="${SUDO} service dafilesrv stop"
 fi
 
-
+OBT_MAIN_PARAM="regress"
 OBT_SYSTEM=OBT-010
 OBT_SYSTEM_ENV=TestFarm2
 OBT_SYSTEM_STACKSIZE=81920
