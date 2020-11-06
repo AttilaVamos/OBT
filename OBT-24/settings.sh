@@ -234,7 +234,7 @@ ESP_IP=127.0.0.1
 # For our multi node performance cluster:
 #ESP_IP=10.241.40.5
 
-LOCAL_IP_STR=$( /sbin/ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
+LOCAL_IP_STR=$( ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
