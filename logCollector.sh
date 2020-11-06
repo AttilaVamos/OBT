@@ -2,7 +2,7 @@
 
 if [[ -f ~/build/bin/settings.sh ]] 
 then
-    . ~/build/bin/setings.sh
+    . ~/build/bin/settings.sh
 else
     echo "File: '~/build/bin/settings.sh' not found. Exit."
     exit -1

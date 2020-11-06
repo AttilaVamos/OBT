@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 SSH_KEYFILE="~/hpcc_keypair.pem"
-SSH_OPTIONS="-oConnectionAttempts=3 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
+SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=100 -oStrictHostKeyChecking=no"
 SSH_TARGET="10.240.62.177"
 
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
