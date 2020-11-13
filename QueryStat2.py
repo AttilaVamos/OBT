@@ -215,16 +215,23 @@ class WriteStatsToFile(object):
                 print("Using date: '%s' -> '%s' to transform date stamp in jobname(s) and to store result file." % (options.dateTransform, self.newDate))
             
             pass
+        self.allWorkunits = options.allWorkunits
+        self.timeStamp = options.timeStamp
+        self.timeStampStr =  datetime.today().strftime("%H%M%S")  # "HHMMSS"
+        
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
         self.queryHpccVersion()
         
-        print("self.destPath: '" + self.destPath + "'")
-        print("self.host    : '" + self.host + "'")
-        print("self.url     : '" + self.url + "'")
-        print("self.dateStr : '" + str(self.dateStr) + "'")
-        print("self.verbose : " + str(self.verbose))
-        print("hpccVersion  : " + self.hpccVersionStr)
+        print("self.destPath     : '" + self.destPath + "'")
+        print("self.host         : '" + self.host + "'")
+        print("self.url          : '" + self.url + "'")
+        print("self.allWorkunits : '" + str(self.allWorkunits) + "'")
+        print("self.dateStr      : '" + str(self.dateStr) + "'")
+        print("self.timeStamp    : '" + str(self.timeStamp) + "'")
+        print("self.timeStampStr : '" + str(self.timeStampStr) + "'")
+        print("self.verbose      : " + str(self.verbose))
+        print("hpccVersion       : " + self.hpccVersionStr)
         pass
         
     def myPrint(self, Msg, *Args):
@@ -426,6 +433,10 @@ class WriteStatsToFile(object):
         today = datetime.today()
         if dateStr == '':
             dateStr = today.strftime("%y%m%d")
+            
+        self.resultConfigClass[cluster].set('Result',  'Date',  dateStr)
+        self.resultConfigClass[cluster].set('Result',  'Time',  self.timeStampStr )
+        
         if self.jobNameSuffix != '':
             queryJobname = "*" + self.jobNameSuffix + "-*"
         else:
@@ -435,7 +446,6 @@ class WriteStatsToFile(object):
         url += "&Jobname=" + queryJobname
         print("query:" + url)
         
-        self.resultConfigClass[cluster].set('Result',  'Date',  dateStr)
         self.resultConfigClass[cluster].set('Result',  'Query',  url)
         state = 'OK'
         sum = 0
@@ -452,9 +462,15 @@ class WriteStatsToFile(object):
                  pass
                  
             if self.dateTransform :
-                statFileName = self.destPath + "perfstat-" + cluster + "-" + self.newDate + "-" + self.hpccVersionStr +".csv"
+                if self.timeStamp:
+                    statFileName = self.destPath + "perfstat-" + cluster + "-" + self.newDate + "-"  + self.timeStampStr  + "-" + self.hpccVersionStr +".csv"
+                else:
+                    statFileName = self.destPath + "perfstat-" + cluster + "-" + self.newDate + "-" + self.hpccVersionStr +".csv"
             else:
-                statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-" + self.hpccVersionStr +".csv"
+                if self.timeStamp:
+                    statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-"  + self.timeStampStr  + "-" + self.hpccVersionStr +".csv"
+                else:
+                    statFileName = self.destPath + "perfstat-" + cluster + "-" + dateStr + "-" + self.hpccVersionStr +".csv"
 
             print("statFileName:" + statFileName)
             self.resultConfigClass[cluster].set('Result',  'DataFileName',  statFileName)
@@ -469,12 +485,11 @@ class WriteStatsToFile(object):
 
             statFile = open(statFileName,  "w")
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
-            rex2 = re.compile("^spray")
             oldShortJobName=''
             oldJobName = ''
             
             for stat in stats:
-                if (rex.match(stat['Jobname']) or rex2.match(stat['Jobname']) ) and (stat['State'] == 'completed'):
+                if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] == 'completed'):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
                     if shortJobName.startswith('12ac_'):
                         pass
@@ -545,7 +560,7 @@ class WriteStatsToFile(object):
             
             self.resultConfigClass[cluster].set('Result',  'WorkunitCount',  str(wuCount))
             self.resultConfigClass[cluster].set('Result',  'Status',  state)
-            
+        
             self.resultConfigClass[cluster].saveConfig(statFileName.replace('.csv',''))
             
             print("End.\n\n")
@@ -579,6 +594,12 @@ if __name__ == '__main__':
     parser.add_option("--dt", "--dateTransform",  dest="dateTransform",  default = "",  type = "string" , 
                         help="Change test(s) execution date to the given one in 'yymmdd', 'yyyymmdd' or parts separated with '-' like 'yy-mm-dd' format like '200625'. (Use it with conjuction with --jobNameSuffix to get results tested on an older commit.)", 
                         metavar="DATETRANSFOMR")
+                        
+    parser.add_option("--timestamp",  dest="timeStamp",  default=False, action="store_true", 
+                        help="Add timestamp in 'HHMMSS' format to the target file names",  metavar="TIMESTAMP")
+                        
+    parser.add_option("-a","--allWorkunits",  dest="allWorkunits",  default=False, action="store_true", 
+                        help="Query all workunits instead of the Performance test related set.",  metavar="ALLWORKUNITS")
                         
     (options, args) = parser.parse_args()
 
