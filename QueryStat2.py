@@ -484,12 +484,16 @@ class WriteStatsToFile(object):
             print("Number of workinits in result is: %d" % ( len(stats) ))
 
             statFile = open(statFileName,  "w")
+            #                  self.allWorkunits
+            workunitFilter =   {False : ['completed'], 
+                                          True  : ['completed',  'compiled',  'failed', 'aborted' ]
+                                        }
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
             oldShortJobName=''
             oldJobName = ''
             
             for stat in stats:
-                if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] == 'completed'):
+                if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] in workunitFilter[self.allWorkunits]):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
                     if shortJobName.startswith('12ac_'):
                         pass
