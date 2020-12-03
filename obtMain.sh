@@ -1088,17 +1088,17 @@ sleep 10
 
 
 #
-# Remove all old remote/WEB logs
+# Remove old remote/WEB logs
 #
 
 WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
 
-OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 1 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d ) )
+OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d ) )
 
 WriteLog "${#OLD_DIRS[@]} old directory found." "${OBT_LOG_FILE}"
 
-#res=$( find ${STAGING_DIR_ROOT} -maxdepth 1 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print -exec rm -rf '{}' \; 2>&1 )
-res=$( find ${STAGING_DIR_ROOT} -maxdepth 1 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
+res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print -exec rm -rf '{}' \; 2>&1 )
+#res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
 
 WriteLog "res:${res}" "${OBT_LOG_FILE}"
 
