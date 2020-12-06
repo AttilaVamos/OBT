@@ -178,6 +178,8 @@ CloneRepo()
     
     newCommitId=$( git log -1 | grep '^commit'  | cut -d ' ' -f 2)
     [[ -f $REGRESSION_TEST_ENGINE_HOME/commit.id ]] && oldCommitId=$( cat $REGRESSION_TEST_ENGINE_HOME/commit.id ) || oldCommitId="none"
+    # Force to always get RTE from master (until it will be fixed)
+    oldCommitId="none"
     
     if [[ "$oldCommitId" != "$newCommitId" ]]
     then
