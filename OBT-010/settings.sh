@@ -23,7 +23,7 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 #----------------------------------------------------
 #
 
-BRANCH_ID=candidate-7.8.x #master
+BRANCH_ID=master
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
@@ -202,7 +202,8 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-DEBUG_BUILD_DAY=6
+#actually we have other system (OBT-007) for continuous debug build, so it is not necessary now
+DEBUG_BUILD_DAY=8   # Invalid day number to avoid Debug build
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")

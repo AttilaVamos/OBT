@@ -115,7 +115,7 @@ do
                     ARCHIVE_NAME=$param
                     ;;
 
-    obt-exit*)  WriteLog "mode:OBT-exit-cleanup (log files move into archive, skip copy to wiki)" "${ARCHIVE_LOG_DIR}"
+        obt-exit*)  WriteLog "mode:OBT-exit-cleanup (log files move into archive, skip copy to wiki)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
                     MOVE_TO_ZIP_FLAG=-m
                     DO_ARCHIVE=0
@@ -158,17 +158,17 @@ do
                     IS_COVERAGE=1
                     ;;
 
-    ml*)        WriteLog "mode:ML (files move into archive)" "${ARCHIVE_LOG_DIR}"
+        ml*)        WriteLog "mode:ML (files move into archive)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
                     MOVE_TO_ZIP_FLAG=-m
                     ;;
 
 
-    time*)      TIMESTAMP=${param//time*=/}
+        time*)      TIMESTAMP=${param//time*=/}
                     WriteLog "Archive timestamp is: '${TIMESTAMP}'" "${ARCHIVE_LOG_DIR}"
                     ;;
 
-    nopub*)     WriteLog "Do not publish archive." "${ARCHIVE_LOG_DIR}"
+        nopub*)     WriteLog "Do not publish archive." "${ARCHIVE_LOG_DIR}"
             DO_ARCHIVE=0
                     ;;
 
