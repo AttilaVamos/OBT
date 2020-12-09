@@ -73,7 +73,7 @@ UninstallHPCC()
         # Check '-p' parameter
         purge=$( /opt/HPCCSystems/sbin/complete-uninstall.sh -h | while read l; do [[ "${l}" =~ "-p, " ]] && echo "-p"; done )
 
-        ${SUDO} /opt/HPCCSystems/sbin/complete-uninstall.sh $purge >> "$logFile" 2>&1
+        sudo /opt/HPCCSystems/sbin/complete-uninstall.sh $purge >> "$logFile" 2>&1
         [ $? -ne 0 ] && uninstallFailed=TRUE
 
     else
@@ -104,7 +104,7 @@ UninstallHPCC()
         do
           WriteLog "HPCC package:"${hpcc_package} "$logFile"
 
-          ${SUDO} ${PKG_REM_CMD} $hpcc_package  >> "$logFile" 2>&1
+          sudo ${PKG_REM_CMD} $hpcc_package  >> "$logFile" 2>&1
 
           [ $? -ne 0 ] && uninstallFailed=TRUE
         done
@@ -133,7 +133,7 @@ UninstallHPCC()
     if [ -n "$res" ] 
     then
         WriteLog "res:${res}" "$logFile"
-        ${SUDO} pkill -9 "${query}"
+        sudo pkill -9 "${query}"
 
         # Give it some time
         sleep 1m
