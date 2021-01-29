@@ -127,7 +127,7 @@ UninstallHPCC()
 
     WriteLog "Check if any hpcc owned process is running" "$logFile"
 
-    query="thor|roxie|d[af][fslu]|ecl[s|c|\s|a][g|c]|sase|topo"
+    query="thor|roxie|d[af][fslu]|ecl[s|c|\s|a][g|c]|sase|topo|gdb"
     res=$(pgrep -l "${query}" 2>&1 )
 
     if [ -n "$res" ] 

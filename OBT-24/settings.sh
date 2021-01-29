@@ -342,6 +342,9 @@ then
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
+else
+    # For CentOS 7 force download and build boost_1_71_0
+    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
 fi
 
 #
