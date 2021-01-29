@@ -133,7 +133,8 @@ UninstallHPCC()
     if [ -n "$res" ] 
     then
         WriteLog "res:${res}" "$logFile"
-        sudo pkill -9 "${query}"
+        res=$( sudo pkill -9 -e -c "${query}" )
+        WriteLog "res:${res}" "$logFile"
 
         # Give it some time
         sleep 1m
