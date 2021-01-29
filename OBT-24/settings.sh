@@ -331,7 +331,7 @@ then
 fi
 
 BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]] 
+if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) || ( "${SYSTEM_ID}" =~ "CentOS_Linux_7" ) ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
@@ -342,9 +342,6 @@ then
     else
         SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
     fi
-else
-    # For CentOS 7 force download and build boost_1_71_0
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
 fi
 
 #

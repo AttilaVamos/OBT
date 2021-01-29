@@ -333,7 +333,7 @@ then
 fi
 
 BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]] 
+if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) || ( "${SYSTEM_ID}" =~ "CentOS_Linux_7" ) ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
