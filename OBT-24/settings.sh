@@ -244,12 +244,12 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else use default
 #
 
 # When old 'HPCC-Platform' and 'build' directories exipre
-SOURCE_DIR_EXPIRE=5  # today + BUILD_DIR_EXPIRE days, this is a small VM with 120 GB disk
+SOURCE_DIR_EXPIRE=4  # today + BUILD_DIR_EXPIRE days, this is a small VM with 120 GB disk
 
 # usually it is same as EXPIRE, but if we run more than one test a day it can consume ~4GB/test disk space
 SOURCE_DIR_MAX_NUMBER=4 # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
 
-BUILD_DIR_EXPIRE=5   # today + BUILD_DIR_EXPIRE days
+BUILD_DIR_EXPIRE=4   # today + BUILD_DIR_EXPIRE days
 BUILD_DIR_MAX_NUMBER=4   # Not implemented yet =(( $BUILD_DIR_EXPIRE * $SEQUENCER_LIST_SIZE ))
 
 
