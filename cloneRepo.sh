@@ -169,7 +169,8 @@ CloneRepo()
     # Get the latest Regression Test Engine 
     WriteLog "Get the latest Regression Test Engine..." "${CLONE_LOG_FILE}"
     [[ -d $REGRESSION_TEST_ENGINE_HOME ]] && rm -rf $REGRESSION_TEST_ENGINE_HOME
-    [[ ! -d $REGRESSION_TEST_ENGINE_HOME ]]  && mkdir -p $REGRESSION_TEST_ENGINE_HOME
+    # We are cloning, so don't create dir for it
+    #[[ ! -d $REGRESSION_TEST_ENGINE_HOME ]]  && mkdir -p $REGRESSION_TEST_ENGINE_HOME
     
     pushd $target
     
@@ -186,10 +187,13 @@ CloneRepo()
     then
         WriteLog "There is a newest version ($newCommitId) in GitHub (we have $oldCommitId) get it." "${CLONE_LOG_FILE}"
         # Copy latest Regression Test Engine into <OBT binary dir>/rte directory
-        res=$( cp -v testing/regress/ecl-test* $REGRESSION_TEST_ENGINE_HOME/. 2>&1)
-        WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
+        #res=$( cp -v testing/regress/ecl-test* $REGRESSION_TEST_ENGINE_HOME/. 2>&1)
+        #WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
         
-        res=$(cp -v -r testing/regress/hpcc $REGRESSION_TEST_ENGINE_HOME/hpcc 2>&1 )
+        #res=$(cp -v -r testing/regress/hpcc $REGRESSION_TEST_ENGINE_HOME/hpcc 2>&1 )
+
+        # clone RTE from GitHub
+        res=$( git clone  https://github.com/AttilaVamos/RTE.git $REGRESSION_TEST_ENGINE_HOME )
         WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
         
         echo "$newCommitId" > $REGRESSION_TEST_ENGINE_HOME/commit.id
