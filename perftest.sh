@@ -701,12 +701,6 @@ then
 
         cd ${TEST_ENGINE_HOME}
 
-    if  [[ -f ~/build/bin/util.py ]] 
-    then
-        WriteLog "Hack Regression Test Engine." "${PERF_TEST_LOG}"
-        cp ~/build/bin/util.py hpcc/util/util.py
-    fi
-
         # Add Write permission to /var/lib/HPCCSystems and its subdiretories
         ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
 

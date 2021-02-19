@@ -227,9 +227,6 @@ then
     cp ${OBT_BIN_DIR}/jcomp.cpp ${BUILD_DIR}/$RELEASE_TYPE/HPCC-Platform/system/jlib/
 fi
 
-#WriteLog "Copy suite.py" "${OBT_BUILD_LOG_FILE}"
-#cp /root/build/bin/suite.py /root/test/HPCC-Platform/testing/regress/hpcc/regression/
-
 #
 #----------------------------------------------------
 #

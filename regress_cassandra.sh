@@ -169,20 +169,6 @@ cp /root/build/bin/environment.xml.roxie.debug /etc/HPCCSystems/environment.xml
 
 
 #
-#----------------------------------------------------
-#
-# Patch regression engine
-
-#WriteLog "Patch regression engine " "${REGRESS_LOG_FILE}"
-
-#WriteLog "Copy regress.py" "${REGRESS_LOG_FILE}"
-#cp /root/build/bin/regress.py /root/test/HPCC-Platform/testing/regress/hpcc/regression/
-
-#WriteLog "Copy suite.py" "${REGRESS_LOG_FILE}"
-#cp /root/build/bin/suite.py /root/test/HPCC-Platform/testing/regress/hpcc/regression/
-
-
-#
 #-----------------------------------------------------
 #
 # Prepare regression test 

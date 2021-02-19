@@ -290,12 +290,6 @@ then
     sudo sed -i '/option(CASS_BUILD_EXAMPLES "Build examples" OFF)/a    set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS FALSE)' "/root/build/CE/platform/HPCC-Platform/plugins/cassandra/CMakeLists.txt" > temp.xml && sudo mv -f temp.xml "~/build/CE/platform/HPCC-Platform/plugins/cassandra/CMakeLists.txt"
 
 fi
-#WriteLog "Copy regress.py" "${REGRESS_LOG_FILE}"
-#cp /root/build/bin/regress.py /root/test/HPCC-Platform/testing/regress/hpcc/regression/
-
-#WriteLog "Copy suite.py" "${REGRESS_LOG_FILE}"
-#cp /root/build/bin/suite.py /root/test/HPCC-Platform/testing/regress/hpcc/regression/
-
 
 #
 #--------------------------------------------------

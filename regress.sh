@@ -367,34 +367,6 @@ fi
 
 
 #
-#----------------------------------------------------
-#
-# Patch regression engine
-
-WriteLog "Patch regression engine " "${REGRESS_LOG_FILE}"
-
-MODULE="util.py"
-MODULE_PATH="$REGRESSION_TEST_ENGINE_HOME/hpcc/util"
-
-if [[ -f ~/build/bin/$MODULE ]]
-then
-    WriteLog "Copy $MODULE..." "${REGRESS_LOG_FILE}"
-    mv $MODULE_PATH/$MODULE $MODULE_PATH/$MODULE-back 
-    cp ~/build/bin/$MODULE $MODULE_PATH/$MODULE
-    if [[ -f $MODULE_PATH/$MODULE ]]
-    then
-        WriteLog "   Success, remove backup." "${REGRESS_LOG_FILE}"
-        rm $MODULE_PATH/$MODULE-back
-    else
-        WriteLog "   Failed, restore original." "${REGRESS_LOG_FILE}"
-        mv $MODULE_PATH/$MODULE-back $MODULE_PATH/$MODULE
-    fi
-else
-    WriteLog "No patch exists." "${REGRESS_LOG_FILE}"
-fi
-
-
-#
 #-----------------------------------------------------
 # Patch regression suite teststdlibrary.ecl to see how long it runs
 #
