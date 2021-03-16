@@ -290,17 +290,65 @@ do
     if [[ "${ping_res}" =~ "unknown" ]]
     then 
         WriteLog "Error: '${ping_res}'. Wait ${PING_TRY_DELAY} for retry." "${OBT_BUILD_LOG_FILE}"
-    sleep ${PING_TRY_DELAY}
+        sleep ${PING_TRY_DELAY}
     else
         WriteLog "The 'packages.couchbase.com' is accessible" "${OBT_BUILD_LOG_FILE}"
         WriteLog "Ping: ${ping_res}" "${OBT_BUILD_LOG_FILE}"
 
-    PING_1=$( echo "$ping_res" | head -n 1)
-    WriteLog "${PING_1}\n" "${OBT_LOG_DIR}/packages_couchbase_com.ping"
+        PING_1=$( echo "$ping_res" | head -n 1)
+        WriteLog "${PING_1}\n" "${OBT_LOG_DIR}/packages_couchbase_com.ping"
         break
     fi
-
 done
+
+
+
+#
+#----------------------------------------------------
+#
+# Check and cache boost_1_71_0.tar.gz
+#
+BOOST_PKG="boost_1_71_0.tar.gz"
+BOOST_URL="https://dl.bintray.com/boostorg/release/1.71.0/source/$BOOST_PKG"
+
+WriteLog "Check if $BOOST_PKG cached" "${OBT_BUILD_LOG_FILE}"
+if [[ ! -f $HOME/$BOOST_PKG ]]
+then
+    WriteLog "It is not, download it." "${OBT_BUILD_LOG_FILE}"
+    BOOST_DOWNLOAD_TRY_COUNT=5
+    BOOST_DOWNLOAD_TRY_DELAY=2m
+
+    while [[ $BOOST_DOWNLOAD_TRY_COUNT -gt 0 ]]
+    do 
+        WriteLog "Try count: $BOOST_DOWNLOAD_TRY_COUNT" "${OBT_BUILD_LOG_FILE}"
+        BOOST_DOWNLOAD_TRY_COUNT=$(( $BOOST_DOWNLOAD_TRY_COUNT - 1 ))
+
+        download_res=$( wget -v  -O  $HOME/$BOOST_PKG  $BOOST_URL 2>&1 )
+        retCode=$?
+        if [[  $retCode -ne 0 ]]
+        then 
+            WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${OBT_BUILD_LOG_FILE}"
+            sleep ${BOOST_DOWNLOAD_TRY_DELAY}
+        else
+            WriteLog "The $BOOST_PKG downloaded." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Ping: ${download_res}" "${OBT_BUILD_LOG_FILE}"
+
+            DOWNL=$( echo "$download_res" | tail -nhead -n 2)
+            WriteLog "${DOWNL}" "${OBT_LOG_DIR}/$BOOST_PKG.download"
+            break
+        fi
+    done
+fi
+
+if [[ ! -f $HOME/$BOOST_PKG ]]
+then
+    WriteLog "The $BOOST_PKG download attempts were unsuccessful." "${OBT_BUILD_LOG_FILE}"
+else
+    WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${OBT_BUILD_LOG_FILE}"
+    mkdir -p ${BUILD_HOME}/downloads
+    res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/.  2>&1 )
+    WriteLog "res: ${res}" "${OBT_BUILD_LOG_FILE}"
+fi
 
 #
 #----------------------------------------------------
