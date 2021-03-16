@@ -204,16 +204,16 @@ fi
 
 # Patch plugins/couchbase/libcouchbase/cmake/Modules/DonwloadLcbDep.cmake
 
-res=$(  egrep "\-\-retry" ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake )
+res=$(  egrep "\-\-retry" $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake )
 if [ -z "$res" ]
 then
     WriteLog "Patch plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake to retry download 20 times before give it up" "${OBT_BUILD_LOG_FILE}"
     
-    sudo cp ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake.bak
+    sudo cp $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake.bak
 
-    sudo sed -e 's/EXECUTE_PROCESS(COMMAND "${CURL}" \(.*\)$/EXECUTE_PROCESS(COMMAND "${CURL}" --retry 20 \1/' ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake > temp.txt && sudo mv -f temp.txt ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake
+    sudo sed -e 's/EXECUTE_PROCESS(COMMAND "${CURL}" \(.*\)$/EXECUTE_PROCESS(COMMAND "${CURL}" --retry 20 \1/' $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake > temp.txt && sudo mv -f temp.txt $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake
 
-    WriteLog "curl params: $( sed -n 's/EXECUTE_PROCESS(COMMAND "${CURL}" \(.*\)$/\1/p' ~/build/CE/platform/HPCC-Platform/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake ) " "${OBT_BUILD_LOG_FILE}"
+    WriteLog "curl params: $( sed -n 's/EXECUTE_PROCESS(COMMAND "${CURL}" \(.*\)$/\1/p' $SOURCE_HOME/plugins/couchbase/libcouchbase/cmake/Modules/DownloadLcbDep.cmake ) " "${OBT_BUILD_LOG_FILE}"
 
 else
     WriteLog "No pathch neccessary." "${OBT_BUILD_LOG_FILE}"
@@ -224,7 +224,7 @@ fi
 if [[ -f ${OBT_BIN_DIR}/jcomp.cpp ]]
 then
     WriteLog "Copy jcomp.cpp" "${OBT_BUILD_LOG_FILE}"
-    cp ${OBT_BIN_DIR}/jcomp.cpp ${BUILD_DIR}/$RELEASE_TYPE/HPCC-Platform/system/jlib/
+    cp ${OBT_BIN_DIR}/jcomp.cpp $SOURCE_HOME/system/jlib/
 fi
 
 #
@@ -306,10 +306,17 @@ done
 #
 #----------------------------------------------------
 #
-# Check and cache boost_1_71_0.tar.gz
+# Check and cache boost package into $HOME directory and 
+# copy it into ${BUILD_HOME}/downloads/ directory to avoid on-fly download attempt in build
 #
-BOOST_PKG="boost_1_71_0.tar.gz"
-BOOST_URL="https://dl.bintray.com/boostorg/release/1.71.0/source/$BOOST_PKG"
+# Should get these information from HPCC-Platform/cmake_modules/buildBOOST_REGEX.cmake:
+#       URL https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.gz
+#
+#BOOST_URL="https://dl.bintray.com/boostorg/release/1.71.0/source/$BOOST_PKG"
+BOOST_URL=$( egrep 'URL ' $SOURCE_HOME/cmake_modules/buildBOOST_REGEX.cmake| awk '{print $2}')
+
+#BOOST_PKG="boost_1_71_0.tar.gz"
+BOOST_PKG=${BOOST_URL##*/}; 
 
 WriteLog "Check if $BOOST_PKG cached" "${OBT_BUILD_LOG_FILE}"
 if [[ ! -f $HOME/$BOOST_PKG ]]
