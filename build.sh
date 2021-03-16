@@ -336,6 +336,7 @@ then
         then 
             WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${OBT_BUILD_LOG_FILE}"
             sleep ${BOOST_DOWNLOAD_TRY_DELAY}
+            [[ -f $HOME/$BOOST_PKG ]] && rm $HOME/$BOOST_PKG
         else
             WriteLog "The $BOOST_PKG downloaded." "${OBT_BUILD_LOG_FILE}"
             WriteLog "Ping: ${download_res}" "${OBT_BUILD_LOG_FILE}"
@@ -353,7 +354,7 @@ then
 else
     WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${OBT_BUILD_LOG_FILE}"
     mkdir -p ${BUILD_HOME}/downloads
-    res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/.  2>&1 )
+    res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/  2>&1 )
     WriteLog "res: ${res}" "${OBT_BUILD_LOG_FILE}"
 fi
 
