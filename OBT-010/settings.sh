@@ -31,34 +31,34 @@ then
     BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.4.x")
-    RUN_1=("BRANCH_ID=candidate-7.6.x")
-    RUN_2=("BRANCH_ID=candidate-7.8.x")
+    RUN_1=("BRANCH_ID=candidate-7.4.x")
+    RUN_2=("BRANCH_ID=candidate-7.6.x")
+    RUN_3=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_0[@]
         RUN_1[@]
         RUN_2[@]
+        RUN_3[@]
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-7.10.x' 'candidate-7.12.x' 'candidate-8.0.x' 'master' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_1=("BRANCH_ID=candidate-7.10.x")
-    RUN_2=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_3=("BRANCH_ID=candidate-7.12.x")
-    RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_5=("BRANCH_ID=master")
+    RUN_1=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_2=("BRANCH_ID=candidate-7.12.x")
+    RUN_3=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_4=("BRANCH_ID=candidate-8.0.x")
+    RUN_5=("BRANCH_ID=candidate-8.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_6=("BRANCH_ID=master")
 
     RUN_ARRAY=(
-        RUN_0[@]
         RUN_1[@]
         RUN_2[@]
         RUN_3[@]
         RUN_4[@]
         RUN_5[@]
+        RUN_6[@]
     )
 fi
 #
