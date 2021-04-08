@@ -429,6 +429,8 @@ COUCHBASE_USER=centos
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
+REGRESSION_PREABORT="--preAbort ./preabort.sh"
+
 #
 #----------------------------------------------------
 #

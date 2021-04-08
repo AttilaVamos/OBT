@@ -521,7 +521,7 @@ echo -n "TestResult:" > ${TEST_ROOT}/setup.summary
 ./ecl-test list | grep -v "Cluster" |
 while read cluster
 do
-    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE}"
+    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT}"
 
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"
 
@@ -600,7 +600,7 @@ do
 #  echo "./ecl-test --loglevel debug run --target $cluster"
 #  ./ecl-test --loglevel debug run --target $cluster
 
-    CMD="./ecl-test run --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_PARALLEL_QUERIES} ${COUCHBASE_SERVER_VAR} ${REGRESSION_EXCLUDE_CLASS} ${REGRESSION_EXCLUDE_FILES} ${REGRESSION_GENERATE_STACK_TRACE}"
+    CMD="./ecl-test run --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_PARALLEL_QUERIES} ${COUCHBASE_SERVER_VAR} ${REGRESSION_EXCLUDE_CLASS} ${REGRESSION_EXCLUDE_FILES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT}"
 
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"
     if [ ${EXECUTE_REGRESSION_SUITE} -ne 0 ]
