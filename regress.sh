@@ -521,7 +521,7 @@ echo -n "TestResult:" > ${TEST_ROOT}/setup.summary
 ./ecl-test list | grep -v "Cluster" |
 while read cluster
 do
-    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT}"
+    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT} ${REGRESSION_EXTRA_PARAM}"
 
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"
 
