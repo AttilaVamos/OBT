@@ -86,7 +86,7 @@ class RegressionLogProcessor(object):
         isOutput=False
         isError=False
         isEpilog = False
-        
+        error = []
         for line in file:
             try:
                 lineno += 1
