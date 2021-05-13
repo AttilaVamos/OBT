@@ -19,22 +19,38 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 CheckIfNoSessionIsRunning()
 {
     checkCount=0
-    echo "Check if no session is running"
+    timeStamp="date +%H:%M:%S"
+    echo "$($timeStamp): Check if no session is running"
+    
     while [[ -f /tmp/build.log ]]
     do  
-        echo "$(date "+%H:%M:%S") Wait for the current session is finished."
+        echo "$($timeStamp): A previous session is still running."
+        
+        # Check GDB and kill it if it is running longer than the value of gdbTimeOut in sec.
+        echo "$($timeStamp): Check if any gdb stuck in stack trace generation."
+        gdbTimeOut=300 # sec
+        pgrep -f gdb | while read pid
+        do 
+            procTime=$(ps -o etimes= -p $pid )
+            printf "%s: GDB pid: %7d, run time: %4d sec. "  "$($timeStamp)" "$pid" "${procTime}"
+            [[ ${procTime} -gt ${gdbTimeOut} ]]  && (echo " -> Running longer than $gdbTimeOut sec, kill"; sudo kill -KILL $pid) || echo " "
+        done
+
+        echo "$($timeStamp): Gdb check finished."
+        
+        echo "$($timeStamp): Wait for the current session is finished."
 
         checkCount=$(( $checkCount + 1 ))
         if [[ $(( $checkCount % 12 )) -eq 0 ]]
-    then
+        then
             echo "At $(date "+%Y.%m.%d %H:%M:%S") the previous OBT session is still running on ${OBT_SYSTEM}!" | mailx -s "Overlapped sessions on ${OBT_SYSTEM}" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-    fi
+        fi
 
-    # Give it some time to finish
+        # Give it some time to finish
         sleep 5m
     done
 
-    echo "Session is finished."
+    echo "$($timeStamp): Session is finished."
     echo "----------------------------------------------------"
     echo ""
 }
