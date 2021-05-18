@@ -35,8 +35,18 @@ CheckIfNoSessionIsRunning()
             printf "%s: GDB pid: %7d, run time: %4d sec. "  "$($timeStamp)" "$pid" "${procTime}"
             [[ ${procTime} -gt ${gdbTimeOut} ]]  && (echo " -> Running longer than $gdbTimeOut sec, kill"; sudo kill -KILL $pid) || echo " "
         done
-
         echo "$($timeStamp): Gdb check finished."
+        
+        # Check git and kill it if it is running longer than the value of gitTimeOut in sec.
+        echo "$($timeStamp): Check if any git command stuck in clone/fetch/etc operation."
+        gitTimeOut=600 # sec
+        pgrep -f git | while read pid
+        do 
+            procTime=$(ps -o etimes= -p $pid )
+            printf "%s: git pid: %7d, run time: %4d sec. "  "$($timeStamp)" "$pid" "${procTime}"
+            [[ ${procTime} -gt ${gitTimeOut} ]]  && (echo " -> Running longer than $gitTimeOut sec, kill"; sudo kill -KILL $pid) || echo " "
+        done
+        echo "$($timeStamp): Git check finished."
         
         echo "$($timeStamp): Wait for the current session is finished."
 

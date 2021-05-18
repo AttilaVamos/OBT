@@ -37,7 +37,9 @@ SecToTimeStr()
 {
     [[ "$1." != "." ]] && sec=$1 || sec=0
 
-    echo "${sec} sec ($( date -d@${sec} -u +%H:%M:%S))"
+    printf "%s sec (" "${sec}"
+    [[ ${sec} -ge 86400 ]] && printf "%s" "$( date -d@${sec} -u +%-d) days " ;
+    echo "$( date -d@${sec} -u +%H:%M:%S))"
 }
 
 KillCheckDiskSpace()
