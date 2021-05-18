@@ -87,7 +87,7 @@ WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 #
 WriteLog "Before:" "${OBT_BUILD_LOG_FILE}"
 WriteLog "$( df -h . )\n" "${OBT_BUILD_LOG_FILE}"
-WriteLog "$( du -ksch * )" "${OBT_BUILD_LOG_FILE}"
+WriteLog "$( du -ksch build-* HPCC-Platform-* )" "${OBT_BUILD_LOG_FILE}"
 WriteLog "---------------------------------" "${OBT_BUILD_LOG_FILE}"
 
 WriteLog "Remove all build-* directory older than ${BUILD_DIR_EXPIRE} days." "${OBT_BUILD_LOG_FILE}"
@@ -134,7 +134,7 @@ else
     WriteLog "---------------------------------" "${OBT_BUILD_LOG_FILE}"
     WriteLog "After:" "${OBT_BUILD_LOG_FILE}"
     WriteLog "$( df -h . )\n" "${OBT_BUILD_LOG_FILE}"
-    WriteLog "$( du -ksch * )" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "$( du -ksch build-* HPCC-Platform-* )" "${OBT_BUILD_LOG_FILE}"
 
     WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
     
