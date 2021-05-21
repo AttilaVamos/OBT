@@ -91,7 +91,7 @@ WriteLog "$( du -ksch build-* HPCC-Platform-* )" "${OBT_BUILD_LOG_FILE}"
 WriteLog "---------------------------------" "${OBT_BUILD_LOG_FILE}"
 
 WriteLog "Remove all build-* directory older than ${BUILD_DIR_EXPIRE} days." "${OBT_BUILD_LOG_FILE}"
-res=$( find . -maxdepth 1 -type d -mtime +${BUILD_DIR_EXPIRE} -iname 'build-*' -print -exec rm -rf '{}' \; 2>&1 )
+res=$( find . -maxdepth 1 -daystart -type d -mtime +${BUILD_DIR_EXPIRE} -iname 'build-*' -print -exec rm -rf '{}' \; 2>&1 )
 WriteLog "res:${res}" "${OBT_BUILD_LOG_FILE}"
 
 WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
@@ -128,7 +128,7 @@ else
     #
 
     WriteLog "Remove all HPCC-Platform-* directory older than ${SOURCE_DIR_EXPIRE} days." "${OBT_BUILD_LOG_FILE}"
-    res=$( find . -maxdepth 1 -type d -mtime +${SOURCE_DIR_EXPIRE} -iname 'HPCC-Platform-*' -print -exec rm -rf '{}' \; 2>&1 )
+    res=$( find . -maxdepth 1 -daystart -type d -mtime +${SOURCE_DIR_EXPIRE} -iname 'HPCC-Platform-*' -print -exec rm -rf '{}' \; 2>&1 )
     WriteLog "res:${res}" "${OBT_BUILD_LOG_FILE}"
 
     WriteLog "---------------------------------" "${OBT_BUILD_LOG_FILE}"
