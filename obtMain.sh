@@ -113,6 +113,12 @@ then
                 RUN_PERFORMANCE=1
                 BUILD=0
                 ;;
+        ML*) 
+                RUN_REGRESSION=0
+                RUN_COVERAGE=0
+                RUN_PERFORMANCE=0
+                RUN_ML_TESTS=1
+                ;;
       
         BUI*)   # Only build
                 RUN_REGRESSION=0

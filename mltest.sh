@@ -306,7 +306,7 @@ then
 
     if [ $? -ne 0 ]
     then
-    WriteLog "Error in update environment.xml file! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+        WriteLog "Error in update environment.xml file! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     else
         WriteLog "The environment.xml file Updated. ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     fi
@@ -379,7 +379,7 @@ then
         
         hpccStatus=$( ${HPCC_SERVICE} start  2>&1 )
  
-    WriteLog "Result:\n${hpccStatus}" "${ML_TEST_LOG}"
+        WriteLog "Result:\n${hpccStatus}" "${ML_TEST_LOG}"
     fi
     
     # give it some time
@@ -425,7 +425,7 @@ then
                 WriteLog "Wait for ${tryDelay} to try again." "${ML_TEST_LOG}"
                 sleep ${tryDelay}
                 continue
-        else
+            else
                 WriteLog "Install ML_Core bundle was failed after ${tryCountMax} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
                 WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
                 ${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
@@ -474,7 +474,7 @@ then
 
     if [[ ! -d ${ML_TEST_HOME} ]]
     then
-    WriteLog "${ML_TEST_HOME} doesn't exists! Check the version, maybe changed!" "${ML_TEST_LOG}"
+        WriteLog "${ML_TEST_HOME} doesn't exists! Check the version, maybe changed!" "${ML_TEST_LOG}"
         exit -4
     fi
     
@@ -563,7 +563,23 @@ then
         WriteLog "No core file generated." "${ML_TEST_LOG}"
     fi
 
+    # Archive  logs
+    pushd ${OBT_BIN_DIR}
     
+    # Copy test summary to Wiki
+    WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${ML_TEST_LOG}"
+
+    WriteLog "  ${LOG_DIR}/${TARGET_PLATFORM}*.log" "${ML_TEST_LOG}"
+    cp ${LOG_DIR}/${TARGET_PLATFORM}*.log ${TARGET_DIR}/test/mltests.log
+
+    WriteLog "  mltests.summary" "${ML_TEST_LOG}"
+    cp mltests.summary ${TARGET_DIR}/test/mltests.summary
+
+    WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
+    
+    ./archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
+    
+    popd
     #
     #---------------------------
     #
@@ -591,7 +607,7 @@ then
      
         if [ $? -ne 0 ]
         then
-        WriteLog "Error in restore environment.xml file! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+            WriteLog "Error in restore environment.xml file! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
         else
             WriteLog "The environment.xml file restored. ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
         fi
