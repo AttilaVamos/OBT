@@ -382,6 +382,19 @@ sed -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
 
+operation_timeout=15
+config_total_timeout=45
+
+WriteLog "Patch regression suite couchbase-simple.ecl with operation_timeout=${operation_timeout} and config_total_timeout=${config_total_timeout} sec to check it is fails or not" "${REGRESS_LOG_FILE}"
+
+cp -fv ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl-back
+
+sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"'/g' -e 's/config_total_timeout(15)/config_total_timeout('"${config_total_timeout}"')/g'  ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl
+
+WriteLog "Done." "${REGRESS_LOG_FILE}"
+
+
+
 #publishDealy=50
 #WriteLog "Patch regression suite redissynctest.ecl with $publishDelay for publish delay." "${REGRESS_LOG_FILE}"
 #
