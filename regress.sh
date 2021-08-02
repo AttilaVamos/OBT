@@ -389,7 +389,7 @@ WriteLog "Patch regression suite couchbase-simple.ecl with operation_timeout=${o
 
 cp -fv ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl-back
 
-sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"'/g' -e 's/config_total_timeout(15)/config_total_timeout('"${config_total_timeout}"')/g'  ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl
+sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"')/g' -e 's/config_total_timeout(15)/config_total_timeout('"${config_total_timeout}"')/g'  ${SOURCE_HOME}/testing/regress/ecl/couchbase-simple.ecl
 
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
