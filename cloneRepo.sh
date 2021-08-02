@@ -67,6 +67,7 @@ CloneRepo()
     target=$2
 
     WriteLog "Clone $1  (into '$target')" "${CLONE_LOG_FILE}"
+    WriteLog "[$( caller )] $*" "${CLONE_LOG_FILE}"
 
     while true
     do
@@ -127,6 +128,11 @@ CloneRepo()
 
                 "$UNRECOVERABLE_ERROR" ) WriteLog "res:'UNRECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
                                       # return 1
+                                      rmt=$( git ls-remote  ${repo} | wc -l )
+                                      WriteLog "ls-remote returns with ${rmt} results." "${CLONE_LOG_FILE}"
+                                      gitproc=$( pgrep -f 'git-' )
+                                      WriteLog "git process(es): ${gitproc} ." "${CLONE_LOG_FILE}"
+                                      sudo pkill -9 ${gitproc}
                                       ;;
 
                 "$DESTINATION_EXISTS_ERROR" ) WriteLog "res:'DESTINATION_EXISTS_ERROR'. Remove target directory." "${CLONE_LOG_FILE}"
@@ -238,6 +244,7 @@ SubmoduleUpdate()
     NOT_GIT_REPO_ERROR=3
 
     WriteLog "git submodule update "$1 "${SUBMODULE_LOG_FILE}"
+    WriteLog "[$( caller )] $*" "${SUBMODULE_LOG_FILE}"
     while true
     do
         WriteLog "Try count: ${tryCount}" "${SUBMODULE_LOG_FILE}"
