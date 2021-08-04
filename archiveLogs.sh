@@ -275,7 +275,7 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "environment*"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "BuildNotification.ini"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip " "           "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "settings.*"                "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-
+CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "perfstat-*"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 
 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "perftest*.summary"             "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
