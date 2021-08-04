@@ -638,6 +638,22 @@ do
 
         fi
 
+        # Get tests stat
+        if [[ -f $OBT_BIN_DIR/QueryStat2.py ]]
+        then
+            WritePlainLog "Get tests stat..." "${REGRESS_LOG_FILE}"
+            CMD="$OBT_BIN_DIR/QueryStat2.py -p $OBT_BIN_DIR/ -d '' -a --timestamp "
+            WritePlainLog "  CMD: '$CMD'" "${REGRESS_LOG_FILE}"
+            ${CMD} >> ${REGRESS_LOG_FILE} 2>&1
+            retCode=$( echo $? )
+            WritePlainLog "  RetCode: $retCode" "${REGRESS_LOG_FILE}"
+            WritePlainLog "  Files: $( ls -l perfstat* )" "${REGRESS_LOG_FILE}"
+            WritePlainLog "Done." "${REGRESS_LOG_FILE}"
+        else
+            WritePlainLog "$OBT_BIN_DIR/QueryStat2.py not found. Skip perfromance result collection " "${REGRESS_LOG_FILE}"
+        fi
+
+
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
 
         if [[ (${retCode} -eq 0) && ($hasError -eq 0) ]] 
