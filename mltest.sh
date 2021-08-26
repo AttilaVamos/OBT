@@ -364,6 +364,13 @@ then
 
     #
     #---------------------------
+    # Patch environment.conf
+    #sudo sed -i -e 's/interface=\(*\)/interface=10.*/' /etc/HPCCSystems/environment.conf
+    #WriteLog "Interface setting in environment.conf file is:" "${ML_TEST_LOG}"
+    #WriteLog "$( egrep 'interface' /etc/HPCCSystems/environment.conf )" "${ML_TEST_LOG}"
+    
+    #
+    #---------------------------
     #
     # Check HPCC Systems
     #
