@@ -42,13 +42,14 @@ then
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-7.12.x' 'candidate-8.0.x' 'candidate-8.2.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-7.12.x' 'candidate-8.0.x' 'candidate-8.2.x' 'candidate-8.4.x' 'master' )
 
     # For versioning (This is small VM, so no multi channel tests)
     RUN_1=("BRANCH_ID=candidate-7.12.x")
     RUN_2=("BRANCH_ID=candidate-8.0.x")
     RUN_3=("BRANCH_ID=candidate-8.2.x")
-    RUN_4=("BRANCH_ID=master")
+    RUN_4=("BRANCH_ID=candidate-8.4.x")
+    RUN_5=("BRANCH_ID=master")
 
 
     RUN_ARRAY=(
@@ -56,6 +57,7 @@ else
       RUN_2[@]
       RUN_3[@]
       RUN_4[@]
+      RUN_5[@]
     )
 fi
 #
