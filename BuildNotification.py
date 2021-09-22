@@ -729,6 +729,7 @@ class BuildNotification( object ):
         self.msgHTML += "<tr><td align=\"right\">Build on git branch:</td><td><b>" + self.results[self.buildTaskIndex].gitBranchName + "</b></td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">Date:</td><td>" + self.results[self.buildTaskIndex].gitBranchDate + "</td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">SHA:</td><td>" + self.results[self.buildTaskIndex].gitBranchCommitHtml + "</td></tr>\n"
+        self.msgHTML += "<tr><td align=\"right\">Number of commits (24h):</td><td>" + self.results[self.buildTaskIndex].gitBranchNumOfCommits + "</td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">Build type:</td><td><b>" + self.config.buildType + "</b></td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">Number of Thor slaves:</td><td><b>" + self.config.thorSlaves + "</b></td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">Number of channels per Thor slave:</td><td><b>" + self.config.thorChannelsPerSlave + "</b></td></tr>\n"
