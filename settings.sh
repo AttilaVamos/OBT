@@ -31,34 +31,35 @@ then
     BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.4.x")
-    RUN_1=("BRANCH_ID=candidate-7.6.x")
-    RUN_2=("BRANCH_ID=candidate-7.8.x")
+    RUN_1=("BRANCH_ID=candidate-7.4.x")
+    RUN_2=("BRANCH_ID=candidate-7.6.x")
+    RUN_3=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_0[@]
         RUN_1[@]
         RUN_2[@]
+        RUN_3[@]
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.0.x' 'candidate-8.2.x' 'candidate-8.4.x' 'master' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_1=("BRANCH_ID=candidate-7.10.x")
-    RUN_2=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_3=("BRANCH_ID=candidate-7.12.x")
-    RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_5=("BRANCH_ID=master")
+    RUN_1=("BRANCH_ID=candidate-8.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_2=("BRANCH_ID=candidate-8.2.x")
+    RUN_3=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_4=("BRANCH_ID=candidate-8.4.x")
+    RUN_5=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_6=("BRANCH_ID=master")
+    
 
     RUN_ARRAY=(
-        RUN_0[@]
         RUN_1[@]
         RUN_2[@]
         RUN_3[@]
         RUN_4[@]
         RUN_5[@]
+        RUN_6[@]
     )
 fi
 #
@@ -333,7 +334,7 @@ then
 fi
 
 BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ "${SYSTEM_ID}" =~ "CentOS_release_6" ]] 
+if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) || ( "${SYSTEM_ID}" =~ "CentOS_Linux_7" ) ]]
 then
     if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
     then
@@ -427,6 +428,9 @@ COUCHBASE_USER=centos
 
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
+
+REGRESSION_PREABORT="--preAbort ./preabort.sh"
+REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
 #
 #----------------------------------------------------
