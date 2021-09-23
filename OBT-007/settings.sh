@@ -49,7 +49,7 @@ else
     RUN_2=("BRANCH_ID=candidate-8.2.x")
     RUN_3=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_4=("BRANCH_ID=candidate-8.4.x")
-    RUN_5="BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_5=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_6=("BRANCH_ID=master")
     
 
