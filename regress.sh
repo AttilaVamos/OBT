@@ -395,15 +395,23 @@ WriteLog "Done." "${REGRESS_LOG_FILE}"
 
 
 
-#publishDealy=50
-#WriteLog "Patch regression suite redissynctest.ecl with $publishDelay for publish delay." "${REGRESS_LOG_FILE}"
-#
-#cp -fv ${SOURCE_HOME}/testing/regress/ecl/redissynctest.ecl ${SOURCE_HOME}/testing/regress/ecl/redissynctest.ecl-back
-#
-#sed -e 's/Debug.Sleep(10)/Debug.Sleep(50)/g' ${SOURCE_HOME}/testing/regress/ecl/redissynctest.ecl  > patched-redissynctest.ecl && mv -f patched-redissynctest.ecl ${SOURCE_HOME}/testing/regress/ecl/redissynctest.ecl
-#WriteLog "$( egrep -i 'Debug.Sleep'  ${SOURCE_HOME}/testing/regress/ecl/redissynctest.ecl )" "${REGRESS_LOG_FILE}"
-#
-#WriteLog "Done." "${REGRESS_LOG_FILE}"
+workflowContingency8=60  # sec
+WriteLog "Patch regression suite workflow_contingency_8 with $workflowContingency8 sec for force timeout as quickly as possible when it hangs." "${REGRESS_LOG_FILE}"
+
+cp -fv ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl-back
+
+hasTimeout=$(egrep -c '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )
+if [[ ${hasTimeout} -eq 0 ]]
+then
+    # It has not '//timeout <value> line, add one at the top of the file
+    sed -i -e '/^\/\*##.*$/i\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+else
+    # It has  '//timeout <value> line, change it to value of $workflowContingency8
+    sed -i -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"'/g'  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl  #> patched-workflow_contingency_8.ecl && mv -f patched-workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+fi
+WriteLog "$(egrep -B1 -A1 '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )" "${REGRESS_LOG_FILE}"
+
+WriteLog "Done." "${REGRESS_LOG_FILE}"
 
 #
 #-----------------------------------------------------
