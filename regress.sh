@@ -401,12 +401,12 @@ WriteLog "Done." "${REGRESS_LOG_FILE}"
 if [[ -n $TIMEOUTS ]]
 then
     COUNT=${#TIMEOUTS[@]}
-    WriteLog "There is $COUNT test case need individual timeout setting" "$logFile"
+    WriteLog "There is $COUNT test case need individual timeout setting" "${REGRESS_LOG_FILE}"
     for((testIndex=0; testIndex<$COUNT; testIndex++))
     do
         TEST=(${!TIMEOUTS[$testIndex]})
-        WriteLog "\tPatch ${TEST[0]} with ${TEST[1]} sec timeout" "$logFile"
-        file="$TEST_DIR/ecl/${TEST[0]}"
+        WriteLog "\tPatch ${TEST[0]} with ${TEST[1]} sec timeout" "${REGRESS_LOG_FILE}"
+        file="${SOURCE_HOME}/testing/regress/ecl/${TEST[0]}"
         if [[ -f ${file} ]]
         then
             timeout=${TEST[1]}
@@ -426,7 +426,7 @@ then
             WriteLog "$(egrep -H -B1 -A1 '//timeout ' $file)" "${REGRESS_LOG_FILE}"
             WriteLog "\t\tDone.\n" "${REGRESS_LOG_FILE}"
         else
-            WriteLog "\t\t${file} file not exists, skip patching." "$logFile"
+            WriteLog "\t\t${file} file not exists, skip patching." "${REGRESS_LOG_FILE}"
         fi
     done
 else

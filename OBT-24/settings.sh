@@ -401,7 +401,6 @@ TIMEOUTS=(
     )
 
 
-
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
@@ -510,7 +509,7 @@ fi
 #
 
 # Enable to run WUtool test before execute any Suite
-RUN_WUTOOL_TESTS=1
+RUN_WUTOOL_TESTS=0
 
 
 #
