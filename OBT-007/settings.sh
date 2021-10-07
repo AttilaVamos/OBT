@@ -388,6 +388,22 @@ then
     REGRESSION_TIMEOUT="--timeout 1800"
 fi
 
+# Individual timeouts 
+#               "testname" "timeout sec"
+TEST_1=( "schedule1.ecl" "90" )
+TEST_2=( "schedule2.ecl" "150" )
+TEST_3=( "workflow_9c.ecl" "90" )
+TEST_4=( "workflow_contingency_8.ecl" "60" )
+#TEST_5=( "teststdlibrary.ecl" "1500" )
+
+TIMEOUTS=( 
+    TEST_1[@] 
+    TEST_2[@] 
+    TEST_3[@] 
+    TEST_4[@]
+#    TEST_5[@] 
+    )
+
 
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
