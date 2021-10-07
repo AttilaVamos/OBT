@@ -384,6 +384,23 @@ then
     REGRESSION_TIMEOUT="--timeout 1800"
 fi
 
+# Individual timeouts 
+#               "testname" "timeout sec"
+TEST_1=( "schedule1.ecl" "90" )
+TEST_2=( "schedule2.ecl" "150" )
+TEST_3=( "workflow_9c.ecl" "90" )
+TEST_4=( "workflow_contingency_8.ecl" "80" )
+#TEST_5=( "teststdlibrary.ecl" "1500" )
+
+TIMEOUTS=( 
+    TEST_1[@] 
+    TEST_2[@] 
+    TEST_3[@] 
+    TEST_4[@]
+#    TEST_5[@] 
+    )
+
+
 
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
@@ -450,7 +467,7 @@ COVERITY_TEST_BRANCH=master
 
 # Enable to run WUtest atfter Regression Suite
 # If and only if the Regression Suite execution is enalbled
-RUN_WUTEST=1
+RUN_WUTEST=0
 RUN_WUTEST=$(( $EXECUTE_REGRESSION_SUITE && $RUN_WUTEST ))
 
 
@@ -468,7 +485,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 #
 
 # Enable to run unittests before execute Performance Suite
-RUN_UNITTESTS=1
+RUN_UNITTESTS=0
 UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]

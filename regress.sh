@@ -394,24 +394,62 @@ sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"')/
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
 
-
-workflowContingency8=60  # sec
-WriteLog "Patch regression suite workflow_contingency_8 with $workflowContingency8 sec for force timeout as quickly as possible when it hangs." "${REGRESS_LOG_FILE}"
-
-cp -fv ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl-back
-
-hasTimeout=$(egrep -c '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )
-if [[ ${hasTimeout} -eq 0 ]]
+#
+#-----------------------------------------------------
+# Patch regression suite tests if it needed to prevent extra long execuion tme
+# See utlis.sh "Individual timeouts" section
+if [[ -n $TIMEOUTS ]]
 then
-    # It has not '//timeout <value> line, add one at the top of the file
-    sed -i -e '/^\/\*##.*$/i\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+    COUNT=${#TIMEOUTS[@]}
+    WriteLog "There is $COUNT test case need individual timeout setting" "$logFile"
+    for((testIndex=0; testIndex<$COUNT; testIndex++))
+    do
+        TEST=(${!TIMEOUTS[$testIndex]})
+        WriteLog "\tPatch ${TEST[0]} with ${TEST[1]} sec timeout" "$logFile"
+        file="$TEST_DIR/ecl/${TEST[0]}"
+        if [[ -f ${file} ]]
+        then
+            timeout=${TEST[1]}
+            # Check if test already has '//timeout' tag
+            if [[ $( egrep -c '\/\/timeout' $file ) -eq 0 ]]
+            then
+                # it has not, add one at the beginning of the file
+                mv -fv $file $file-back
+                echo "// Patched by the Smoketest on $( date '+%Y.%m.%d %H:%M:%S')" > $file
+                echo "//timeout $timeout" >> $file
+                cat $file-back >> $file
+            else
+                # yes it has, change it
+                cp -fv $file $file-back
+                sed -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the Smoketest on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$timeout"'/g' $file > $file-patched && mv -f $file-patched $file
+            fi
+            WriteLog "$(egrep -H -B1 -A1 '//timeout ' $file)" "${REGRESS_LOG_FILE}"
+            WriteLog "\t\tDone.\n" "${REGRESS_LOG_FILE}"
+        else
+            WriteLog "\t\t${file} file not exists, skip patching." "$logFile"
+        fi
+    done
 else
-    # It has  '//timeout <value> line, change it to value of $workflowContingency8
-    sed -i -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"'/g'  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl  #> patched-workflow_contingency_8.ecl && mv -f patched-workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+    WriteLog "No file to patch." "${REGRESS_LOG_FILE}"
 fi
-WriteLog "$(egrep -B1 -A1 '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )" "${REGRESS_LOG_FILE}"
 
-WriteLog "Done." "${REGRESS_LOG_FILE}"
+#workflowContingency8=60  # sec
+#WriteLog "Patch regression suite workflow_contingency_8 with $workflowContingency8 sec for force timeout as quickly as possible when it hangs." "${REGRESS_LOG_FILE}"
+#
+#cp -fv ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl-back
+#
+#hasTimeout=$(egrep -c '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )
+#if [[ ${hasTimeout} -eq 0 ]]
+#then
+#    # It has not '//timeout <value> line, add one at the top of the file
+#    sed -i -e '/^\/\*##.*$/i\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+#else
+#    # It has  '//timeout <value> line, change it to value of $workflowContingency8
+#    sed -i -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the OBT on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$workflowContingency8"'/g'  ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl  #> patched-workflow_contingency_8.ecl && mv -f patched-workflow_contingency_8.ecl ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl
+#fi
+#WriteLog "$(egrep -B1 -A1 '//timeout ' ${SOURCE_HOME}/testing/regress/ecl/workflow_contingency_8.ecl )" "${REGRESS_LOG_FILE}"
+#
+#WriteLog "Done." "${REGRESS_LOG_FILE}"
 
 #
 #-----------------------------------------------------
