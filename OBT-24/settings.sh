@@ -466,7 +466,7 @@ COVERITY_TEST_BRANCH=master
 
 # Enable to run WUtest atfter Regression Suite
 # If and only if the Regression Suite execution is enalbled
-RUN_WUTEST=0
+RUN_WUTEST=1
 RUN_WUTEST=$(( $EXECUTE_REGRESSION_SUITE && $RUN_WUTEST ))
 
 
@@ -484,7 +484,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 #
 
 # Enable to run unittests before execute Performance Suite
-RUN_UNITTESTS=0
+RUN_UNITTESTS=1
 UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]
@@ -509,7 +509,7 @@ fi
 #
 
 # Enable to run WUtool test before execute any Suite
-RUN_WUTOOL_TESTS=0
+RUN_WUTOOL_TESTS=1
 
 
 #
