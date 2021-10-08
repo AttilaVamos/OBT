@@ -120,7 +120,8 @@ class HThorPerfResultConfig():
                             value = '"' + value + '"'
                     else:
                         # To remove original reference
-                        value = value.replace(word, "%s not defined in the environment" % (word) )
+                        #value = value.replace(word, "%s not defined in the environment" % (word) )
+                        value = value.replace(word, "")
                         
                 # Set the updated/resolved value back to the config.
                 self.config.set(section, option, value)
