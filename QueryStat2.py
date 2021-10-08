@@ -54,6 +54,12 @@ class HThorPerfResultConfig():
         self.config.set('Environment', 'ObtSystemHw',   'CPU/Cores: ${NUMBER_OF_CPUS}, RAM: ${MEMORY} GB')
         self.config.set('Environment', 'BuildSystemID', '${SYSTEM_ID}')
         
+        self.config.add_section('Hardware')
+        self.config.set('Hardware', 'Cores', '${NUMBER_OF_CPUS}')
+        self.config.set('Hardware', 'CoreSpeed_MHz', '${SPEED_OF_CPUS}')
+        self.config.set('Hardware', 'BOGOMIPS', '${BOGO_MIPS_OF_CPUS}')
+        self.config.set('Hardware', 'RAM_GB', '${MEMORY}')
+        
         self.config.add_section('Build')
         self.config.set('Build', 'BuildBranch', '${BRANCH_ID}')
         self.config.set('Build', 'BuildType',   '${BUILD_TYPE}')
@@ -114,7 +120,7 @@ class HThorPerfResultConfig():
                             value = '"' + value + '"'
                     else:
                         # To remove original reference
-                        value = value.replace(word, "")
+                        value = value.replace(word, "%s not defined in the environment" % (word) )
                         
                 # Set the updated/resolved value back to the config.
                 self.config.set(section, option, value)

@@ -31,34 +31,35 @@ then
     BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.4.x")
-    RUN_1=("BRANCH_ID=candidate-7.6.x")
-    RUN_2=("BRANCH_ID=candidate-7.8.x")
+    RUN_1=("BRANCH_ID=candidate-7.4.x")
+    RUN_2=("BRANCH_ID=candidate-7.6.x")
+    RUN_3=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_0[@]
-        RUN_1[@]
-        RUN_2[@]
+      RUN_1[@]
+      RUN_2[@]
+      RUN_3[@]
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-7.8.x' 'candidate-7.10.x' 'candidate-7.12.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.0.x' 'candidate-8.2.x' 'candidate-8.4.x' 'master' )
 
     # For versioning
-    RUN_0=("BRANCH_ID=candidate-7.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_1=("BRANCH_ID=candidate-7.10.x")
-    RUN_2=("BRANCH_ID=candidate-7.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_3=("BRANCH_ID=candidate-7.12.x")
-    RUN_4=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-    RUN_5=("BRANCH_ID=master")
+    RUN_1=("BRANCH_ID=candidate-8.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+    RUN_2=("BRANCH_ID=candidate-8.2.x")
+    RUN_3=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_4=("BRANCH_ID=candidate-8.4.x")
+    RUN_5=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_6=("BRANCH_ID=master")
+
 
     RUN_ARRAY=(
-        RUN_0[@]
         RUN_1[@]
         RUN_2[@]
         RUN_3[@]
         RUN_4[@]
         RUN_5[@]
+        RUN_6[@]
     )
 fi
 #
@@ -78,6 +79,11 @@ fi
 # To determine the number of CPUs/Cores to build and parallel execution
 
 NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | sort -nru | head -1 ) + 1 ))
+
+SPEED_OF_CPUS=$( grep 'cpu MHz' /proc/cpuinfo | awk '{print $4}' | sort -nru | head -1 | cut -d. -f1 )
+SPEED_OF_CPUS_UNIT='MHz'
+
+BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 )
 
 MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 
@@ -202,7 +208,8 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-DEBUG_BUILD_DAY=6
+#actually we have other system (OBT-007) for continuous debug build, so it is not necessary now
+DEBUG_BUILD_DAY=8   # Invalid day number to avoid Debug build
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")
@@ -386,6 +393,22 @@ then
     REGRESSION_TIMEOUT="--timeout 1800"
 fi
 
+# Individual timeouts 
+#               "testname" "timeout sec"
+TEST_1=( "schedule1.ecl" "90" )
+TEST_2=( "schedule2.ecl" "150" )
+TEST_3=( "workflow_9c.ecl" "90" )
+TEST_4=( "workflow_contingency_8.ecl" "60" )
+#TEST_5=( "teststdlibrary.ecl" "1500" )
+
+TIMEOUTS=( 
+    TEST_1[@] 
+    TEST_2[@] 
+    TEST_3[@] 
+    TEST_4[@]
+#    TEST_5[@] 
+    )
+
 
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
@@ -427,7 +450,6 @@ COUCHBASE_USER=centos
 
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
-
 
 REGRESSION_PREABORT="" #"--preAbort ./preabort.sh"
 REGRESSION_EXTRA_PARAM="" #"-fthorConnectTimeout=3600"

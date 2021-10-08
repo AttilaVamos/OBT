@@ -36,9 +36,9 @@ then
     RUN_3=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_1[@]
-        RUN_2[@]
-        RUN_3[@]
+      RUN_1[@]
+      RUN_2[@]
+      RUN_3[@]
     )
 else
     # For obtSequencer.sh 
@@ -51,7 +51,7 @@ else
     RUN_4=("BRANCH_ID=candidate-8.4.x")
     RUN_5=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_6=("BRANCH_ID=master")
-    
+
 
     RUN_ARRAY=(
         RUN_1[@]
@@ -79,6 +79,11 @@ fi
 # To determine the number of CPUs/Cores to build and parallel execution
 
 NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | sort -nru | head -1 ) + 1 ))
+
+SPEED_OF_CPUS=$( grep 'cpu MHz' /proc/cpuinfo | awk '{print $4}' | sort -nru | head -1 | cut -d. -f1 )
+SPEED_OF_CPUS_UNIT='MHz'
+
+BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 )
 
 MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 
