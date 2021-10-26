@@ -383,7 +383,7 @@ if [ -d ${HPCC_BINARY_DIR} ]
 then
 
     cores=($(find ${HPCC_BINARY_DIR}/ -type f -regextype sed -regex '.*/core_.*\.[0-9]*$'))
-    
+    maxNumberOfCoresStored=3
     if [ ${#cores[@]} -ne 0 ]
     then
         WriteLog "Archive '${#cores[*]}' core file(s) from ${HPCC_BINARY_DIR}" "${ARCHIVE_LOG_DIR}" 
@@ -391,38 +391,39 @@ then
         echo '-----------------------------------------------------------' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
         echo '' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
      
+        coreIndex=0
         for core in ${cores[@]}
         do 
             sudo chmod 0755 $core
 
             coreSize=$( ls -l $core | awk '{ print $5}' )
 
-        #if [ ! -f "$core.trace" ]
-            #then
-                WriteLog "Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
-                #base=$( dirname $core )
-                #lastSubdir=${base##*/}
-                #comp=${lastSubdir##my}
+            WriteLog "Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
+            #base=$( dirname $core )
+            #lastSubdir=${base##*/}
+            #comp=${lastSubdir##my}
 
-                corename=${core##*/}; 
-                comp=$( echo $corename | tr '_.' ' ' | awk '{print $2 }' ); 
-                compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print); 
-                compname=${compnamepart##*/}
+            corename=${core##*/}; 
+            comp=$( echo $corename | tr '_.' ' ' | awk '{print $2 }' ); 
+            compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print); 
+            compname=${compnamepart##*/}
 
-                WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "$logFile"
+            WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "$logFile"
+            eval ${GDB_CMD} "/opt/HPCCSystems/bin/${compname}" $core | sudo tee "$core.trace"
 
-                #sudo gdb --batch --quiet -ex "set interactive-mode off" -ex "thread apply all bt" -ex "quit" "/opt/HPCCSystems/bin/${comp}" $core | sudo tee "$core.trace" 2>&1
-                eval ${GDB_CMD} "/opt/HPCCSystems/bin/${compname}" $core | sudo tee "$core.trace"
+            zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core.trace >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
+            zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} "/opt/HPCCSystems/bin/${comp}" >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
-                zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core.trace >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
-                zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} "/opt/HPCCSystems/bin/${comp}" >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
-            #fi
-
-            WriteLog "Add $core (${coreSize} bytes) to archive" "${ARCHIVE_LOG_DIR}"
-
-            zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
-
+            if [[ ${coreIndex} -le $maxNumberOfCoresStored ]]
+            then
+                WriteLog "Add $core (${coreSize} bytes) to archive" "${ARCHIVE_LOG_DIR}"
+                zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
+            else
+                WriteLog "Skip to add $core (${coreSize} bytes) to archive" "${ARCHIVE_LOG_DIR}"
+            fi
+            
+            coreIndex=$(( $coreIndex + 1 ))
             sudo rm $core $core.trace
     
         done
