@@ -376,10 +376,12 @@ REGRESSION_THOR_LOCAL_THOR_PORT_INC=20
 
 [[ $REGRESSION_NUMBER_OF_THOR_CHANNELS -ne 1 ]] && REGRESSION_THOR_LOCAL_THOR_PORT_INC=20 
 
+REGRESSION_SETUP_TIMEOUT="--timeout 180";
 REGRESSION_TIMEOUT="" # Default 720 from ecl-test.json config file
 if [[ "$BUILD_TYPE" == "Debug" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
+    REGRESSION_SETUP_TIMEOUT=300;
 fi
 
 # To tackle down the genjoin* timeout issues
@@ -448,9 +450,9 @@ REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
 REGRESSION_PREABORT=""
-REGRESSION_EXTRA_PARAM=""
-
-
+REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -iname 'preAbort.sh' -type f -print | head -n 1)
+[[ -n "$REGRESSION_PREABORT_SCRIPT" ]] && REGRESSION_PREABORT="--preAbort ${REGRESSION_PREABORT_SCRIPT}"
+REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 #
 #----------------------------------------------------
 #

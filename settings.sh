@@ -80,6 +80,11 @@ fi
 
 NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | sort -nru | head -1 ) + 1 ))
 
+SPEED_OF_CPUS=$( grep 'cpu MHz' /proc/cpuinfo | awk '{print $4}' | sort -nru | head -1 | cut -d. -f1 )
+SPEED_OF_CPUS_UNIT='MHz'
+
+BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 )
+
 MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 
 SETUP_PARALLEL_QUERIES=$(( $NUMBER_OF_CPUS - 1 ))
@@ -172,7 +177,7 @@ else
 fi
 
 OBT_MAIN_PARAM="regress"
-OBT_SYSTEM=OBT-010
+OBT_SYSTEM=OBT-XXX
 OBT_SYSTEM_ENV=TestFarm2
 OBT_SYSTEM_STACKSIZE=81920
 OBT_SYSTEM_NUMBER_OF_PROCESS=524288
@@ -374,10 +379,12 @@ REGRESSION_THOR_LOCAL_THOR_PORT_INC=20
 
 [[ $REGRESSION_NUMBER_OF_THOR_CHANNELS -ne 1 ]] && REGRESSION_THOR_LOCAL_THOR_PORT_INC=20 
 
+REGRESSION_SETUP_TIMEOUT="--timeout 180";
 REGRESSION_TIMEOUT="" # Default 720 from ecl-test.json config file
 if [[ "$BUILD_TYPE" == "Debug" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
+    REGRESSION_SETUP_TIMEOUT=300;
 fi
 
 # To tackle down the genjoin* timeout issues
@@ -386,6 +393,22 @@ if [[ "$BUILD_TYPE" == "RelWithDebInfo" &&  "$BRANCH_ID" == "candidate-7.2.x" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
 fi
+
+# Individual timeouts 
+#               "testname" "timeout sec"
+TEST_1=( "schedule1.ecl" "90" )
+TEST_2=( "schedule2.ecl" "150" )
+TEST_3=( "workflow_9c.ecl" "90" )
+TEST_4=( "workflow_contingency_8.ecl" "60" )
+#TEST_5=( "teststdlibrary.ecl" "1500" )
+
+TIMEOUTS=( 
+    TEST_1[@] 
+    TEST_2[@] 
+    TEST_3[@] 
+    TEST_4[@]
+#    TEST_5[@] 
+    )
 
 
 # Enable stack trace generation
@@ -432,6 +455,10 @@ REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,
 REGRESSION_PREABORT="--preAbort ./preabort.sh"
 REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
+REGRESSION_PREABORT=""
+REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -iname 'preAbort.sh' -type f -print | head -n 1)
+[[ -n "$REGRESSION_PREABORT_SCRIPT" ]] && REGRESSION_PREABORT="--preAbort ${REGRESSION_PREABORT_SCRIPT}"
+REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 #
 #----------------------------------------------------
 #

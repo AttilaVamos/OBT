@@ -580,7 +580,7 @@ echo -n "TestResult:" > ${TEST_ROOT}/setup.summary
 ./ecl-test list | grep -v "Cluster" |
 while read cluster
 do
-    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT} ${REGRESSION_EXTRA_PARAM}"
+    CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_SETUP_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT} ${REGRESSION_EXTRA_PARAM}"
 
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"
 
@@ -612,7 +612,7 @@ do
         
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
         
-        if [[ (${retCode} -eq 0) && ($hasError -eq 0) && (${setupFailed} -eq 0) ]]
+        if [[ (${retCode} -eq 0) && ($hasError -eq 0) && ($failed -eq 0) ]]
         then
             grep -i passed ${OBT_LOG_DIR}/setup.summary 
             [ $? -eq 0 ] && echo -n "," >> ${OBT_LOG_DIR}/setup.summary 
