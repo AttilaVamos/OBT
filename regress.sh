@@ -607,13 +607,13 @@ do
             [[ $failed -gt 0 ]] && export setupFailed=1
         fi
 
+        WriteLog "cp ${TEST_LOG_DIR}/setup_${cluster}*.log ${OBT_LOG_DIR}/" "${REGRESS_LOG_FILE}"
+        cp ${TEST_LOG_DIR}/setup_${cluster}*.log ${OBT_LOG_DIR}/
+        
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
         
-        if [[ ${retCode} -eq 0 && $hasError -eq 0 ]]
+        if [[ (${retCode} -eq 0) && ($hasError -eq 0) && (${setupFailed} -eq 0) ]]
         then
-            WriteLog "cp ${TEST_LOG_DIR}/setup_${cluster}*.log ${OBT_LOG_DIR}/" "${REGRESS_LOG_FILE}"
-            cp ${TEST_LOG_DIR}/setup_${cluster}*.log ${OBT_LOG_DIR}/
-           
             grep -i passed ${OBT_LOG_DIR}/setup.summary 
             [ $? -eq 0 ] && echo -n "," >> ${OBT_LOG_DIR}/setup.summary 
             echo -n "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " >> ${OBT_LOG_DIR}/setup.summary 
@@ -628,6 +628,7 @@ do
             [ $? -eq 0 ] && echo -n "," >> ${OBT_LOG_DIR}/setup.summary 
             echo -n "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " >> ${TEST_ROOT}/setup.summary
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/setup.summary
+            WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
             exit -1
         fi
     else
