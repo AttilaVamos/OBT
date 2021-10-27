@@ -398,7 +398,7 @@ then
 
             coreSize=$( ls -l $core | awk '{ print $5}' )
 
-            WriteLog "Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
+            WriteLog "$( printf %3d $coreIndex ). Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
             #base=$( dirname $core )
             #lastSubdir=${base##*/}
             #comp=${lastSubdir##my}
@@ -408,7 +408,7 @@ then
             compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print); 
             compname=${compnamepart##*/}
 
-            WriteLog "$( printf %3d $coreIndex ). corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "$logFile"
+            WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "${ARCHIVE_LOG_DIR}"
             eval ${GDB_CMD} "/opt/HPCCSystems/bin/${compname}" $core | sudo tee "$core.trace"
 
             zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core.trace >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
