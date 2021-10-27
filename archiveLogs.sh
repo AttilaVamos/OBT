@@ -391,7 +391,7 @@ then
         echo '-----------------------------------------------------------' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
         echo '' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
      
-        coreIndex=0
+        coreIndex=1
         for core in ${cores[@]}
         do 
             sudo chmod 0755 $core
@@ -408,7 +408,7 @@ then
             compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print); 
             compname=${compnamepart##*/}
 
-            WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "$logFile"
+            WriteLog "$( printf %3d $coreIndex ). corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "$logFile"
             eval ${GDB_CMD} "/opt/HPCCSystems/bin/${compname}" $core | sudo tee "$core.trace"
 
             zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core.trace >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
@@ -430,7 +430,7 @@ then
         
         echo 'Done.' >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
-    # send email to Agyi about core files
+        # send email to Agyi about core files
         echo "During to process ${ARCHIVE_NAME} there are ${#cores[*]} core file(s) found in ${HPCC_BINARY_DIR} generated in ${OBT_SYSTEM} on ${BRANCH_ID} branch at ${OBT_TIMESTAMP//-/:}. You should check them." | mailx -s "Core files generated" -u $USER  ${ADMIN_EMAIL_ADDRESS}
 
 
