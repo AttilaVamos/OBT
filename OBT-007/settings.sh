@@ -380,12 +380,12 @@ REGRESSION_THOR_LOCAL_THOR_PORT_INC=20
 
 [[ $REGRESSION_NUMBER_OF_THOR_CHANNELS -ne 1 ]] && REGRESSION_THOR_LOCAL_THOR_PORT_INC=20 
 
-REGRESSION_SETUP_TIMEOUT="--timeout 180";
+REGRESSION_SETUP_TIMEOUT="--timeout 180"
 REGRESSION_TIMEOUT="" # Default 720 from ecl-test.json config file
 if [[ "$BUILD_TYPE" == "Debug" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
-    REGRESSION_SETUP_TIMEOUT=300;
+    REGRESSION_SETUP_TIMEOUT="--timeout 180"
 fi
 
 # To tackle down the genjoin* timeout issues

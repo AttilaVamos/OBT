@@ -596,6 +596,7 @@ do
         WriteLog "retcode: ${retCode}" "${REGRESS_LOG_FILE}"
 
         inFile=$( find ${TEST_LOG_DIR} -name 'setup_'${cluster}'.*.log' -type f -print | sort -r | head -n 1 ) 
+        WriteLog "inFile: '$inFile'" "${REGRESS_LOG_FILE}"
         if [ -n $inFile ]
         then
             total=$( cat ${inFile} | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
@@ -612,14 +613,18 @@ do
         
         hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
         
+        WriteLog "retCode:${retCode}, hasError:$hasError, failed:$failed" "${REGRESS_LOG_FILE}"
+        
         if [[ (${retCode} -eq 0) && ($hasError -eq 0) && ($failed -eq 0) ]]
         then
+            WriteLog "Result is clean" "${REGRESS_LOG_FILE}"
             grep -i passed ${OBT_LOG_DIR}/setup.summary 
             [ $? -eq 0 ] && echo -n "," >> ${OBT_LOG_DIR}/setup.summary 
             echo -n "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " >> ${OBT_LOG_DIR}/setup.summary 
 
             WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
         else
+            WriteLog "Result is dirty" "${REGRESS_LOG_FILE}"
             WriteLog "Regression setup on ${cluster} returns with ${retCode}" "${REGRESS_LOG_FILE}"
             #                                  get part from        Start        End             Remove  END              &  empyt line
             inSuiteErrorLog=$( cat ${REGRESS_LOG_FILE} | sed -n "/\[Error\]/,/Suite destructor./ { /Suite destructor./d ; /^$/d ; p }" )
