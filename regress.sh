@@ -635,7 +635,8 @@ do
             echo -n "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " >> ${TEST_ROOT}/setup.summary
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/setup.summary
             WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
-            exit -1
+            
+            exit 7
         fi
     else
         WriteLog "Skip regression suite setup execution on ${cluster}!" "${REGRESS_LOG_FILE}"
