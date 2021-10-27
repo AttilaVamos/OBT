@@ -597,6 +597,7 @@ do
 
         inFile=$( find ${TEST_LOG_DIR} -name 'setup_'${cluster}'.*.log' -type f -print | sort -r | head -n 1 ) 
         WriteLog "inFile: '$inFile'" "${REGRESS_LOG_FILE}"
+        
         if [ -n $inFile ]
         then
             total=$( cat ${inFile} | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
