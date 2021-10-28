@@ -496,7 +496,7 @@ WUTEST_LOG_DIR=${OBT_LOG_DIR}
 
 # Enable to run unittests before execute Performance Suite
 RUN_UNITTESTS=1
-UNITTESTS_PARAM="" #"-all"
+UNITTESTS_PARAM="-all"
 
 if [[ ${QUICK_SESSION} -gt 0 ]]
 then
