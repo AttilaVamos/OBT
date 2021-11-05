@@ -350,37 +350,47 @@ class BuildTask( Task ):
         p_commit = re.compile('\s*commit\s*(.*)$')
         p_numOfCommits = re.compile('\s*numberOfCommitsInLast24Hours:\s*(.*)$')
         self._gitBranch = ''
-        self._gitBranchName = ''
+        self._gitBranchName = 'Missing'
         gitBranchInfo = ''
         self._gitBranchDate = ''
         self._gitBranchCommit = ''
         self._gitBranchNumOfCommits = 0
-        for line in open( self.gitLogFileSystem ).readlines( ):
-            m = p_branch.match( line )
-            if m:
-                self._gitBranchName = m.group(1).strip()
-                continue 
+        line = ''
+        try:
+            gitLog =  open( self.gitLogFileSystem )
+            for line in gitLog.readlines( ):
+                m = p_branch.match( line )
+                if m:
+                    self._gitBranchName = m.group(1).strip()
+                    continue 
 
-            m = p_date.match( line )
-            if m:
-                self._gitBranchDate = m.group(1) 
-                continue
+                m = p_date.match( line )
+                if m:
+                    self._gitBranchDate = m.group(1) 
+                    continue
 
-            m = p_commit.match( line )
-            if m:
-                self._gitBranchCommit = m.group(1)
-                continue
-            
-            m = p_numOfCommits.match( line )
-            if m:
-                try:
-                    self._gitBranchNumOfCommits = int(m.group(1))
-                except Exception as e:
-                    print("Something wrong with git branch number of commits '%s'" % (m.group(1)) )
-                    print(e)
-                    pass
+                m = p_commit.match( line )
+                if m:
+                    self._gitBranchCommit = m.group(1)
+                    continue
                 
-                continue
+                m = p_numOfCommits.match( line )
+                if m:
+                    try:
+                        self._gitBranchNumOfCommits = int(m.group(1))
+                    except Exception as e:
+                        print("Something wrong with git branch number of commits '%s'" % (m.group(1)) )
+                        print(e)
+                        pass
+                    
+                    continue
+        except:
+            print("Exception in git log file processing:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print("line: %s" % (line))
+            print("Exception in user code:")
+            print('-'*60)
+            traceback.print_exc(file=sys.stdout)
+            print('-'*60)
 
         if self._gitBranchDate != '':
             self._gitBranchDate = self._gitBranchDate.replace(' +0000','').strip() 
@@ -1041,6 +1051,8 @@ class BuildNotification( object ):
             print('-'*60)
             traceback.print_exc(file=sys.stdout)
             print('-'*60)
+            if bTimeStr == ''or self.logReport['gitBranchDate'] == '' :
+                self.logReport['gitBranchDate']  = self.config._buildDate+' ' + self.config._buildTime
             
         try:
             logRecordFile = open(self.logReport['reportObtSystem']+'.txt',  "a" )
@@ -1048,8 +1060,9 @@ class BuildNotification( object ):
             for item in sequence:
                 try:
                     logRecordFile.write(self.logReport[item]+'\t')
-                except KeyError as e:
+                except KeyError:
                     print("Key error Item: '%s' (len: %d)" % (item,  len(item)))
+                    logRecordFile.write('%s:N/A\t' % (item) )
                     
             logRecordFile.write('\n')
         
