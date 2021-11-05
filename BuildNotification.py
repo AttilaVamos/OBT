@@ -1053,6 +1053,7 @@ class BuildNotification( object ):
             print('-'*60)
             if bTimeStr == ''or self.logReport['gitBranchDate'] == '' :
                 self.logReport['gitBranchDate']  = self.config._buildDate+' ' + self.config._buildTime
+                print( "Generate gitBranchDate from config values:'%s'" % (self.logReport['gitBranchDate']  ) )
             
         try:
             logRecordFile = open(self.logReport['reportObtSystem']+'.txt',  "a" )
