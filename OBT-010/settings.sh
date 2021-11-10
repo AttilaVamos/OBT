@@ -401,14 +401,18 @@ TEST_1=( "schedule1.ecl" "90" )
 TEST_2=( "schedule2.ecl" "150" )
 TEST_3=( "workflow_9c.ecl" "90" )
 TEST_4=( "workflow_contingency_8.ecl" "60" )
-#TEST_5=( "teststdlibrary.ecl" "1500" )
+TEST_5=( "embedR.ecl" "30" )
+TEST_6=( "embedR2.ecl" "30" )
+TEST_7=( "modelingWithR.ecl" "30" )
 
 TIMEOUTS=( 
     TEST_1[@] 
     TEST_2[@] 
     TEST_3[@] 
     TEST_4[@]
-#    TEST_5[@] 
+    TEST_5[@]
+    TEST_6[@]
+    TEST_7[@] 
     )
 
 
