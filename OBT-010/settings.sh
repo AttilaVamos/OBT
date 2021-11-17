@@ -404,6 +404,8 @@ TEST_4=( "workflow_contingency_8.ecl" "60" )
 TEST_5=( "embedR.ecl" "30" )
 TEST_6=( "embedR2.ecl" "30" )
 TEST_7=( "modelingWithR.ecl" "30" )
+TEST_8=( "parse2.ecl" "30" )
+TEST_9=( "partition.ecl" "30" )
 
 TIMEOUTS=( 
     TEST_1[@] 
@@ -413,6 +415,8 @@ TIMEOUTS=(
     TEST_5[@]
     TEST_6[@]
     TEST_7[@] 
+    TEST_8[@] 
+    TEST_9[@]     
     )
 
 
