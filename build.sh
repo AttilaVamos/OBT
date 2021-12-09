@@ -140,6 +140,19 @@ else
     
 fi
 
+WriteLog "Get the latest Regression Test Engine..." "${OBT_BUILD_LOG_FILE}"
+[[ -d $REGRESSION_TEST_ENGINE_HOME ]] && rm -rf $REGRESSION_TEST_ENGINE_HOME
+    
+cres=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENGINE_HOME" )
+
+if [[ 0 -ne  $? ]]
+then
+    WriteLog "RTE clone failed ! Result is: ${cres}" "${OBT_BUILD_LOG_FILE}"
+    ExitEpilog "${OBT_BUILD_LOG_FILE}" "build.sh" "RTE clone failed ! Result is: ${cres}"
+else
+    WriteLog "RTE clone success !" "${OBT_BUILD_LOG_FILE}"
+fi
+
 #
 #----------------------------------------------------
 #

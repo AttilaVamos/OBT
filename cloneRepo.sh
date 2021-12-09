@@ -171,13 +171,17 @@ CloneRepo()
         return 1
     fi
     
+}
+    
+CloneRTE()
+{
     # Get the latest Regression Test Engine 
     WriteLog "Get the latest Regression Test Engine..." "${CLONE_LOG_FILE}"
     [[ -d $REGRESSION_TEST_ENGINE_HOME ]] && rm -rf $REGRESSION_TEST_ENGINE_HOME
     # We are cloning, so don't create dir for it
     #[[ ! -d $REGRESSION_TEST_ENGINE_HOME ]]  && mkdir -p $REGRESSION_TEST_ENGINE_HOME
     
-    pushd $target
+    #pushd $target
     
     # Check Regression Test Engine version by last commit id of master branch
     #branch=$( git status | egrep 'On branch' | cut -d' ' -f 3 )
@@ -198,7 +202,7 @@ CloneRepo()
         #res=$(cp -v -r testing/regress/hpcc $REGRESSION_TEST_ENGINE_HOME/hpcc 2>&1 )
 
         # clone RTE from GitHub
-        res=$( git clone  https://github.com/AttilaVamos/RTE.git $REGRESSION_TEST_ENGINE_HOME )
+        res=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENGINE_HOME" )
         WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
         
         echo "$newCommitId" > $REGRESSION_TEST_ENGINE_HOME/commit.id
@@ -206,7 +210,7 @@ CloneRepo()
         WriteLog "We have the latest version." "${CLONE_LOG_FILE}"
     fi
     
-    popd
+    #popd
     
     WriteLog "End." "${CLONE_LOG_FILE}"
     return 0
