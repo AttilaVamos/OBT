@@ -664,9 +664,6 @@ WriteLog "COUCHBASE_SERVER_VAR:'${COUCHBASE_SERVER_VAR}'" "${REGRESS_LOG_FILE}"
 while read cluster
 do
 
-#  echo "./ecl-test --loglevel debug run --target $cluster"
-#  ./ecl-test --loglevel debug run --target $cluster
-
     CMD="./ecl-test run --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_TIMEOUT} --pq ${REGRESSION_PARALLEL_QUERIES} ${COUCHBASE_SERVER_VAR} ${REGRESSION_EXCLUDE_CLASS} ${REGRESSION_EXCLUDE_FILES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT} ${REGRESSION_EXTRA_PARAM}"
 
     WriteLog "${CMD}" "${REGRESS_LOG_FILE}"

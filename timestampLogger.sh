@@ -2,6 +2,13 @@
 
 WriteLog()
 (
+    # If Bash trace is on ('set -x') switch it off till end of this function
+    if [ -o xtrace ]
+    then
+        set +x
+        trap 'set -x' RETURN
+    fi
+
     IFS=$'\n'
     text=$1
 #    set -x

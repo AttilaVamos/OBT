@@ -74,8 +74,7 @@ CloneRepo()
         WriteLog "Try count: ${tryCount}" "${CLONE_LOG_FILE}"
         res=0
 
-        res=$( git clone $repo $target 2>&1 |                                                                   \
-               while read line;                                                                         \
+        res=$( while read line;                                                                         \
                do                                                                                       \
                    WriteLog "${line}" "${CLONE_LOG_FILE}" > /dev/null;                                  \
                    res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'not an empty directory' );  \
@@ -108,7 +107,7 @@ CloneRepo()
                         echo "$RECOVERABLE_ERROR";                                                      \
                         break;                                                                          \
                    fi;                                                                                  \
-                done;                                                                                   \
+                done < <( git clone $repo $target 2>&1 );                                                                                   \
              );
 
         if [ "${res}." == "." ] 
@@ -221,7 +220,7 @@ SubmoduleUpdate()
 
     if [ -f "$OBT_BIN_DIR/WatchDog.py" ]
     then
-        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 900 -r 3600 -v"
+        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 1800 -r 3600 -v"
         WriteLog "Start WatchDog: ${watchDogStartCmd}" "${SUBMODULE_LOG_FILE}"
         WriteLog "Watchdog logfile: ${WATCHDOG_LOG_FILE}" "${SUBMODULE_LOG_FILE}"
         ${watchDogStartCmd} >> ${WATCHDOG_LOG_FILE} 2>&1 &
@@ -250,8 +249,7 @@ SubmoduleUpdate()
         WriteLog "Try count: ${tryCount}" "${SUBMODULE_LOG_FILE}"
         res=$NO_ERROR
 
-        res=$( git submodule update $1 2>&1 |                                                             \
-               while read line;                                                                           \
+        res=$( while read line;                                                                           \
                do                                                                                         \
                    WriteLog "${line}" "${SUBMODULE_LOG_FILE}" > /dev/null;                                \
                                                                                                           \
@@ -275,7 +273,7 @@ SubmoduleUpdate()
                        break;                                                                             \
                    fi;                                                                                    \
                                                                                                           \
-               done;                                                                                      \
+               done < <(  git submodule update $1 2>&1 ) ;                                                \
              );
 
         if [ "${res}." == "." ] 
@@ -289,25 +287,23 @@ SubmoduleUpdate()
             case $res in
                 "$SINGLE_REVISION_NEEDED_ERROR" ) 
                                       WriteLog "res:'SINGLE_REVISION_NEEDED_ERROR'" "${SUBMODULE_LOG_FILE}"
-                                      git config --file .gitmodules --get-regexp path | awk '{ print $2 }' |        \
                                       while read module;                                                            \
                                       do                                                                            \
-                                          WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}"                      \
-                                          cleanUpCmd='rm -rf "'$module'"'                                           \
-                                          WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}"                     \
+                                          WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}";                      \
+                                          cleanUpCmd='rm -rf "'$module'"';                                           \
+                                          WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}";                     \
                                           ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                             \
-                                      done; 
+                                      done < <(  git config --file .gitmodules --get-regexp path | awk '{ print $2 }' ); 
                                       ;;
 
                 "$RECOVERABLE_ERROR" ) WriteLog "res:'RECOVERABLE_ERROR'" "${SUBMODULE_LOG_FILE}"
-                                      git config --file .gitmodules --get-regexp path | awk '{ print $2 }' |        \
                                       while read submodule;                                                         \
                                       do                                                                            \
-                                          WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}"                \
-                                          cleanUpCmd2='rm -rf "'${submodule}'"'                                     \
-                                          WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}"                    \
+                                          WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}";                \
+                                          cleanUpCmd2='rm -rf "'${submodule}'"';                                     \
+                                          WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}";                    \
                                           ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                            \
-                                      done;                                                                          
+                                      done < <( git config --file .gitmodules --get-regexp path | awk '{ print $2 }' );                                                                          
                                       ;;                                                                             
                                                                                                                      
                  "$NOT_GIT_REPO_ERROR" ) WriteLog "res:'NOT_GIT_REPO_ERROR'" "${SUBMODULE_LOG_FILE}"                   
