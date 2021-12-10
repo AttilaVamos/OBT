@@ -17,11 +17,11 @@ fi
 KillWatchDogAndWaitToDie()
 {
     DELAY=10
-    sudo kill $1
+    ps -p $1 > /dev/null
+    [ "$?" -eq 0 ] && sudo pkill -TERM $1
 
     while (true)
-    do 
-        sleep ${DELAY}
+    do
         stillRunning=$( ps aux | grep -c -i '[w]atchdog.py' )
 
         if [[ ${stillRunning} -eq 0 ]]
@@ -30,7 +30,7 @@ KillWatchDogAndWaitToDie()
             break
         fi
         WriteLog "WatchDog ($1) is still running. Wait ${DELAY} sec and try again." "$2"
-        [ -n "$(pgrep WatchDog)" ] && sudo pkill -9 WatchDog.py
+        sleep ${DELAY}
     done
 
     rm ./WatchDog.pid
@@ -74,75 +74,81 @@ CloneRepo()
     do
         WriteLog "Try count: ${tryCount}" "${CLONE_LOG_FILE}"
         res=0
+        err=0
 
-        res=$( while read line;                                                                         \
-               do                                                                                       \
-                   WriteLog "${line}" "${CLONE_LOG_FILE}" > /dev/null;                                  \
-                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'not an empty directory' );  \
-                   if [ $res -ne 0 ];                                                                   \
-                   then                                                                                 \
-                        echo "$DESTINATION_EXISTS_ERROR";                                               \
-                        break;                                                                          \
-                   fi;                                                                                  \
-                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'HTTP request failed' );     \
-                   if [ $res -ne 0 ];                                                                   \
-                   then                                                                                 \
-                        echo "$HTTP_REQUEST_ERROR";                                                     \
-                        break;                                                                          \
-                   fi;                                                                                  \
-                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'unable to access' );        \
-                   if [ $res -ne 0 ];                                                                   \
-                   then                                                                                 \
-                        echo "$HTTP_REQUEST_ERROR";                                                     \
-                        break;                                                                          \
-                   fi;                                                                                  \
-                   res=$( echo "${line}" | egrep -c -i '^fatal' );                                      \
-                   if [ $res -ne 0 ];                                                                   \
-                   then                                                                                 \
-                        echo "$UNRECOVERABLE_ERROR";                                                    \
-                        break;                                                                          \
-                   fi;                                                                                  \
-                   res=$( echo "${line}" | egrep -c -i '^error' );                                      \
-                   if [ $res -ne 0 ];                                                                   \
-                   then                                                                                 \
-                        echo "$RECOVERABLE_ERROR";                                                      \
-                        break;                                                                          \
-                   fi;                                                                                  \
-                done < <( git clone $repo $target 2>&1 );                                                                                   \
-             );
+        while read line
+           do
+               WriteLog "${line}" "${CLONE_LOG_FILE}" > /dev/null
+               res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'not an empty directory' )
+               if [ $res -ne 0 ]
+               then
+                    err=$DESTINATION_EXISTS_ERROR
+                    break
+               fi
+               
+               res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'HTTP request failed' )
+               if [ $res -ne 0 ]
+               then
+                    err=$HTTP_REQUEST_ERROR
+                    break
+               fi
+               
+               res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'unable to access' )
+               if [ $res -ne 0 ]
+               then
+                    err=$HTTP_REQUEST_ERROR
+                    break
+               fi;
+               
+               res=$( echo "${line}" | egrep -c -i '^fatal' )
+               if [ $res -ne 0 ]
+               then
+                    err=$UNRECOVERABLE_ERROR
+                    break
+               fi;
+               
+               res=$( echo "${line}" | egrep -c -i '^error' )
+               if [ $res -ne 0 ]
+               then
+                    err=$RECOVERABLE_ERROR
+                    break
+               fi
+               
+            done < <( git clone $repo $target 2>&1 )
 
-        if [ "${res}." == "." ] 
+
+        if [ $err -eq 0 ] 
         then 
             WriteLog "Cloned ! " "${CLONE_LOG_FILE}"
             break
         else
-            WriteLog "Error:${res}" "${CLONE_LOG_FILE}"
+            WriteLog "Error:${err}" "${CLONE_LOG_FILE}"
+            case $err in
+                $RECOVERABLE_ERROR ) WriteLog "res:$err -> 'RECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
+                                    # Check/set MTU with 'ip link set eth0 mtu 1400'
+                                    ipResetCMD="ip link set eth0 mtu 1400"    
+                                    WriteLog "Reset link: ${ipResetCMD}" "${CLONE_LOG_FILE}"
+                                    ${ipResetCMD} >> ${CLONE_LOG_FILE} 2>&1 &
+                                    ;;
 
-            case $res in
-                "$RECOVERABLE_ERROR" ) WriteLog "res:'RECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
-                                      # Check/set MTU with 'ip link set eth0 mtu 1400'
-                                      ipResetCMD="ip link set eth0 mtu 1400"    
-                                      WriteLog "Reset link: ${ipResetCMD}" "${CLONE_LOG_FILE}"
-                                      ${ipResetCMD} >> ${CLONE_LOG_FILE} 2>&1 &
-                                      ;;
+                $UNRECOVERABLE_ERROR ) WriteLog "res:$err -> 'UNRECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
+                                    # return 1
+                                    rmt=$( git ls-remote  ${repo} | wc -l )
+                                    WriteLog "ls-remote returns with ${rmt} results." "${CLONE_LOG_FILE}"
+                                    gitproc=$( pgrep -f 'git-' )
+                                    WriteLog "git process(es): ${gitproc} ." "${CLONE_LOG_FILE}"
+                                    [ -n "$gitproc" ]  && sudo pkill -KILL ${gitproc}
+                                    ;;
 
-                "$UNRECOVERABLE_ERROR" ) WriteLog "res:'UNRECOVERABLE_ERROR'" "${CLONE_LOG_FILE}"
-                                      # return 1
-                                      rmt=$( git ls-remote  ${repo} | wc -l )
-                                      WriteLog "ls-remote returns with ${rmt} results." "${CLONE_LOG_FILE}"
-                                      gitproc=$( pgrep -f 'git-' )
-                                      WriteLog "git process(es): ${gitproc} ." "${CLONE_LOG_FILE}"
-                                      [ -n "$gitproc" ]  && sudo pkill -KILL ${gitproc}
-                                      ;;
-
-                "$DESTINATION_EXISTS_ERROR" ) WriteLog "res:'DESTINATION_EXISTS_ERROR'. Remove target directory." "${CLONE_LOG_FILE}"
-                                      rm -rf $target
-                                      #mkdir build
-                                      ;;
-                "$HTTP_REQUEST_ERROR" ) WriteLog "res:'HTTP_REQUEST_ERROR'" "${CLONE_LOG_FILE}"
-                                        WriteLog "Try it with SSH: 'git@github.com:hpcc-systems/HPCC-Platform.git'" "${CLONE_LOG_FILE}"
-                                        repo='git@github.com:hpcc-systems/HPCC-Platform.git'
-                                      ;;
+                $DESTINATION_EXISTS_ERROR ) WriteLog "res:$err -> 'DESTINATION_EXISTS_ERROR'." "${CLONE_LOG_FILE}"
+                                    WriteLog "Remove target directory and try again." "${CLONE_LOG_FILE}"
+                                    rm -rf $target
+                                    #mkdir build
+                                    ;;
+                $HTTP_REQUEST_ERROR ) WriteLog "res:$err -> 'HTTP_REQUEST_ERROR'" "${CLONE_LOG_FILE}"
+                                    WriteLog "Try it with SSH: 'git@github.com:hpcc-systems/HPCC-Platform.git'" "${CLONE_LOG_FILE}"
+                                    repo='git@github.com:hpcc-systems/HPCC-Platform.git'
+                                    ;;
 
             esac
 
@@ -163,8 +169,6 @@ CloneRepo()
 
     KillWatchDogAndWaitToDie "${wdPid}" "${CLONE_LOG_FILE}"
 
-
-
     if [[ $tryCount -eq 0 ]]
     then
         WriteLog "Give up ! " "${CLONE_LOG_FILE}"
@@ -172,50 +176,10 @@ CloneRepo()
         return 1
     fi
     
-}
-    
-CloneRTE()
-{
-    # Get the latest Regression Test Engine 
-    WriteLog "Get the latest Regression Test Engine..." "${CLONE_LOG_FILE}"
-    [[ -d $REGRESSION_TEST_ENGINE_HOME ]] && rm -rf $REGRESSION_TEST_ENGINE_HOME
-    # We are cloning, so don't create dir for it
-    #[[ ! -d $REGRESSION_TEST_ENGINE_HOME ]]  && mkdir -p $REGRESSION_TEST_ENGINE_HOME
-    
-    #pushd $target
-    
-    # Check Regression Test Engine version by last commit id of master branch
-    #branch=$( git status | egrep 'On branch' | cut -d' ' -f 3 )
-    #[[ "$branch" != "master" ]] && echo "res: $(git checkout master)"
-    
-    #newCommitId=$( git log -1 | grep '^commit'  | cut -d ' ' -f 2)
-    #[[ -f $REGRESSION_TEST_ENGINE_HOME/commit.id ]] && oldCommitId=$( cat $REGRESSION_TEST_ENGINE_HOME/commit.id ) || oldCommitId="none"
-    # Force to always get RTE from master (until it will be fixed)
-    oldCommitId="none"
-    
-    if [[ "$oldCommitId" != "$newCommitId" ]]
-    then
-        WriteLog "There is a newest version ($newCommitId) in GitHub (we have $oldCommitId) get it." "${CLONE_LOG_FILE}"
-        # Copy latest Regression Test Engine into <OBT binary dir>/rte directory
-        #res=$( cp -v testing/regress/ecl-test* $REGRESSION_TEST_ENGINE_HOME/. 2>&1)
-        #WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
-        
-        #res=$(cp -v -r testing/regress/hpcc $REGRESSION_TEST_ENGINE_HOME/hpcc 2>&1 )
-
-        # clone RTE from GitHub
-        res=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENGINE_HOME" )
-        WriteLog "res: ${res}" "${CLONE_LOG_FILE}"
-        
-        echo "$newCommitId" > $REGRESSION_TEST_ENGINE_HOME/commit.id
-    else
-        WriteLog "We have the latest version." "${CLONE_LOG_FILE}"
-    fi
-    
-    #popd
-    
     WriteLog "End." "${CLONE_LOG_FILE}"
     return 0
 }
+    
 
 SubmoduleUpdate()
 {
@@ -252,69 +216,71 @@ SubmoduleUpdate()
     while true
     do
         WriteLog "Try count: ${tryCount}" "${SUBMODULE_LOG_FILE}"
-        res=$NO_ERROR
+        res=''
+        err=$NO_ERROR
 
-        res=$( while read line;                                                                           \
-               do                                                                                         \
-                   WriteLog "${line}" "${SUBMODULE_LOG_FILE}" > /dev/null;                                \
-                                                                                                          \
-                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Needed a single revision' );  \
-                   if [ $res -ne 0 ];                                                                     \
-                   then                                                                                   \
-                       echo "$SINGLE_REVISION_NEEDED_ERROR";                                              \
-                       break;                                                                             \
-                   fi;                                                                                    \
-                   res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Not a git repository' );      \
-                   if [ $res -ne 0 ];                                                                     \
-                   then                                                                                   \
-                       echo "$NOT_GIT_REPO_ERROR";                                                        \
-                       break;                                                                             \
-                   fi;                                                                                    \
-                                                                                                          \
-                   res=$( echo "${line}" | egrep -c -i '^fatal|^error|Killed|failed' );                   \
-                   if [ $res -ne 0 ];                                                                     \
-                   then                                                                                   \
-                       echo "$RECOVERABLE_ERROR";                                                         \
-                       break;                                                                             \
-                   fi;                                                                                    \
-                                                                                                          \
-               done < <(  git submodule update $1 2>&1 ) ;                                                \
-             );
+        
+        while read line
+           do
+               WriteLog "${line}" "${SUBMODULE_LOG_FILE}" > /dev/null
 
-        if [ "${res}." == "." ] 
+               res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Needed a single revision' )
+               if [ $res -ne 0 ]
+               then
+                   err=$SINGLE_REVISION_NEEDED_ERROR
+                   break
+               fi
+               
+               res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Not a git repository' )
+               if [ $res -ne 0 ]
+               then
+                   err=$NOT_GIT_REPO_ERROR
+                   break
+               fi
+
+               res=$( echo "${line}" | egrep -c -i '^fatal|^error|Killed|failed' )
+               if [ $res -ne 0 ]
+               then
+                   err=$RECOVERABLE_ERROR
+                   break
+               fi
+
+           done < <(  git submodule update $1 2>&1 ) 
+
+        if [ $err -eq  $NO_ERROR ] 
         then 
             WriteLog "Submodule update finished ! " "${SUBMODULE_LOG_FILE}"
             break
         else
             set -x
-            WriteLog "Error: $res" "${SUBMODULE_LOG_FILE}"
+            WriteLog "Error: $err" "${SUBMODULE_LOG_FILE}"
 
-            case $res in
-                "$SINGLE_REVISION_NEEDED_ERROR" ) 
-                                      WriteLog "res:'SINGLE_REVISION_NEEDED_ERROR'" "${SUBMODULE_LOG_FILE}"
-                                      while read module;                                                            \
-                                      do                                                                            \
-                                          WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}";                      \
-                                          cleanUpCmd='rm -rf "'$module'"';                                           \
-                                          WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}";                     \
-                                          ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                             \
-                                      done < <(  git config --file .gitmodules --get-regexp path | awk '{ print $2 }' ); 
+            case $err in
+                $SINGLE_REVISION_NEEDED_ERROR ) 
+                                      WriteLog "res: $err -> 'SINGLE_REVISION_NEEDED_ERROR'" "${SUBMODULE_LOG_FILE}"
+                                      while read module
+                                      do
+                                          WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}"
+                                          cleanUpCmd='rm -rf "'$module'"'
+                                          WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}"
+                                          ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1 
+                                      done < <(  git config --file .gitmodules --get-regexp path | awk '{ print $2 }' )
                                       ;;
 
-                "$RECOVERABLE_ERROR" ) WriteLog "res:'RECOVERABLE_ERROR'" "${SUBMODULE_LOG_FILE}"
-                                      while read submodule;                                                         \
-                                      do                                                                            \
-                                          WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}";                \
-                                          cleanUpCmd2='rm -rf "'${submodule}'"';                                     \
-                                          WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}";                    \
-                                          ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1 ;                            \
-                                      done < <( git config --file .gitmodules --get-regexp path | awk '{ print $2 }' );                                                                          
-                                      ;;                                                                             
-                                                                                                                     
-                 "$NOT_GIT_REPO_ERROR" ) WriteLog "res:'NOT_GIT_REPO_ERROR'" "${SUBMODULE_LOG_FILE}"                   
+                $RECOVERABLE_ERROR ) WriteLog "res: $err -> 'RECOVERABLE_ERROR'" "${SUBMODULE_LOG_FILE}"
+                                      while read submodule
+                                      do
+                                          WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}"
+                                          cleanUpCmd2='rm -rf "'${submodule}'"'
+                                          WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}"
+                                          ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1 
+                                      done < <( git config --file .gitmodules --get-regexp path | awk '{ print $2 }' )
+                                      ;;
+
+                 $NOT_GIT_REPO_ERROR ) WriteLog "res: $err -> 'NOT_GIT_REPO_ERROR'" "${SUBMODULE_LOG_FILE}"                   
                                         tryCount=0
-                                        break                                                                   
-                                        ;;                                                                           
+                                        break
+                                        ;;
 
             esac
             set +x
