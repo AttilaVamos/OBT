@@ -18,7 +18,7 @@ KillWatchDogAndWaitToDie()
 {
     DELAY=10
     ps -p $1 > /dev/null
-    [ "$?" -eq 0 ] && sudo pkill -TERM $1
+    [ "$?" -eq 0 ] && sudo kill -TERM $1
 
     while (true)
     do
@@ -31,6 +31,7 @@ KillWatchDogAndWaitToDie()
         fi
         WriteLog "WatchDog ($1) is still running. Wait ${DELAY} sec and try again." "$2"
         sleep ${DELAY}
+        sudo kill -TERM $1
     done
 
     rm ./WatchDog.pid
