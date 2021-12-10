@@ -6,7 +6,8 @@ declare -f -F WriteLog> /dev/null
 
 if [ $? -ne 0 ]
 then
-    . ~/build/bin/timestampLogger.sh
+    [ -f ./timestampLogger.sh ] && . ./timestampLogger.sh || . ~/build/bin/timestampLogger.sh
+    # . ~/build/bin/timestampLogger.sh
 fi
 
 # Git branch settings
@@ -131,7 +132,7 @@ CloneRepo()
                                       WriteLog "ls-remote returns with ${rmt} results." "${CLONE_LOG_FILE}"
                                       gitproc=$( pgrep -f 'git-' )
                                       WriteLog "git process(es): ${gitproc} ." "${CLONE_LOG_FILE}"
-                                      sudo pkill -9 ${gitproc}
+                                      [ -n "$gitproc" ]  && sudo pkill -KILL ${gitproc}
                                       ;;
 
                 "$DESTINATION_EXISTS_ERROR" ) WriteLog "res:'DESTINATION_EXISTS_ERROR'. Remove target directory." "${CLONE_LOG_FILE}"
@@ -246,7 +247,7 @@ SubmoduleUpdate()
     RECOVERABLE_ERROR=2
     NOT_GIT_REPO_ERROR=3
 
-    WriteLog "git submodule update "$1 "${SUBMODULE_LOG_FILE}"
+    WriteLog "git submodule update $1" "${SUBMODULE_LOG_FILE}"
     WriteLog "[$( caller )] $*" "${SUBMODULE_LOG_FILE}"
     while true
     do
