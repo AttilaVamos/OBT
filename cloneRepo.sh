@@ -31,7 +31,7 @@ KillWatchDogAndWaitToDie()
         fi
         WriteLog "WatchDog ($1) is still running. Wait ${DELAY} sec and try again." "$2"
         sleep ${DELAY}
-        sudo kill -TERM $1
+        sudo kill -KILL $1
     done
 
     rm ./WatchDog.pid
