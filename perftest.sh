@@ -402,8 +402,7 @@ then
 
     WriteLog "Update git submodule" "${PERF_TEST_LOG}"
 
-    #subRes=$( SubmoduleUpdate "--init --recursive" )
-    subRes=$( SubmoduleUpdate "--init" )
+    subRes=$( SubmoduleUpdate "--init --recursive" )
     if [[ 0 -ne  $? ]]
     then
         WriteLog "Submodule update failed ! Result is: ${subRes}" "${PERF_TEST_LOG}"
