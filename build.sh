@@ -371,6 +371,10 @@ else
     WriteLog "res: ${res}" "${OBT_BUILD_LOG_FILE}"
 fi
 
+
+removeLog4j=$( find $SOURCE_HOME/ -iname '*log4j*' -type f -exec rm -fv {} \; )
+WriteLog "Remove LOG4J items result:\n${removeLog4j}" "$OBT_BUILD_LOG_FILE"
+
 #
 #----------------------------------------------------
 #
