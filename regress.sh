@@ -107,7 +107,8 @@ then
     WriteLog "Check Cassandra state skipped" "${REGRESS_LOG_FILE}"
 else
     WriteLog "Check Cassandra state" "${REGRESS_LOG_FILE}"
-    ./checkCassandra.sh
+    WriteLog "Temporarily Cassandra not started based on the Log4j problem." "${REGRESS_LOG_FILE}"
+    # ./checkCassandra.sh
 fi
 
 #
@@ -149,7 +150,8 @@ then
     WriteLog "Check Kafka state skipped" "${REGRESS_LOG_FILE}"
 else
     WriteLog "Check Kafka state" "${REGRESS_LOG_FILE}"
-    ./checkKafka.sh
+    WriteLog "Temporarily Kafka (and Zookepper) not started based on the Log4j problem." "${REGRESS_LOG_FILE}"
+    # ./checkKafka.sh
 fi
 
 #

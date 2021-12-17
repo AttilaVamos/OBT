@@ -87,7 +87,8 @@ fi
 #
 
 WriteLog "Check Cassandra..." "$WUTOOLTEST_EXECUTION_LOG_FILE"
-tryCount=4
+
+tryCount=0   # DO NOT TRY TO START CASSANDRA (based on log4j problem)
 testCassandra=0
 CASSANDRA_STOPPED=0
 # Check if Cassandra installed
