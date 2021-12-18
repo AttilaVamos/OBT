@@ -414,24 +414,31 @@ REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 REGRESSION_EXCLUDE_FILES=""
 if [[ "$BRANCH_ID" == "candidate-6.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*,embedR*,modelingWithR*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.0.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.2.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="pipefail.ecl,embedR*,modelingWithR*"
+fi
+
+if [[  -z "$REGRESSION_EXCLUDE_FILES" ]]
+then
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl"
+else
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,${REGRESSION_EXCLUDE_FILES}"
 fi
 
 REGRESSION_EXCLUDE_CLASS=""
