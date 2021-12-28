@@ -19,13 +19,13 @@ timeoutInSec=40
 maxSelfRuntimeInSec=300 
 verbose = False
 
-def myPrint(string):
+def myPrint(str):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    print timestamp+": "+string
+    print(timestamp+": "+str)
     
-def myPrintV(string):
+def myPrintV(str):
     if verbose:
-        myPrint(string)
+        myPrint(str)
 
 
 #
@@ -53,7 +53,7 @@ def handler(signum, frame=None):
         msg += ", ?"
 
     ## If there are some registered process then handle them before exit.
-    handleProcess(1)
+    handleProcess(2)
 
     if signum != signal.SIGKILL:
         print(msg)
@@ -67,7 +67,7 @@ def on_exit(sig=None, func=None):
 
 def handleProcess(maxLoop):
     i = 1
-    while (i <= maxLoop) or ( len(items[process]) > 0):
+    while (i < maxLoop) or ( len(items[process]) > 0):
         # Clear the 'updated' flag to see which process is still alive
         for pid in items[process]:
             items[process][pid]['updated'] = False
@@ -208,4 +208,9 @@ psCmd = "ps ax | grep '["+process[0]+"]"+process[1:]+"'"
 myPrintV("psCmd: " + psCmd)
 
 handleProcess(maxLoop)    
+while len(items[process]) > 0:
+    maxLoop = maxSelfRuntimeInSec/delayInSec
+    myPrint("There is/are running process(es) to watch, restart handleProcess().")
+    handleProcess(maxLoop)
+
 myPrint("End.")

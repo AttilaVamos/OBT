@@ -190,7 +190,7 @@ SubmoduleUpdate()
 
     if [ -f "$OBT_BIN_DIR/WatchDog.py" ]
     then
-        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 1800 -r 3600 -v"
+        watchDogStartCmd="$OBT_BIN_DIR/WatchDog.py -p 'git-*' -t 360 -r 3600 -v"
         WriteLog "Start WatchDog: ${watchDogStartCmd}" "${SUBMODULE_LOG_FILE}"
         WriteLog "Watchdog logfile: ${WATCHDOG_LOG_FILE}" "${SUBMODULE_LOG_FILE}"
         ${watchDogStartCmd} >> ${WATCHDOG_LOG_FILE} 2>&1 &
@@ -264,7 +264,8 @@ SubmoduleUpdate()
                                           WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}"
                                           cleanUpCmd='rm -rf "'$module'"'
                                           WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}"
-                                          ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1 
+                                          ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1
+                                          WriteLog "retcode:$?" "${SUBMODULE_LOG_FILE}"
                                       done < <(  git config --file .gitmodules --get-regexp path | awk '{ print $2 }' )
                                       ;;
 
@@ -274,7 +275,8 @@ SubmoduleUpdate()
                                           WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}"
                                           cleanUpCmd2='rm -rf "'${submodule}'"'
                                           WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}"
-                                          ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1 
+                                          ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1
+                                          WriteLog "retcode:$?" "${SUBMODULE_LOG_FILE}"
                                       done < <( git config --file .gitmodules --get-regexp path | awk '{ print $2 }' )
                                       ;;
 
