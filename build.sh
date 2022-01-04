@@ -516,7 +516,7 @@ else
    cp $TARGET_DIR/build_summary ${OBT_BIN_DIR}
 
    # Remove old builds
-   ${BUILD_DIR}/bin/clean_builds.sh
+   #${BUILD_DIR}/bin/clean_builds.sh
 
    WriteLog "Send Email notification about build failure" "${OBT_BUILD_LOG_FILE}"
    
