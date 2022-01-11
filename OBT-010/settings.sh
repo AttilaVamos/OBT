@@ -448,9 +448,9 @@ fi
 
 if [[  -z "$REGRESSION_EXCLUDE_FILES" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl"
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl"
 else
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,${REGRESSION_EXCLUDE_FILES}"
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl,${REGRESSION_EXCLUDE_FILES}"
 fi
 
 REGRESSION_EXCLUDE_CLASS=""
