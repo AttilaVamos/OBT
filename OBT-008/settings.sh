@@ -574,7 +574,7 @@ EXECUTE_PERFORMANCE_SUITE_SETUP=1
 # 1 - execute RE to run Performance Suite
 EXECUTE_PERFORMANCE_SUITE=1
 
-# timeout in seconds (-1 means no timeout in Regression Engine)
+# timeout in seconds (>0) in Regression Engine
 PERF_TIMEOUT=720
 
 # 0 - HPCC unistalled after Performance Suite finished on hthor
@@ -657,8 +657,8 @@ fi
 # 1 - execute RE to run Performance Suite
 EXECUTE_ML_SUITE=1
 
-# timeout in seconds (-1 means no timeout in Regression Engine)
-ML_TIMEOUT=-1
+# timeout in seconds (>0) in Regression Engine
+ML_TIMEOUT=360
 ML_PARALLEL_QUERIES=1
 
 #

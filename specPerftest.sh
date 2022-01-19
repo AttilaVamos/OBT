@@ -44,7 +44,7 @@ do
         suffix=$( printf "F542D241_L%03d_E%02d" "$i" "$j" )
         echo $suffix
 
-        CMD="./ecl-test query -t ${TARGET} --suiteDir /home/vamosax/perftest/PerformanceTesting/PerformanceTesting --timeout -1 -fthorConnectTimeout=36000 -e stress --pq 1 --flushDiskCache --flushDiskCachePolicy 1 --jobnamesuffix ${suffix} ${TEST_SET}"
+        CMD="./ecl-test query -t ${TARGET} --suiteDir /home/vamosax/perftest/PerformanceTesting/PerformanceTesting --timeout  -3600 -fthorConnectTimeout=36000 -e stress --pq 1 --flushDiskCache --flushDiskCachePolicy 1 --jobnamesuffix ${suffix} ${TEST_SET}"
 
     ${CMD}
 
