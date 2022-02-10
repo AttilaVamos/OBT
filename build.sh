@@ -113,6 +113,9 @@ if [[ 0 -ne  $? ]]
 then
     WriteLog "Repo clone failed ! Result is: ${cres}" "${OBT_BUILD_LOG_FILE}"
 
+    cd ${OBT_BIN_DIR}
+    ./archiveLogs.sh obt-build timestamp=${OBT_TIMESTAMP}
+    
     ExitEpilog "${OBT_BUILD_LOG_FILE}" "build.sh" "Repo clone failed ! Result is: ${cres}"
 
 else
@@ -148,6 +151,8 @@ cres=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENG
 if [[ 0 -ne  $? ]]
 then
     WriteLog "RTE clone failed ! Result is: ${cres}" "${OBT_BUILD_LOG_FILE}"
+    cd ${OBT_BIN_DIR}
+    ./archiveLogs.sh obt-build timestamp=${OBT_TIMESTAMP}
     ExitEpilog "${OBT_BUILD_LOG_FILE}" "build.sh" "RTE clone failed ! Result is: ${cres}"
 else
     WriteLog "RTE clone success !" "${OBT_BUILD_LOG_FILE}"
@@ -204,6 +209,9 @@ if [[ 0 -ne  $? ]]
 then
     WriteLog "Submodule update failed ! Result is: ${subRes}" "${OBT_BUILD_LOG_FILE}"
 
+    cd ${OBT_BIN_DIR}
+    ./archiveLogs.sh obt-build timestamp=${OBT_TIMESTAMP}
+    
     ExitEpilog "${OBT_BUILD_LOG_FILE}" "build.sh" "Submodule update failed ! Result is: ${subRes}"
 
 else

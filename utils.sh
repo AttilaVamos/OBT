@@ -116,8 +116,9 @@ ExitEpilog()
     KillCheckDiskSpace "$1"
 
     sleep 10
-
-    ${OBT_BIN_DIR}/archiveLogs.sh obt-exit-cleanup timestamp=${OBT_TIMESTAMP}
+    
+    cd ${OBT_BIN_DIR}
+    ./archiveLogs.sh obt-exit-cleanup timestamp=${OBT_TIMESTAMP}
 
     myParent=$(ps -o comm=  $PPID)
     myTrace=$( local frame=0; while caller $frame; do ((frame++)); done )
