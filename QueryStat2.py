@@ -474,7 +474,9 @@ class WriteStatsToFile(object):
                 response_stream.close()
                 response_stream = None
             except Exception as ex:
-                 pass
+                state = "HTTP Error: "+ str(ex.reason)
+                print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+                pass
                  
             if self.dateTransform :
                 if self.timeStamp:
@@ -557,7 +559,7 @@ class WriteStatsToFile(object):
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
         except ZeroDivisionError as ex:
-            state = "ZeroDivisionErr "
+            state = "ZeroDivisionErr " + str(ex)
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
             
         except Exception as ex:
@@ -639,6 +641,7 @@ if __name__ == '__main__':
         wstf = WriteStatsToFile( options)
         wstf.run()
     except Exception as ex:
+        print("Exception: %s" % ( str(ex) ) )
         print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
         traceback.print_stack()
         
