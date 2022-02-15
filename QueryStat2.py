@@ -167,7 +167,9 @@ class WriteStatsToFile(object):
     
     #host = "http://10.241.40.12:8010/WsWorkunits/WUQuery.json?PageSize=1000&Sortby=Jobname"  # *-161128-*
     host = "10.241.40.8"
-    url = "http://" + host + ":8010/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
+    port = "8010"
+    #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
+    url = "http://" + host + ":" + port + "/WsWorkunits"
     def __init__(self, options):
         
         self.destPath = options.path
@@ -184,7 +186,9 @@ class WriteStatsToFile(object):
         #self.dateStr = options.dateStrings
         self.verbose = options.verbose
         self.host = options.host
-        self.url = "http://" + self.host + ":8010/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
+        self.port = options.port
+        #self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
+        self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits"
         
         if options.jobNameSuffix != "":
             if not options.jobNameSuffix.startswith('-'):
@@ -333,7 +337,8 @@ class WriteStatsToFile(object):
             # Old jobanem it contains only the ECL name, date and time
             # Check if there are any verson parameters and if yes add it/them into the jobname
             # wuQuery = self.host +'/WsWorkunits/WUInfo.json?Wuid='+wuid
-            wuQuery = "http://" + self.host + ":8010/WsWorkunits/WUInfo.json?Wuid="+wuid
+            #wuQuery = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUInfo.json?Wuid="+wuid
+            wuQuery = self.url +"/WUInfo.json?Wuid="+wuid
             resp = None
             try:
                 response_stream = urllib2.urlopen(wuQuery)
@@ -398,7 +403,8 @@ class WriteStatsToFile(object):
         
     def queryHpccVersion(self):
         # http://10.241.40.6:8010/WsWorkunits/WUCheckFeatures.json
-        url = 'http://' + self.host + ':8010/WsWorkunits/WUCheckFeatures.json'
+        #url = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUCheckFeatures.json"
+        url =  self.url + "/WUCheckFeatures.json"
         state = 'OK'
         try:
             response_stream = urllib2.urlopen(url)
@@ -436,7 +442,9 @@ class WriteStatsToFile(object):
             print("End.")
             
     def queryStats(self, cluster,  dateStr = ''):
-        url = self.url + "&Cluster=" + cluster
+        url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
+        if 'roxie' == cluster:
+            url += '*'
         today = datetime.today()
         if dateStr == '':
             dateStr = today.strftime("%y%m%d")
@@ -611,6 +619,9 @@ if __name__ == '__main__':
                         
     parser.add_option("-a","--allWorkunits",  dest="allWorkunits",  default=False, action="store_true", 
                         help="Query all workunits instead of the Performance test related set.",  metavar="ALLWORKUNITS")
+
+    parser.add_option("--port",  dest="port",  default="8010", type="string",
+                        help="Target port to query workunit results. Default is '8010'",  metavar="PORT")
                         
     (options, args) = parser.parse_args()
 
