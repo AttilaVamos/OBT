@@ -189,6 +189,8 @@ class WriteStatsToFile(object):
         self.port = options.port
         #self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
         self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits"
+        self.obtSystem = options.obtSystem
+        self.buildBranch = options.buildBranch
         
         if options.jobNameSuffix != "":
             if not options.jobNameSuffix.startswith('-'):
@@ -451,6 +453,11 @@ class WriteStatsToFile(object):
             
         self.resultConfigClass[cluster].set('Result',  'Date',  dateStr)
         self.resultConfigClass[cluster].set('Result',  'Time',  self.timeStampStr )
+        if self.obtSystem != None:
+            self.resultConfigClass[cluster].set('OBT', 'ObtSystem',  self.obtSystem)
+        
+        if self.buildBranch != None:
+            self.resultConfigClass[cluster].set('Build', 'BuildBranch', self.buildBranch)
         
         if self.jobNameSuffix != '':
             queryJobname = "*" + self.jobNameSuffix + "-*"
@@ -624,6 +631,12 @@ if __name__ == '__main__':
 
     parser.add_option("--port",  dest="port",  default="8010", type="string",
                         help="Target port to query workunit results. Default is '8010'",  metavar="PORT")
+                        
+    parser.add_option("--obtSystem",  dest="obtSystem",  default=None, type="string",
+                        help="OBT system identifier. Default is 'None'",  metavar="OBTSYSTEM")
+                        
+    parser.add_option("--buildBranch",  dest="buildBranch",  default=None, type="string",
+                        help="Platform source branch. Default is 'None'",  metavar="BUILDBRANCH")
                         
     (options, args) = parser.parse_args()
 
