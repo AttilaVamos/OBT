@@ -16,7 +16,7 @@ WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
 
 # Only for test upload
 #COVERITY_TEST_DAY=$WEEK_DAY
-COVERITY_BIN_DIR=~/cov-analysis-linux64-8.7.0/bin
+COVERITY_BIN_DIR=~/cov-analysis-linux64-2021.12.1/bin
 
 NEXT_TEST_DAY=$(date -d "next Sunday +$COVERITY_TEST_DAY days")
 NEXT_TEST_DAY_NAME=$(date -d "${NEXT_TEST_DAY}" '+%A')
