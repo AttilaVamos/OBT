@@ -427,28 +427,28 @@ then
     #BOOST_PKG="boost_1_71_0.tar.gz"
     BOOST_PKG=${BOOST_URL##*/}; 
 
-    WriteLog "Check if $BOOST_PKG cached" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Check if $BOOST_PKG cached" "${PERF_TEST_LOG}"
     if [[ ! -f $HOME/$BOOST_PKG ]]
     then
-        WriteLog "It is not, download it." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "It is not, download it." "${PERF_TEST_LOG}"
         BOOST_DOWNLOAD_TRY_COUNT=5
         BOOST_DOWNLOAD_TRY_DELAY=2m
 
         while [[ $BOOST_DOWNLOAD_TRY_COUNT -gt 0 ]]
         do 
-            WriteLog "Try count: $BOOST_DOWNLOAD_TRY_COUNT" "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Try count: $BOOST_DOWNLOAD_TRY_COUNT" "${PERF_TEST_LOG}"
             BOOST_DOWNLOAD_TRY_COUNT=$(( $BOOST_DOWNLOAD_TRY_COUNT - 1 ))
 
             download_res=$( wget -v  -O  $HOME/$BOOST_PKG  $BOOST_URL 2>&1 )
             retCode=$?
             if [[  $retCode -ne 0 ]]
             then 
-                WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${PERF_TEST_LOG}"
                 sleep ${BOOST_DOWNLOAD_TRY_DELAY}
                 [[ -f $HOME/$BOOST_PKG ]] && rm $HOME/$BOOST_PKG
             else
-                WriteLog "The $BOOST_PKG downloaded." "${OBT_BUILD_LOG_FILE}"
-                WriteLog "Ping: ${download_res}" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "The $BOOST_PKG downloaded." "${PERF_TEST_LOG}"
+                WriteLog "Ping: ${download_res}" "${PERF_TEST_LOG}"
 
                 DOWNL=$( echo "$download_res" | tail -nhead -n 2)
                 WriteLog "${DOWNL}" "${OBT_LOG_DIR}/$BOOST_PKG.download"
