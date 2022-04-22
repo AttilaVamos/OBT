@@ -1096,17 +1096,29 @@ sleep 10
 #
 # Remove old remote/WEB logs
 #
+if [[ $WEB_LOG_ARCHIEVE_DIR_EXPIRE -ge 45 ]]
+then
+    WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
 
-WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
+    OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d ) )
 
-OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d ) )
+    WriteLog "${#OLD_DIRS[@]} old directory found." "${OBT_LOG_FILE}"
 
-WriteLog "${#OLD_DIRS[@]} old directory found." "${OBT_LOG_FILE}"
+    res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print -exec rm -rfv '{}' \; 2>&1 )
+    #res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
 
-res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print -exec rm -rf '{}' \; 2>&1 )
-#res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
+    WriteLog "res:${res}" "${OBT_LOG_FILE}"
+    # send email to Agyi
+    (echo "On $OBT_DATESTAMP $OBT_TIMESTAMP in $OBT_SYSTEM (branch: $BRANCH_ID, WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE}) ${#OLD_DIRS[@]} old directory found."; echo "${res}") | mailx -s "OBT WEB archive clean up" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+    
+else
+    WriteLog "The ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} value is smaller than the expected. Skip remove archives from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
+    
+    # send email to Agyi
+    echo "On $OBT_DATESTAMP $OBT_TIMESTAMP the value of WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE} is smaller than the expected on $OBT_SYSTEM ($BRANCH_ID)" | mailx -s "OBT WEB_LOG_ARCHIEVE_DIR_EXPIRE problem" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+fi
 
-WriteLog "res:${res}" "${OBT_LOG_FILE}"
+WriteLog "\tdone." "${OBT_LOG_FILE}"
 
 #
 # Clean up in /tmp/ directory
