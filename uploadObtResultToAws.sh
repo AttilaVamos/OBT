@@ -3,13 +3,14 @@
 SSH_KEYFILE="~/hpcc_keypair.pem"
 SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=100 -oStrictHostKeyChecking=no"
 #SSH_TARGET="10.240.62.177"
-SSH_TARGET="10.240.62.57"
+#SSH_TARGET="10.240.62.57"  #OpenStack Region 5
+SSH_TARGET="10.224.20.54"   #OpenStack Region 8
 
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt centos@${SSH_TARGET}:/home/centos/${OBT_ID}/
 
 date >> ~/diskState.log
-df -h >> ~/diskState.log
+df -h | egrep 'Filesys|/dev/vd|common'  >> ~/diskState.log
 echo "==============================================" >> ~/diskState.log
 
 #rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem"  ~/diskState.log  centos@ec2-35-183-5-250.ca-central-1.compute.amazonaws.com:/home/ec2-user/OBT-010/.
