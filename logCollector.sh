@@ -10,8 +10,8 @@ fi
 
 SSH_KEYFILE="~/hpcc_keypair.pem"
 SSH_OPTIONS="-oConnectionAttempts=3 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
-SSH_TARGET="10.240.62.177"
-
+#SSH_TARGET="10.240.62.177"
+SSH_TARGET="10.224.20.54"   #OpenStack Region 8
 echo "Start $0"
 
 pushd $HOME
