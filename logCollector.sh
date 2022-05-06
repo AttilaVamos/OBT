@@ -20,7 +20,7 @@ echo "Start hthor log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | sort | zip -u HthorLogCollection -@ > HthorLogCollection.log &
 
 echo "Start thor log collection..."
-exec find ${STAGING_DIR_ROOT}-iname 'thor.*.log' -type f -print | sort | zip -u ThorLogCollection -@ > ThorLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | sort | zip -u ThorLogCollection -@ > ThorLogCollection.log &
 
 echo "Start roxie log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | sort | zip -u RoxieLogCollection -@  > RoxieLogCollection.log &
