@@ -170,6 +170,7 @@ class WriteStatsToFile(object):
     port = "8010"
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
+    compileTimeQuery="http://<ESP_IP>:8010/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=0&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     def __init__(self, options):
         
         self.destPath = options.path
@@ -191,6 +192,8 @@ class WriteStatsToFile(object):
         self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits"
         self.obtSystem = options.obtSystem
         self.buildBranch = options.buildBranch
+        #global compileTimeQuery
+        self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host)
         
         if options.jobNameSuffix != "":
             if not options.jobNameSuffix.startswith('-'):
@@ -443,6 +446,25 @@ class WriteStatsToFile(object):
                 exit()
             print("End.")
             
+    def queryCompileTime(self,  wuid):
+        def getTime(json_object, name):
+            return [obj for obj in json_object if obj['name']==name][0]['rawValue']
+            
+        url = self.compileTimeQuery.replace('<WUID>',  wuid)
+        t=0.0
+        try:
+                response_stream = urllib2.urlopen(url)
+                json_response = response_stream.read()
+                resp = json.loads(json_response)
+                response_stream.close()
+                response_stream = None
+                t = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][0]["Properties"]["Property"][0] ["RawValue"])
+        except Exception as ex:
+            print(ex)
+            pass
+        return (t / 1000000000.0)
+        
+        
     def queryStats(self, cluster,  dateStr = ''):
         url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
         if 'roxie' == cluster:
@@ -472,6 +494,7 @@ class WriteStatsToFile(object):
         state = 'OK'
         sum = 0
         count = 0
+        compSum = 0
         wuCount = 0
         try:
             try:
@@ -505,7 +528,7 @@ class WriteStatsToFile(object):
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
             
-            print("Number of workinits in result is: %d" % ( len(stats) ))
+            print("Number of workunits in result is: %d" % ( len(stats) ))
 
             statFile = open(statFileName,  "w")
             #                  self.allWorkunits
@@ -521,18 +544,23 @@ class WriteStatsToFile(object):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
                     if shortJobName.startswith('12ac_'):
                         pass
+                        
+                    compileTimeValue = self.queryCompileTime(stat['Wuid'])
                     
                     timeValue = self.convertTimeStringToSec(stat['TotalClusterTime'])
                     wuCount += 1
                     
                     if (oldShortJobName == shortJobName) or (oldShortJobName == ''):
                         sum += timeValue
+                        compSum += compileTimeValue
                         count += 1
                     else:
                         clusterTime = sum / count
-                        self.myPrint("\tJobname:" + oldJobName + ", TotalClusterTime:"+ str(clusterTime) + " (average of " + str(count) + ")")
-                        statFile.write( oldJobName + "," + str(clusterTime)+"\n")
+                        compileTime = compSum / count
+                        self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec (average of %d)" % (oldJobName,  clusterTime, compileTime,  count))
+                        statFile.write( "%s,%0.3f,%0.3f\n" % (oldJobName, clusterTime, compileTime))
                         sum = timeValue
+                        compSum = compileTimeValue
                         count = 1
                         
                     oldJobName = jobName
@@ -540,8 +568,9 @@ class WriteStatsToFile(object):
                     
             if count > 0:
                 clusterTime = sum / count
-                self.myPrint("\tJobname:" + oldJobName + ", TotalClusterTime:" + str(clusterTime) + " (average of " + str(count) + ")")
-                statFile.write( oldJobName + ","+str(clusterTime)+"\n")
+                compileTime = compSum / count
+                self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec (average of %d)" % (oldJobName,  clusterTime, compileTime,  count))
+                statFile.write( "%s,%0.3f,%0.3f\n" % (oldJobName, clusterTime, compileTime))
             else:
                 print("No matching workunit")
 
