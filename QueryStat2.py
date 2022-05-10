@@ -170,7 +170,7 @@ class WriteStatsToFile(object):
     port = "8010"
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
-    compileTimeQuery="http://<ESP_IP>:8010/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=0&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
+    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=0&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     def __init__(self, options):
         
         self.destPath = options.path
@@ -193,7 +193,7 @@ class WriteStatsToFile(object):
         self.obtSystem = options.obtSystem
         self.buildBranch = options.buildBranch
         #global compileTimeQuery
-        self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host)
+        self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host).replace('<ESP_PORT>',  self.port)
         
         if options.jobNameSuffix != "":
             if not options.jobNameSuffix.startswith('-'):
