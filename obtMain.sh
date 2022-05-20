@@ -1096,6 +1096,11 @@ sleep 10
 #
 # Remove old remote/WEB logs
 #
+
+WriteLog "Number of directories in ${STAGING_DIR_ROOT}:" "${OBT_LOG_FILE}"
+WriteLog "$(find ${STAGING_DIR_ROOT} -maxdepth 1 -type d | egrep 'candi|master' | while read p; do n=$( find $p -maxdepth 1 -type d | wc -l); echo "$p: $n"; done)"  "${OBT_LOG_FILE}"
+
+
 if [[ $WEB_LOG_ARCHIEVE_DIR_EXPIRE -ge 45 ]]
 then
     WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
