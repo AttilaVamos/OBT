@@ -1098,7 +1098,8 @@ sleep 10
 #
 
 WriteLog "Number of directories in ${STAGING_DIR_ROOT}:" "${OBT_LOG_FILE}"
-WriteLog "$(find ${STAGING_DIR_ROOT} -maxdepth 1 -type d | egrep 'candi|master' | while read p; do n=$( find $p -maxdepth 1 -type d | wc -l); echo "$p: $n"; done)"  "${OBT_LOG_FILE}"
+NEW_DIRS=$(find ${STAGING_DIR_ROOT} -maxdepth 1 -type d | egrep 'candi|master' | while read p; do n=$( find $p -maxdepth 1 -type d | wc -l); echo "$p: $n"; done)
+WriteLog "${NEW_DIRS}"  "${OBT_LOG_FILE}"
 
 
 if [[ $WEB_LOG_ARCHIEVE_DIR_EXPIRE -ge 45 ]]
@@ -1114,7 +1115,7 @@ then
 
     WriteLog "res:${res}" "${OBT_LOG_FILE}"
     # send email to Agyi
-    (echo "On $OBT_DATESTAMP $OBT_TIMESTAMP in $OBT_SYSTEM (branch: $BRANCH_ID, WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE}) ${#OLD_DIRS[@]} old directory found."; echo "${res}") | mailx -s "OBT WEB archive clean up" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+    (echo "On $OBT_DATESTAMP $OBT_TIMESTAMP in $OBT_SYSTEM (branch: $BRANCH_ID, WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE}) ${#OLD_DIRS[@]} old directory found."; echo "${res}; echo "Number of directories in ${STAGING_DIR_ROOT}:"; echo "${NEW_DIRS}" ) | mailx -s "OBT WEB archive clean up" -u $USER  ${ADMIN_EMAIL_ADDRESS}
     
 else
     WriteLog "The ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} value is smaller than the expected. Skip remove archives from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
