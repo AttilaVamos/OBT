@@ -199,8 +199,8 @@ SubmoduleUpdate()
     fi
 
 
-    tryCount=10
-    tryDelay=2m
+    tryCount=20
+    tryDelay=3m
 
     export GIT_CURL_VERBOSE=1
     export GIT_CURL_RETRY=10
@@ -223,7 +223,11 @@ SubmoduleUpdate()
         
         while read line
            do
-               WriteLog "${line}" "${SUBMODULE_LOG_FILE}" > /dev/null
+               WriteLog "${line}" "${SUBMODULE_LOG_FILE}" # >> "${SUBMODULE_LOG_FILE}"
+               if [ $err -ne  $NO_ERROR ] 
+               then
+                    continue
+                fi
 
                res=$( echo "${line}" | egrep -i '^fatal' | egrep -c -i 'Needed a single revision' )
                if [ $res -ne 0 ]
@@ -262,7 +266,7 @@ SubmoduleUpdate()
                                       while read module
                                       do
                                           WriteLog "module: ${module}" "${SUBMODULE_LOG_FILE}"
-                                          cleanUpCmd='rm -rf "'$module'"'
+                                          cleanUpCmd="rm -rfv ${module}"
                                           WriteLog "cmd: ${cleanUpCmd}" "${SUBMODULE_LOG_FILE}"
                                           ${cleanUpCmd} >> ${SUBMODULE_LOG_FILE} 2>&1
                                           WriteLog "retcode:$?" "${SUBMODULE_LOG_FILE}"
@@ -273,7 +277,7 @@ SubmoduleUpdate()
                                       while read submodule
                                       do
                                           WriteLog "submodule: ${submodule}" "${SUBMODULE_LOG_FILE}"
-                                          cleanUpCmd2='rm -rf "'${submodule}'"'
+                                          cleanUpCmd2="rm -rfv ${submodule}"
                                           WriteLog "cmd: ${cleanUpCmd2}" "${SUBMODULE_LOG_FILE}"
                                           ${cleanUpCmd2} >> ${SUBMODULE_LOG_FILE} 2>&1
                                           WriteLog "retcode:$?" "${SUBMODULE_LOG_FILE}"
