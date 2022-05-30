@@ -84,25 +84,33 @@ KillCheckDiskSpace()
 
 StopHpcc()
 {
-    hpccRunning=$( ${HPCC_SERVICE} stop  | wc -l )
+    hpccComponenets=$( ${HPCC_SERVICE} status  )
+    WriteLog "Current status:\n${hpccComponenets}" "$1"
+    
+    WriteLog "Stop HPCCSystems" "$1"
+    hpccRunning=$( ${HPCC_SERVICE} stop  | egrep 'still' | wc -l )
     WriteLog "${hpccRunning} running component(s)" "$1"
     
     if [[ $hpccRunning -ne 0 ]]
     then
-        res=$( ${HPCC_SERVICE} stop | grep 'still' )
+        dafilesrv=$( ${DAFILESRV_STOP} 2>&1 )
+        WriteLog "result:${dafilesrv}" "$1"
+    
+        res=$( ${HPCC_SERVICE} status | grep 'still' )
 
         # If the result is "Service dafilesrv, mydafilesrv is still running."
         if [[ -n $res ]]
         then
             WriteLog "result:${res}" "$1"
-            dafilesrv=$( ${DAFILESRV_STOP} 2>&1 )
-            WriteLog "result:${dafilesrv}" "$1"
         else
             WriteLog "HPCC System stopped." "$1"
         fi
     else
-        WriteLog "HPCC System already stopped." "$1"
+        WriteLog "HPCC System stopped." "$1"
     fi
+    
+    hpccComponenets=$( ${HPCC_SERVICE} status  )
+    WriteLog "Current status:\n${hpccComponenets}" "$1"
 }
 
 
