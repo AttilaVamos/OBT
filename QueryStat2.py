@@ -220,7 +220,7 @@ class WriteStatsToFile(object):
                 # 'yymmdd' form
                 self.newDate = newDate
             elif dlen == 8:
-                # 'yyymmdd' form
+                # 'yyyymmdd' form
                 self.newDate = newDate[2:]
             else:
                 # Invalid date, date transform not allowed
@@ -462,7 +462,7 @@ class WriteStatsToFile(object):
         except Exception as ex:
             print(ex)
             pass
-        return (t / 1000000000.0)
+        return (t / 1000000000.0) # Convert ns to sec
         
         
     def queryStats(self, cluster,  dateStr = ''):
