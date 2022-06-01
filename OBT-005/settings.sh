@@ -588,7 +588,7 @@ PERF_KEEP_HPCC_ALIVE=1
 # Use complete-uninstall.sh to wipe HPCC
 # 0 - HPCC doesn't wipe off
 # 1 - HPCC does wipe off
-PERF_WIPE_OFF_HPCC=0
+PERF_WIPE_OFF_HPCC=1
 
 
 PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
