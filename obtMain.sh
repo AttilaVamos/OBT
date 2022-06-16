@@ -1106,11 +1106,12 @@ if [[ $WEB_LOG_ARCHIEVE_DIR_EXPIRE -ge 45 ]]
 then
     WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
 
-    OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d ) )
+    OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d ) )
 
     WriteLog "${#OLD_DIRS[@]} old directory found." "${OBT_LOG_FILE}"
-
-    res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print -exec rm -rfv '{}' \; 2>&1 )
+    
+    #TO-DO  Something wrong with this command. It removed all directory in ${STAGING_DIR_ROOT} (not only the oldest one)
+    res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d -print -exec rm -rf '{}' \; 2>&1 )
     #res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
 
     WriteLog "res:${res}" "${OBT_LOG_FILE}"
