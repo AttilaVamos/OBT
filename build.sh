@@ -195,6 +195,13 @@ echo ""  >> ${GIT_2DAYS_LOG}
 cat ${BUILD_DIR}/bin/gitlog.sh >> ${GIT_2DAYS_LOG}
 ${BUILD_DIR}/bin/gitlog.sh >> ${GIT_2DAYS_LOG}
 
+if [[ -v IF_COMMIT_IN ]] 
+then
+    # Oppurtunity to skip build and test an old, branch if there is no commit in the last IF_COMMIT_IN   days
+    numberOfCommitsInLastNDays=$( git log --pretty=format:"%h%x09%an%x09%ad%x09%s" --since="${IF_COMMIT_IN} day" | wc -l )
+    WriteLog "Number of commits in last ${IF_COMMIT_IN} days ${numberOfCommitsInLastNDays}" "${OBT_BUILD_LOG_FILE}"
+    WriteLOG "We can skip to test this branch if the number of commits is 0 and we want to do that." "${OBT_BUILD_LOG_FILE}"
+fi
 #
 #----------------------------------------------------
 #

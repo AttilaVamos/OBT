@@ -89,6 +89,7 @@ echo "Start $0."
 
 CheckIfNoSessionIsRunning
 
+DRY_RUN=0
 
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
@@ -165,7 +166,12 @@ else
         cat ${targetFile}
         echo "----------------------------------------------------"
 
-        RunObt
+        if [[ $DRY_RUN -eq 0 ]]
+        then
+            RunObt
+        else
+            break
+        fi
         
         echo ""
         echo "=================================================================="
