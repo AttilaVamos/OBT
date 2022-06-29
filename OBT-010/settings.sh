@@ -24,6 +24,7 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 #
 
 BRANCH_ID=master
+DAYS_FOR_CHECK_COMMITS=2
 
 if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
@@ -45,7 +46,7 @@ else
     BRANCHES_TO_TEST=( 'candidate-8.2.x' 'candidate-8.4.x' 'candidate-8.6.x' 'candidate-8.8.x'  'master' )
 
     # For versioning
-    RUN_1=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_1=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4" "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}") 
     RUN_2=("BRANCH_ID=candidate-8.4.x")
     RUN_3=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_4=("BRANCH_ID=candidate-8.6.x")
