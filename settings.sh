@@ -194,6 +194,7 @@ OBT_BIN_DIR=${BUILD_DIR}/bin
 BUILD_HOME=${BUILD_DIR}/${RELEASE_TYPE}/build
 SOURCE_HOME=${BUILD_DIR}/${RELEASE_TYPE}/HPCC-Platform
 REGRESSION_TEST_ENGINE_HOME=$OBT_BIN_DIR/rte
+REGRESSION_TEST_ENGINE_HOME=~/RTE
 
 GIT_2DAYS_LOG=${OBT_LOG_DIR}/git_2days.log
 GLOBAL_EXCLUSION_LOG=${OBT_LOG_DIR}/GlobalExclusion.log
@@ -637,7 +638,7 @@ ML_KEEP_HPCC=1
 # Use complete-uninstall.sh to wipe HPCC
 # 0 - HPCC doesn't wipe off
 # 1 - HPCC does wipe off
-ML_WIPE_OFF_HPCC=1
+ML_WIPE_OFF_HPCC=0
 
 
 # Enable rebuild HPCC before execute Machine Lerning Suite
@@ -652,7 +653,9 @@ if [[ $NUMBER_OF_CPUS -ge 20 ]]
 then
     ML_THOR_NUMBER_OF_SLAVES=8
 else
-    ML_THOR_NUMBER_OF_SLAVES=$(( $NUMBER_OF_CPUS - 2 ))
+    #ML_THOR_NUMBER_OF_SLAVES=$(( $NUMBER_OF_CPUS - 2 ))
+    # Half of the cores, but should be even number
+    ML_THOR_NUMBER_OF_SLAVES=$(( ( $NUMBER_OF_CPUS - 1) / 2 + ( $NUMBER_OF_CPUS - 1 ) % 2 ))
 fi
 
 # Control to Regression Engine
@@ -661,7 +664,7 @@ fi
 EXECUTE_ML_SUITE=1
 
 # timeout in seconds (>0) in Regression Engine
-ML_TIMEOUT=360
+ML_TIMEOUT=3600
 ML_PARALLEL_QUERIES=1
 
 #
