@@ -1101,17 +1101,18 @@ WriteLog "Number of directories in ${STAGING_DIR_ROOT}:" "${OBT_LOG_FILE}"
 NEW_DIRS=$(find ${STAGING_DIR_ROOT} -maxdepth 1 -type d | egrep 'candi|master' | while read p; do n=$( find $p -maxdepth 1 -type d | wc -l); echo "$p: $n"; done)
 WriteLog "${NEW_DIRS}"  "${OBT_LOG_FILE}"
 
+OLD_DIRS_COUNT=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d  | wc -l) )
 
-if [[ $WEB_LOG_ARCHIEVE_DIR_EXPIRE -ge 45 ]]
+if [[  $OLD_DIRS_COUNT -ge 1 ]]
 then
     WriteLog "Remove all log archive directory older than ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} days from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
-
     OLD_DIRS=( $( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d ) )
 
-    WriteLog "${#OLD_DIRS[@]} old directory found." "${OBT_LOG_FILE}"
+    WriteLog "${#OLD_DIRS[@]} old directory found and to be removed." "${OBT_LOG_FILE}"
+    WriteLog "${OLD_DIRS[@]}" "${OBT_LOG_FILE}"
     
     #TO-DO  Something wrong with this command. It removed all directory in ${STAGING_DIR_ROOT} (not only the oldest one)
-    res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d -print -exec rm -rf '{}' \; 2>&1 )
+    #res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d -print -exec rm -rf '{}' \; 2>&1 )
     #res=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -type d -print 2>&1 )
 
     WriteLog "res:${res}" "${OBT_LOG_FILE}"
