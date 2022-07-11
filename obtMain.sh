@@ -776,22 +776,23 @@ then
     fi
 
     cd ${OBT_BIN_DIR}
-    ./mltest.sh
+    #./mltest.sh
+    ./bundleTest.sh
     
 
     cd ${OBT_BIN_DIR}
 
-    if [ ! -e ${TARGET_DIR}/test ]
+    if [ ! -e ${TARGET_DIR}/test/ML ]
     then
-        WriteLog "Create ${TARGET_DIR}/test directory..." "${OBT_LOG_FILE}"
-        mkdir -p ${TARGET_DIR}/test
+        WriteLog "Create ${TARGET_DIR}/test/ML directory..." "${OBT_LOG_FILE}"
+        mkdir -p ${TARGET_DIR}/test/ML
     fi
 
     # Copy test summary to Wiki
     WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
 
     WriteLog "  ${LOG_DIR}/${TARGET_PLATFORM}*.log" "${OBT_LOG_FILE}"
-    cp ${LOG_DIR}/${TARGET_PLATFORM}*.log ${TARGET_DIR}/test/mltests.log
+    cp ${LOG_DIR}/${TARGET_PLATFORM}*.log ${TARGET_DIR}/test/ML/*
 
     WriteLog "  mltests.summary" "${OBT_LOG_FILE}"
     cp mltests.summary ${TARGET_DIR}/test/mltests.summary
@@ -1101,7 +1102,7 @@ WriteLog "Number of directories in ${STAGING_DIR_ROOT}:" "${OBT_LOG_FILE}"
 NEW_DIRS=$(find ${STAGING_DIR_ROOT} -maxdepth 1 -type d | egrep 'candi|master' | while read p; do n=$( find $p -maxdepth 1 -type d | wc -l); echo "$p: $n"; done)
 WriteLog "${NEW_DIRS}"  "${OBT_LOG_FILE}"
 
-OLD_DIRS_COUNT=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d  | wc -l) )
+OLD_DIRS_COUNT=$( find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +${WEB_LOG_ARCHIEVE_DIR_EXPIRE} -iname '*20??*' -type d  | wc -l) 
 
 if [[  $OLD_DIRS_COUNT -ge 1 ]]
 then

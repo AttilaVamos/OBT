@@ -42,7 +42,7 @@ TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
 
-BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" )
+BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" )
 
 ML_CORE_VERSION="V3_0"
 ML_PBLAS_VERSION="V3_0"
@@ -78,7 +78,9 @@ fi
 
 ProcessLog()
 { 
-    logfilename=$( ls -clr ${TEST_LOG_DIR}/$1.*.log | head -1 | awk '{ print $9 }' )
+    BUNDLE=$1
+    TARGET=$2
+    logfilename=$( ls -clr ${TEST_LOG_DIR}/$TARGET.*.log | head -1 | awk '{ print $9 }' )
     WriteLog "ML test result log filename: ${logfilename}" "${ML_TEST_LOG}"
     total=$(cat ${logfilename} | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
     passed=$(cat ${logfilename} | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
@@ -86,7 +88,7 @@ ProcessLog()
     elapsed=$(cat ${logfilename} | sed -n "s/^Elapsed time: \(.*\)$/\1/p")
 
     WriteLog "TestResult:Total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" "${ML_TEST_LOG}"
-    echo "TestResult:mltests:total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" > ${ML_TEST_SUMMARY}
+    echo "TestResult:$BUNDLE:total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" >> ${ML_TEST_SUMMARY}
 
 }
 
@@ -485,8 +487,17 @@ then
     if [ ${EXECUTE_ML_SUITE} -ne 0 ]
     then
         while read bundle
-        do 
-            WriteLog "Bundle with Regression Test: $bundle" "${ML_TEST_LOG}"
+        do
+            bundleName=$(basename ${bundle%/ecl} )
+            
+            # Until it is fully implemented, skip the log running LearningTrees bundle test
+            if [[ "$bundle" =~ "LearningTrees" ]]
+            then
+                WriteLog "Bundle with Regression Test: $bundleName is skipped." "${ML_TEST_LOG}"
+                continue
+            fi
+            
+            WriteLog "Bundle with Regression Test: $bundleName" "${ML_TEST_LOG}"
             pushd $bundle
             cd ..
         
@@ -502,7 +513,7 @@ then
                 WriteLog "Machine Learning $bundle tests on ${TARGET_PLATFORM} returns with ${retCode}" "${ML_TEST_LOG}"
                 #exit -1
             else 
-                ProcessLog "${TARGET_PLATFORM}"
+                ProcessLog "$bundleName" "${TARGET_PLATFORM}"
             fi
            
             popd
