@@ -491,7 +491,7 @@ then
             bundleName=$(basename ${bundle%/ecl} )
             
             # Until it is fully implemented, skip the log running LearningTrees bundle test
-            if [[ "$bundle" =~ "LearningTrees" ]]
+            if [[ "$bundle" =~ "LearningTreess" ]]
             then
                 WriteLog "Bundle with Regression Test: $bundleName is skipped." "${ML_TEST_LOG}"
                 continue
