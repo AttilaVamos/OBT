@@ -518,7 +518,7 @@ then
            
             popd
             
-        done< <(find . -iname 'ecl' -type d)
+        done< <(find . -iname 'ecl' -type d | sort )
     else
                 WriteLog "Skip Machine Learning test suite execution!" "${ML_TEST_LOG}"
                 WriteLog "                                      " "${ML_TEST_LOG}"        

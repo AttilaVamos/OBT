@@ -1121,10 +1121,10 @@ then
     (echo "On $OBT_DATESTAMP $OBT_TIMESTAMP in $OBT_SYSTEM (branch: $BRANCH_ID, WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE}) ${#OLD_DIRS[@]} old directory found."; echo "${res}"; echo "Number of directories in ${STAGING_DIR_ROOT}:"; echo "${NEW_DIRS}" ) | mailx -s "OBT WEB archive clean up" -u $USER  ${ADMIN_EMAIL_ADDRESS}
     
 else
-    WriteLog "The ${WEB_LOG_ARCHIEVE_DIR_EXPIRE} value is smaller than the expected. Skip remove archives from ${STAGING_DIR_ROOT}." "${OBT_LOG_FILE}"
+    WriteLog "There is no old directory in ${STAGING_DIR_ROOT} area." "${OBT_LOG_FILE}"
     
     # send email to Agyi
-    echo "On $OBT_DATESTAMP $OBT_TIMESTAMP the value of WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE} is smaller than the expected on $OBT_SYSTEM ($BRANCH_ID)" | mailx -s "OBT WEB_LOG_ARCHIEVE_DIR_EXPIRE problem" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+    #echo "On $OBT_DATESTAMP $OBT_TIMESTAMP the value of WEB_LOG_ARCHIEVE_DIR_EXPIRE is:${WEB_LOG_ARCHIEVE_DIR_EXPIRE} is smaller than the expected on $OBT_SYSTEM ($BRANCH_ID)" | mailx -s "OBT WEB_LOG_ARCHIEVE_DIR_EXPIRE problem" -u $USER  ${ADMIN_EMAIL_ADDRESS}
 fi
 
 WriteLog "\tdone." "${OBT_LOG_FILE}"
