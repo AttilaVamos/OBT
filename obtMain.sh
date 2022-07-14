@@ -782,24 +782,24 @@ then
 
     cd ${OBT_BIN_DIR}
 
-    if [ ! -e ${TARGET_DIR}/test/ML ]
-    then
-        WriteLog "Create ${TARGET_DIR}/test/ML directory..." "${OBT_LOG_FILE}"
-        mkdir -p ${TARGET_DIR}/test/ML
-    fi
+#    if [ ! -e ${TARGET_DIR}/test/ML ]
+#    then
+#        WriteLog "Create ${TARGET_DIR}/test/ML directory..." "${OBT_LOG_FILE}"
+#        mkdir -p ${TARGET_DIR}/test/ML
+#    fi
 
-    # Copy test summary to Wiki
-    WriteLog "Copy ML test result files from ${LOG_DIR} to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
-
-    WriteLog "--->${LOG_DIR}/ml-....log" "${OBT_LOG_FILE}"
-    WriteLog "--->$(ls -l ${LOG_DIR}/ )" "${OBT_LOG_FILE}"
-    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
-    WriteLog "---->res:${res}" "${OBT_LOG_FILE}"
-
-    WriteLog "--_>mltests.summary" "${OBT_LOG_FILE}"
-    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
-    WriteLog "---->res:${res}" "${OBT_LOG_FILE}"
-    
+#    # Copy test summary to Wiki
+#    WriteLog "Copy ML test result files from ${LOG_DIR} to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
+#
+#    WriteLog "--->${LOG_DIR}/ml-....log" "${OBT_LOG_FILE}"
+#    WriteLog "--->$(ls -l ${LOG_DIR}/ )" "${OBT_LOG_FILE}"
+#    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
+#    WriteLog "---->res:${res}" "${OBT_LOG_FILE}"
+#
+#    WriteLog "--_>mltests.summary" "${OBT_LOG_FILE}"
+#    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
+#    WriteLog "---->res:${res}" "${OBT_LOG_FILE}"
+#    
     # To-DO Should check it there is any ZAP file
     #WriteLog "  ZAP file(s)" "${OBT_LOG_FILE}"
     #cp ${ZAP_DIR}/* ${TARGET_DIR}/test/ZAP/

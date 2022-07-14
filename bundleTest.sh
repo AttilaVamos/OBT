@@ -576,14 +576,16 @@ then
     # Copy test summary to Wiki
     WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${ML_TEST_LOG}"
 
-    WriteLog "  ${LOG_DIR}/${TARGET_PLATFORM}*.log" "${ML_TEST_LOG}"
-    cp ${LOG_DIR}/${TARGET_PLATFORM}*.log ${TARGET_DIR}/test/mltests.log
+    WriteLog "--->${LOG_DIR}/ml-*.log" "${ML_TEST_LOG}"
+    WriteLog "--->$(ls -l ${LOG_DIR}/ )" "${ML_TEST_LOG}"
+    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
+    WriteLog "---->res:${res}" "${ML_TEST_LOG}"
 
-    WriteLog "  mltests.summary" "${ML_TEST_LOG}"
-    cp mltests.summary ${TARGET_DIR}/test/mltests.summary
-
-    WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
+    WriteLog "--_>mltests.summary" "${ML_TEST_LOG}"
+    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
+    WriteLog "---->res:${res}" "${ML_TEST_LOG}"
     
+    WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
     ./archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
     
     popd
