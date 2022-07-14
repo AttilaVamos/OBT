@@ -791,13 +791,13 @@ then
     # Copy test summary to Wiki
     WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
 
-    WriteLog "  ${LOG_DIR}/${TARGET_PLATFORM}*.log" "${OBT_LOG_FILE}"
-    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/ )
-    WriteLog "  ${res}" "${OBT_LOG_FILE}"
+    WriteLog "  ${LOG_DIR}/ml-*.log" "${OBT_LOG_FILE}"
+    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
+    WriteLog "  res:${res}" "${OBT_LOG_FILE}"
 
     WriteLog "  mltests.summary" "${OBT_LOG_FILE}"
-    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary)
-    WriteLog "  ${res}" "${OBT_LOG_FILE}"
+    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
+    WriteLog "  res:${res}" "${OBT_LOG_FILE}"
     
     # To-DO Should check it there is any ZAP file
     #WriteLog "  ZAP file(s)" "${OBT_LOG_FILE}"
