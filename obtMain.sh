@@ -789,7 +789,7 @@ then
     fi
 
     # Copy test summary to Wiki
-    WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
+    WriteLog "Copy ML test result files from ${LOG_DIR} to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
 
     WriteLog "  ${LOG_DIR}/ml-*.log" "${OBT_LOG_FILE}"
     res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
