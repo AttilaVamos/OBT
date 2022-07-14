@@ -792,11 +792,13 @@ then
     WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
 
     WriteLog "  ${LOG_DIR}/${TARGET_PLATFORM}*.log" "${OBT_LOG_FILE}"
-    cp ${LOG_DIR}/${TARGET_PLATFORM}*.log ${TARGET_DIR}/test/ML/*
+    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/ )
+    WriteLog "  ${res}" "${OBT_LOG_FILE}"
 
     WriteLog "  mltests.summary" "${OBT_LOG_FILE}"
-    cp mltests.summary ${TARGET_DIR}/test/mltests.summary
-
+    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary)
+    WriteLog "  ${res}" "${OBT_LOG_FILE}"
+    
     # To-DO Should check it there is any ZAP file
     #WriteLog "  ZAP file(s)" "${OBT_LOG_FILE}"
     #cp ${ZAP_DIR}/* ${TARGET_DIR}/test/ZAP/

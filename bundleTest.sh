@@ -89,6 +89,12 @@ ProcessLog()
 
     WriteLog "TestResult:Total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" "${ML_TEST_LOG}"
     echo "TestResult:$BUNDLE:total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" >> ${ML_TEST_SUMMARY}
+    
+    # Rename result log file to name of the bundle
+    logname=$(basename $logfilename)
+    bundlelogfilename=${logname//$TARGET/$BUNDLE}
+    printf "%s, %s\n" "$logname" "$bundlelogfilename"
+    mv -v $logfilename ${TEST_LOG_DIR}/ml-$bundlelogfilename
 
 }
 
@@ -411,7 +417,7 @@ then
     #
     # Get test from github
     #
-    WriteLog "Get the latest ML core and PBblas" "${ML_TEST_LOG}"
+    WriteLog "Get the latest ML bundles" "${ML_TEST_LOG}"
     
     cd  ${PERF_TEST_ROOT}
     myPwd=$( pwd )

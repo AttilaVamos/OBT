@@ -43,6 +43,8 @@ class BuildNotificationConfig( object ):
         self._buildDate = options.dateString 
         self.config = ConfigParser.ConfigParser()
         self._buildTime = options.timeString
+        global debug
+        debug = options.debug
 
         self.today = datetime.today()
         if not self.buildDate:
@@ -812,6 +814,13 @@ class BuildNotification( object ):
                     
                 elif task.name in ['Build']:
                     result = task.result
+                elif task.name in ['MLtests']:
+                    logFileName = task.logFileFileSystem.replace('mltests.summary', 'ml-') 
+                    files = glob.glob(logFileName+'*.log')
+                    if files:
+                        for f in sorted(files):
+                            self.logFiles.append(f)
+
                 else:
                     result = "<span style=\"color:red\">" + task.result + "</span>" 
                     self.logFiles.append(task.logFileFileSystem)
@@ -938,7 +947,15 @@ class BuildNotification( object ):
                 for st in subTasks:
                     subTask = TestTask( st, self.config )
                     self.msgHTML += "<a href=\"" + subTask.logFileURL + "\" target=\"_blank\">" + subTask.logFileName + "</a><br/>"
-                 
+            elif( task.name == "MLtests" ):
+                logFileName = task.logFileFileSystem.replace('mltests.summary', 'ml-') 
+                files = glob.glob(logFileName+'*.log')
+                if files:
+                    for f in sorted(files):
+                        basename = os.path.basename(f)
+                        subTaskName = basename.split('.')[0]
+                        subTask = TestTask(subTaskName, self.config )
+                        self.msgHTML += "<a href=\"" + subTask.logFileURL + basename + "\" target=\"_blank\">" + basename.replace('ml-','') + "</a><br/>"
             else:
                 self.msgHTML += "<a href=\"" + task.logFileURL + "\" target=\"_blank\">" + task.logFileName + "</a>"
             self.msgHTML += "</TD>\n"
@@ -1090,6 +1107,10 @@ if __name__ == "__main__":
     parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", 
                       help="Show more info. Default is False"
                       , metavar="VERBOSE")
+                    
+    parser.add_option("--debug", dest="debug", default=False, action="store_true", 
+                      help="Show debug info. Default is False"
+                      , metavar="DEBUG")
 
     (options, args) = parser.parse_args()
     
