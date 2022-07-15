@@ -42,7 +42,7 @@ TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
 
-BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" )
+BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" )
 
 ML_CORE_VERSION="V3_0"
 ML_PBLAS_VERSION="V3_0"
@@ -466,6 +466,8 @@ then
                 break
             fi
         done
+        
+        WriteLog ".............................." "${ML_TEST_LOG}"
 
     done
     
@@ -477,6 +479,8 @@ then
 
     cd  ${ML_TEST_HOME}
 
+#    echo "Copy new tests over...."
+#    read
     myPwd=$( pwd )
     #
     #---------------------------
@@ -494,7 +498,9 @@ then
     then
         while read bundle
         do
-            bundleName=$(basename ${bundle%/ecl} )
+            bundleRunPath=${bundle%/ecl}
+            bundlePath=${bundleRunPath%/OBTTests}; 
+            bundleName=$(basename $bundlePath )
             
             # Until it is fully implemented, skip the log running LearningTrees bundle test
             if [[ "$bundle" =~ "LearningTreess" ]]
@@ -504,8 +510,7 @@ then
             fi
             
             WriteLog "Bundle with Regression Test: $bundleName" "${ML_TEST_LOG}"
-            pushd $bundle
-            cd ..
+            pushd $bundleRunPath
         
             WriteLog "CMD: '${CMD}'" "${ML_TEST_LOG}"
         
@@ -523,6 +528,8 @@ then
             fi
            
             popd
+            
+            WriteLog ".............................." "${ML_TEST_LOG}"
             
         done< <(find . -iname 'ecl' -type d | sort )
     else
@@ -576,8 +583,9 @@ then
     # Copy test summary to Wiki
     WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${ML_TEST_LOG}"
 
-    WriteLog "--->${LOG_DIR}/ml-*.log" "${ML_TEST_LOG}"
-    WriteLog "--->$(ls -l ${LOG_DIR}/ )" "${ML_TEST_LOG}"
+    WriteLog "--->'${LOG_DIR}/ml-*.log'" "${ML_TEST_LOG}"
+    WriteLog "--->$(ls -l ${LOG_DIR}/ml-* )" "${ML_TEST_LOG}"
+    [ !  -d ${TARGET_DIR}/test/ ] && mkdir -p ${TARGET_DIR}/test
     res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
     WriteLog "---->res:${res}" "${ML_TEST_LOG}"
 
