@@ -270,7 +270,7 @@ BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 LOG_ARCHIEVE_DIR_EXPIRE=30 # days
 
 # Remote, WEB log archive
-WEB_LOG_ARCHIEVE_DIR_EXPIRE=33 # days
+WEB_LOG_ARCHIEVE_DIR_EXPIRE=45 # days
 
 
 #
