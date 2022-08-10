@@ -255,14 +255,14 @@ then
     cp ${OBT_BIN_DIR}/jcomp.cpp $SOURCE_HOME/system/jlib/
 fi
 
-if [ -f CMakeLists.py3embed ]
+if [ -f ${OBT_BIN_DIR}/CMakeLists.py3embed ]
 then
-    WriteLog"Replace py3embed CMakeLists.txt with a hacked one" "${OBT_BUILD_LOG_FILE}"
-    res=$( cp -v CMakeLists.py3embed $SOURCE_HOME/plugins/py3embed/CMakeLists.txt 2>&1 )
+    WriteLog "Replace py3embed CMakeLists.txt with a hacked one" "${OBT_BUILD_LOG_FILE}"
+    res=$( cp -v ${OBT_BIN_DIR}/CMakeLists.py3embed $SOURCE_HOME/plugins/py3embed/CMakeLists.txt 2>&1 )
     WriteLog "res:${res}" "${OBT_BUILD_LOG_FILE}"
     WriteLog "$(egrep 'Python3 '  $SOURCE_HOME/plugins/py3embed/CMakeLists.txt)" "${OBT_BUILD_LOG_FILE}"
 else
-    WriteLog"Keep the original py3embed CMakeLists.txt" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Keep the original py3embed CMakeLists.txt" "${OBT_BUILD_LOG_FILE}"
 fi
 #
 #----------------------------------------------------
