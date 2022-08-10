@@ -172,11 +172,11 @@ export PATH=$PATH:/usr/local/bin:/bin:/usr/local/sbin:/sbin:/usr/sbin:/mnt/disk1
 WriteLog "path:'${PATH}'" "${OBT_LOG_FILE}"
 
 WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${OBT_LOG_FILE}"
-
-
-WriteLog "GCC: ${IS_GCC_4_8_2}" "${OBT_LOG_FILE}"
-
-WriteLog "CMake: $( /usr/local/bin/cmake --version )" "${OBT_LOG_FILE}"
+WriteLog "GCC: $(gcc --version | head -n 1" "${OBT_LOG_FILE}"
+WriteLog "CMake: $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
+WriteLog "Python: $(python --version )" "${OBT_LOG_FILE}"
+WriteLog "Python2: $(python2 --version )" "${OBT_LOG_FILE}"
+WriteLog "Python3: $(python3 --version )" "${OBT_LOG_FILE}"
 
 STARTUP_MSG=""
 

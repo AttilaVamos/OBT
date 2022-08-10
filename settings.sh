@@ -37,30 +37,33 @@ then
     RUN_3=("BRANCH_ID=candidate-7.8.x")
 
     RUN_ARRAY=(
-        RUN_1[@]
-        RUN_2[@]
-        RUN_3[@]
+      RUN_1[@]
+      RUN_2[@]
+      RUN_3[@]
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-8.0.x' 'candidate-8.2.x' 'candidate-8.4.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.2.x' 'candidate-8.4.x' 'candidate-8.6.x' 'candidate-8.8.x'  'master' )
 
     # For versioning
-    RUN_1=("BRANCH_ID=candidate-8.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4" "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}")
-    RUN_2=("BRANCH_ID=candidate-8.2.x")
-    RUN_3=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_4=("BRANCH_ID=candidate-8.4.x")
-    RUN_5=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_6=("BRANCH_ID=master")
-    
+    RUN_1=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4" "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}") 
+    RUN_2=("BRANCH_ID=candidate-8.4.x")
+    RUN_3=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_4=("BRANCH_ID=candidate-8.6.x")
+    RUN_5=("BRANCH_ID=candidate-8.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_6=("BRANCH_ID=candidate-8.8.x")
+    RUN_7=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")    
+    RUN_8=("BRANCH_ID=master")
 
     RUN_ARRAY=(
-        RUN_1[@]
-        RUN_2[@]
-        RUN_3[@]
-        RUN_4[@]
-        RUN_5[@]
+        RUN_8[@]
+        RUN_7[@]
         RUN_6[@]
+        RUN_5[@]
+        RUN_4[@]
+        RUN_3[@]
+        RUN_2[@]
+        RUN_1[@]
     )
 fi
 #
@@ -210,7 +213,8 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-DEBUG_BUILD_DAY=6
+#actually we have other system (OBT-007) for continuous debug build, so it is not necessary now
+DEBUG_BUILD_DAY=8   # Invalid day number to avoid Debug build
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")
@@ -267,7 +271,7 @@ BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 LOG_ARCHIEVE_DIR_EXPIRE=30 # days
 
 # Remote, WEB log archive
-WEB_LOG_ARCHIEVE_DIR_EXPIRE=60 # days
+WEB_LOG_ARCHIEVE_DIR_EXPIRE=45 # days
 
 
 #
@@ -381,12 +385,12 @@ REGRESSION_THOR_LOCAL_THOR_PORT_INC=20
 
 [[ $REGRESSION_NUMBER_OF_THOR_CHANNELS -ne 1 ]] && REGRESSION_THOR_LOCAL_THOR_PORT_INC=20 
 
-REGRESSION_SETUP_TIMEOUT="--timeout 180";
+REGRESSION_SETUP_TIMEOUT="--timeout 180"
 REGRESSION_TIMEOUT="" # Default 720 from ecl-test.json config file
 if [[ "$BUILD_TYPE" == "Debug" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
-    REGRESSION_SETUP_TIMEOUT=300;
+    REGRESSION_SETUP_TIMEOUT="--timeout 300"
 fi
 
 # To tackle down the genjoin* timeout issues
@@ -402,14 +406,24 @@ TEST_1=( "schedule1.ecl" "90" )
 TEST_2=( "schedule2.ecl" "150" )
 TEST_3=( "workflow_9c.ecl" "90" )
 TEST_4=( "workflow_contingency_8.ecl" "60" )
-#TEST_5=( "teststdlibrary.ecl" "1500" )
+TEST_5=( "embedR.ecl" "30" )
+TEST_6=( "embedR2.ecl" "30" )
+TEST_7=( "modelingWithR.ecl" "30" )
+TEST_8=( "parse2.ecl" "30" )
+TEST_9=( "partition.ecl" "30" )
+TEST_10=( "apersistschedule1.ecl" "250" )
 
 TIMEOUTS=( 
     TEST_1[@] 
     TEST_2[@] 
     TEST_3[@] 
     TEST_4[@]
-#    TEST_5[@] 
+    TEST_5[@]
+    TEST_6[@]
+    TEST_7[@] 
+    TEST_8[@] 
+    TEST_9[@]
+    TEST_10[@]
     )
 
 
@@ -419,24 +433,31 @@ REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 REGRESSION_EXCLUDE_FILES=""
 if [[ "$BRANCH_ID" == "candidate-6.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*,embedR*,modelingWithR*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.0.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.2.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="pipefail.ecl,embedR*,modelingWithR*"
+fi
+
+if [[  -z "$REGRESSION_EXCLUDE_FILES" ]]
+then
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl"
+else
+    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl,${REGRESSION_EXCLUDE_FILES}"
 fi
 
 REGRESSION_EXCLUDE_CLASS=""

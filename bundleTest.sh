@@ -107,10 +107,19 @@ ProcessLog()
 
 TIME_STAMP=$(date +%s)
 
-WriteLog "Machine Learning Confidence Test started" "${ML_TEST_LOG}"
-
 WriteLog "ML test script log file: '${ML_TEST_LOG}'" "${ML_TEST_LOG}"
 WriteLog "ML test result log file: '${ML_TEST_RESULT_LOG}'" "${ML_TEST_LOG}"
+
+WriteLog "Machine Learning Confidence Test started" "${ML_TEST_LOG}"
+
+WriteLog "path:'${PATH}'" "${ML_TEST_LOG}"
+WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${ML_TEST_LOG}"
+WriteLog "GCC: $(gcc --version)" "${ML_TEST_LOG}"
+WriteLog "CMake: $( /usr/local/bin/cmake --version | head -n 1 )" "${ML_TEST_LOG}"
+WriteLog "Python: $(python --version  2>&1 )" "${ML_TEST_LOG}"
+WriteLog "Python2: $(python2 --version 2>&1 )" "${ML_TEST_LOG}"
+WriteLog "Python3: $(python3 --version  2>&1 )" "${ML_TEST_LOG}"
+WriteLog "Tensorflow: $(pip3 list | egrep 'tensorflow ')" "${ML_TEST_LOG}"
 
 WriteLog "System id: ${SYSTEM_ID}, HPCC_SERVICE = '${HPCC_SERVICE}'" "${ML_TEST_LOG}"
 
