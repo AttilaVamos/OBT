@@ -43,20 +43,18 @@ then
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-8.2.x' 'candidate-8.4.x' 'candidate-8.6.x' 'candidate-8.8.x'  'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.4.x' 'candidate-8.6.x' 'candidate-8.8.x'  'master' )
 
     # For versioning
-    RUN_1=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4" "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}") 
-    RUN_2=("BRANCH_ID=candidate-8.4.x")
-    RUN_3=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_4=("BRANCH_ID=candidate-8.6.x")
-    RUN_5=("BRANCH_ID=candidate-8.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_6=("BRANCH_ID=candidate-8.8.x")
-    RUN_7=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")    
-    RUN_8=("BRANCH_ID=master")
+    RUN_1=("BRANCH_ID=candidate-8.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4"  "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}") 
+    RUN_2=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4"  "IF_COMMIT_IN=${DAYS_FOR_CHECK_COMMITS}") 
+    RUN_3=("BRANCH_ID=candidate-8.6.x")
+    RUN_4=("BRANCH_ID=candidate-8.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_5=("BRANCH_ID=candidate-8.8.x")
+    RUN_6=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_7=("BRANCH_ID=master")
 
     RUN_ARRAY=(
-        RUN_8[@]
         RUN_7[@]
         RUN_6[@]
         RUN_5[@]
@@ -181,8 +179,8 @@ else
 fi
 
 OBT_MAIN_PARAM="regress"
-OBT_SYSTEM=OBT-010
-OBT_SYSTEM_ENV=TestFarm2
+OBT_SYSTEM=$OBT_ID
+OBT_SYSTEM_ENV=AWSTestFarm
 OBT_SYSTEM_STACKSIZE=81920
 OBT_SYSTEM_NUMBER_OF_PROCESS=524288
 OBT_SYSTEM_NUMBER_OF_FILES=524288
@@ -212,8 +210,8 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-#actually we have other system (OBT-007) for continuous debug build, so it is not necessary now
-DEBUG_BUILD_DAY=8   # Invalid day number to avoid Debug build
+# Always build in Debug mode
+DEBUG_BUILD_DAY=8
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")
@@ -223,7 +221,7 @@ then
     BUILD_TYPE=Debug
 fi
 
-TEST_PLUGINS=1
+TEST_PLUGINS=0
 USE_CPPUNIT=1
 MAKE_WSSQL=1
 USE_LIBMEMCACHED=1
@@ -248,7 +246,7 @@ LOCAL_IP_STR=$( ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:s
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
-QUICK_SESSION=0  # If non zero then execute standard unittests, else use default settings
+QUICK_SESSION=1  # If non zero then execute standard unittests, else use default settings
 
 #
 #----------------------------------------------------
@@ -270,7 +268,7 @@ BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 LOG_ARCHIEVE_DIR_EXPIRE=30 # days
 
 # Remote, WEB log archive
-WEB_LOG_ARCHIEVE_DIR_EXPIRE=45 # days
+WEB_LOG_ARCHIEVE_DIR_EXPIRE=60 # days
 
 
 #
@@ -291,7 +289,7 @@ MY_INFO_MONITOR_START=1
 # Trace generation macro
 #
 
-GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \n Backtrace for all threads\n==========================" -ex "thread apply all bt" -ex "echo \n Registers:\n==========================\n" -ex "info reg" -ex "echo \n Disas:\n==========================\n" -ex "disas" -ex "quit"'
+GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrace for all threads\n==========================" -ex "thread apply all bt" -ex "echo \n Registers:\n==========================\n" -ex "info reg" -ex "echo \n Disas:\n==========================\n" -ex "disas" -ex "quit"'
 
 #
 #----------------------------------------------------
@@ -389,7 +387,7 @@ REGRESSION_TIMEOUT="" # Default 720 from ecl-test.json config file
 if [[ "$BUILD_TYPE" == "Debug" ]]
 then
     REGRESSION_TIMEOUT="--timeout 1800"
-    REGRESSION_SETUP_TIMEOUT="--timeout 300"
+    REGRESSION_SETUP_TIMEOUT="--timeout 180"
 fi
 
 # To tackle down the genjoin* timeout issues
@@ -405,24 +403,19 @@ TEST_1=( "schedule1.ecl" "90" )
 TEST_2=( "schedule2.ecl" "150" )
 TEST_3=( "workflow_9c.ecl" "90" )
 TEST_4=( "workflow_contingency_8.ecl" "60" )
-TEST_5=( "embedR.ecl" "30" )
-TEST_6=( "embedR2.ecl" "30" )
-TEST_7=( "modelingWithR.ecl" "30" )
-TEST_8=( "parse2.ecl" "30" )
-TEST_9=( "partition.ecl" "30" )
-TEST_10=( "apersistschedule1.ecl" "250" )
+TEST_5=( "stepping7d.ecl" "30" )
+TEST_6=( "stepping7e.ecl" "30" )
+TEST_7=( "stepping7f.ecl" "30" )
+
 
 TIMEOUTS=( 
-    TEST_1[@] 
-    TEST_2[@] 
-    TEST_3[@] 
+    TEST_1[@]
+    TEST_2[@]
+    TEST_3[@]
     TEST_4[@]
     TEST_5[@]
     TEST_6[@]
-    TEST_7[@] 
-    TEST_8[@] 
-    TEST_9[@]
-    TEST_10[@]
+    TEST_7[@]
     )
 
 
@@ -432,34 +425,27 @@ REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 REGRESSION_EXCLUDE_FILES=""
 if [[ "$BRANCH_ID" == "candidate-6.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*,embedR*,modelingWithR*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.0.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
     REGRESSION_GENERATE_STACK_TRACE=""
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.2.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
+    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
 fi
 
 if [[ "$BRANCH_ID" == "candidate-7.4.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="pipefail.ecl,embedR*,modelingWithR*"
+    REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
 fi
 
-if [[  -z "$REGRESSION_EXCLUDE_FILES" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl"
-else
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl,${REGRESSION_EXCLUDE_FILES}"
-fi
-
-REGRESSION_EXCLUDE_CLASS=""
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 
 PYTHON_PLUGIN=''
 
@@ -472,10 +458,7 @@ COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
 
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
-REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
-
-REGRESSION_PREABORT="--preAbort ./preabort.sh"
-REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
+REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
 REGRESSION_PREABORT=""
 REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -iname 'preAbort.sh' -type f -print | head -n 1)
@@ -489,7 +472,7 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=1
+RUN_COVERITY=0
 COVERITY_TEST_DAY=1    # Monday
 COVERITY_TEST_BRANCH=master
 
@@ -554,20 +537,20 @@ RUN_WUTOOL_TESTS=1
 #
 
 # Enable rebuild HPCC before execute Performance Suite
-PERF_BUILD=1
+PERF_BUILD=0
 PERF_BUILD_TYPE=RelWithDebInfo
 
-PERF_CONTROL_TBB=0
+PERF_CONTROL_TBB=1
 PERF_USE_TBB=1
-PERF_USE_TBBMALLOC=1
+PERF_USE_TBBMALLOC=0
 
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=1
 PERF_RUN_THOR=1
-PERF_RUN_ROXIE=1
+PERF_RUN_ROXIE=0
 
 # To controll core generation and logging test
-PERF_RUN_CORE_TEST=1
+PERF_RUN_CORE_TEST=0
 
 # Control Performance test cluster
 PERF_NUM_OF_NODES=1
@@ -591,7 +574,7 @@ PERF_ROXIE_MEMSIZE_GB=4
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
 # 1 - execute RE to run Performance Suite
-EXECUTE_PERFORMANCE_SUITE_SETUP=1
+EXECUTE_PERFORMANCE_SUITE_SETUP=0
 
 # Control to Regression Engine
 # 0 - skip Regression Engine execution (dry run to test framework)
@@ -621,10 +604,12 @@ PERF_TEST_PARALLEL_QUERIES=1
 # Example:
 #PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
 PERF_EXCLUDE_CLASS="-e stress"
+#PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
+PERF_QUERY_LIST="02bb_sort*"
 
-# Don't use these settings on this machine (yet)
-#PERF_FLUSH_DISk_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
-#PERF_RUNCOUNT="--runcount 2"
+PERF_FLUSH_DISK_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
+# Dont use this setting (yet)
+PERF_RUNCOUNT="--runcount 20"
 
 PERF_TEST_MODE="STD"
 
@@ -639,7 +624,7 @@ then
     PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
 fi
 
-PERF_ENABLE_CALCTREND=1
+PERF_ENABLE_CALCTREND=0
 PERF_CALCTREND_PARAMS=""
 
 #
@@ -682,7 +667,7 @@ fi
 EXECUTE_ML_SUITE=1
 
 # timeout in seconds (>0) in Regression Engine
-ML_TIMEOUT=3600
+ML_TIMEOUT=360
 ML_PARALLEL_QUERIES=1
 
 #
