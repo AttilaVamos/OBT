@@ -47,7 +47,7 @@ echo "All processes are finished."
 echo "Upload results.."
 
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/*Collection*.zip ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-010/LogCollections/.
-rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection* centos@${SSH_TARGET}:/home/centos/${OBT_ID}
+rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
 
 echo "Upload done."
 
