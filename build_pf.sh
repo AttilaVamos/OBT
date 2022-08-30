@@ -66,6 +66,7 @@ echo "PYTHON_PLUGIN: ${PYTHON_PLUGIN}"
 echo "Create makefiles"
 
 #GENERATOR="Eclipse CDT4 - Unix Makefiles"
+GENERATOR="Unix Makefiles"
 
 CMAKE_CMD=$'/usr/local/bin/cmake'
 #CMAKE_CMD+=$' -G "'${GENERATOR}$'"'
@@ -95,6 +96,8 @@ if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
 then
     # For CentOS 6
     CMAKE_CMD+=$' -DCENTOS_6_BOOST=ON'
+else
+    CMAKE_CMD+=$' -DCENTOS_6_BOOST=OFF'
 fi
 
 CMAKE_CMD+=$' -DCMAKE_EXE_LINKER_FLAGS=-lrt'

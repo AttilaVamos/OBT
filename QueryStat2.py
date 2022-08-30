@@ -237,7 +237,10 @@ class WriteStatsToFile(object):
         
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
-        self.queryHpccVersion()
+        if self.buildBranch == None:
+            self.queryHpccVersion()
+        else:
+            self.hpccVersionStr = self.buildBranch
         
         print("self.destPath     : '" + self.destPath + "'")
         print("self.host         : '" + self.host + "'")
