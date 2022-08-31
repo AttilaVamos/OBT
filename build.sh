@@ -264,6 +264,15 @@ then
 else
     WriteLog "Keep the original py3embed CMakeLists.txt" "${OBT_BUILD_LOG_FILE}"
 fi
+
+if [ -d ~/.cache/vcpkg/archives ]
+then
+    WritePlainLog "Remove VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+    rm -rf ~/.cache/vcpkg/archives
+else
+    WritePlainLog "There are not VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+fi
+
 #
 #----------------------------------------------------
 #
