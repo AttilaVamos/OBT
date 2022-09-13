@@ -167,7 +167,7 @@ WriteLog "Excluded testcase(s): ${UNITTESTS_EXCLUDE[@]}" "$UNITTEST_LOG_FILE"
 TIME_STAMP=$(date +%s)
 WriteLog "Execute unittests..." "$UNITTEST_LOG_FILE"
 
-${UNITTEST_BIN} ${UNITTEST_LIST_PARAMS} | while read unittest
+${UNITTEST_BIN} ${UNITTEST_LIST_PARAMS} | sort | while read unittest
 do 
     WriteLog "$unittest" "$UNITTEST_LOG_FILE"
    
