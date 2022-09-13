@@ -43,11 +43,11 @@ then
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-8.8.x' 'candidate-8.10.x'  'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.8.x' 'candidate-8.10.x' 'master' )
 
     # For versioning
-    RUN_1=("BRANCH_ID=candidate-8.6.8")
-    RUN_2=("BRANCH_ID=candidate-8.6.8" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_1=("BRANCH_ID=candidate-8.8.x")
+    RUN_2=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_3=("BRANCH_ID=candidate-8.10.x")
     RUN_4=("BRANCH_ID=candidate-8.10.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_5=("BRANCH_ID=master")
