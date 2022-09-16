@@ -641,7 +641,7 @@ ML_KEEP_HPCC=1
 # Use complete-uninstall.sh to wipe HPCC
 # 0 - HPCC doesn't wipe off
 # 1 - HPCC does wipe off
-ML_WIPE_OFF_HPCC=1
+ML_WIPE_OFF_HPCC=0
 
 
 # Enable rebuild HPCC before execute Machine Lerning Suite
