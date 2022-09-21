@@ -66,8 +66,10 @@ then
     HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
     DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
 else
-    HPCC_SERVICE="${SUDO} service hpcc-init"
-    DAFILESRV_STOP="${SUDO} service dafilesrv stop"
+    #HPCC_SERVICE="${SUDO} service hpcc-init"
+    #DAFILESRV_STOP="${SUDO} service dafilesrv stop"
+    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
+    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
 fi
 #STATUS_HPCC="${SUDO} service hpcc-init status | grep -c 'running'"
 #NUMBER_OF_RUNNING_HPCC_COMPONENT="${SUDO} service hpcc-init status | wc -l "
@@ -132,12 +134,13 @@ fi
 
 if [[ "$ML_RUN_THOR" -eq 1 ]]
 then
-    STARTUP_MSG="${STARTUP_MSG}, thor"
+    [[ -n "$STARTUP_MSG" ]] && STARTUP_MSG+=", "
+    STARTUP_MSG="${STARTUP_MSG}thor"
 fi
 
 if [[ -n "$STARTUP_MSG" ]]
 then
-    WriteLog "Execute performance suite on ${STARTUP_MSG}" "${ML_TEST_LOG}"
+    WriteLog "Execute bundle tests on ${STARTUP_MSG}" "${ML_TEST_LOG}"
 else
     WriteLog "No target selected. This is a dry run." "${ML_TEST_LOG}"
 fi
@@ -161,7 +164,7 @@ WriteLog "Clean system" "${ML_TEST_LOG}"
 [ ! -e $ML_TEST_ROOT ] && mkdir -p $ML_TEST_ROOT
 
 #rm -rf ${PERF_TEST_ROOT}/*
-cd  ${PERF_TEST_ROOT}
+cd  ${ML_TEST_ROOT}
 
  
 #
@@ -290,8 +293,10 @@ then
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     
     res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1 )
+    retCode=$?
+    WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
     
-    if [ $? -ne 0 ]
+    if [ $retCode -ne 0 ]
     then
         if [[ "$res" =~ "already installed" ]]
         then
@@ -399,6 +404,8 @@ then
     
     hpccRunning=$( ${HPCC_SERVICE} status | grep -c 'running' )
 
+    WriteLog "Number of HPCC components:$NUMBER_OF_HPCC_COMPONENTS, running:$hpccRunning" "${ML_TEST_LOG}"
+    
     if [[ "$hpccRunning" -ne "$NUMBER_OF_HPCC_COMPONENTS" ]]
     then
         WriteLog "Start HPCC System on ${TARGET_PLATFORM}..." "${ML_TEST_LOG}"
