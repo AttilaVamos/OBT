@@ -70,7 +70,8 @@ TIMEOUT_TAG="//timeout 900"
 #    #DAFILESRV_STOP="${SUDO} service dafilesrv stop"
 #    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
 #    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
-fi
+#fi
+
 #STATUS_HPCC="${SUDO} service hpcc-init status | grep -c 'running'"
 #NUMBER_OF_RUNNING_HPCC_COMPONENT="${SUDO} service hpcc-init status | wc -l "
 
