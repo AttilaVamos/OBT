@@ -266,7 +266,8 @@ else
     WriteLog "                                           " "${ML_TEST_LOG}"      
 
     cd ${BUILD_HOME}
-    HPCC_PACKAGE=$(find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f | sort -r | head -n 1 )    
+    #HPCC_PACKAGE=$(find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f | sort -r | head -n 1 )    
+    HPCC_PACKAGE=$(find ~/build/CE/platform/build/ -maxdepth 1 -iname 'hpccsystems-platform*' -type f )
     WriteLog " Default package: \n\t'${HPCC_PACKAGE}' ." "${ML_TEST_LOG}"
     WriteLog "                                           " "${ML_TEST_LOG}"      
 
@@ -293,7 +294,7 @@ then
     #
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     
-    res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1 )
+    res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
     retCode=$?
     WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
     
@@ -302,6 +303,15 @@ then
         if [[ "$res" =~ "already installed" ]]
         then
             WriteLog "$res" "${ML_TEST_LOG}"
+            WriteLog "REmove installed one..." "${ML_TEST_LOG}"
+            res=$( ${SUDO} ${PKG_REM_CMD} hpccsystems-platform 2>&1 )
+            retCode=$?
+            WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
+            WriteLog "Install the latest..." "${ML_TEST_LOG}"
+            res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
+            retCode=$?
+            WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
+
         else
             WriteLog "Error in install! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
             exit
