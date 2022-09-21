@@ -61,15 +61,15 @@ TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
 TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/MlTimeoutedTests.csv
 TIMEOUT_TAG="//timeout 900"
 
-if [[ "${SYSTEM_ID}" =~ "Ubuntu" ]]
-then
-    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
-    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
-else
-    #HPCC_SERVICE="${SUDO} service hpcc-init"
-    #DAFILESRV_STOP="${SUDO} service dafilesrv stop"
-    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
-    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
+#if [[ "${SYSTEM_ID}" =~ "Ubuntu" ]]
+#then
+#    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
+#    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
+#else
+#    #HPCC_SERVICE="${SUDO} service hpcc-init"
+#    #DAFILESRV_STOP="${SUDO} service dafilesrv stop"
+#    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
+#    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
 fi
 #STATUS_HPCC="${SUDO} service hpcc-init status | grep -c 'running'"
 #NUMBER_OF_RUNNING_HPCC_COMPONENT="${SUDO} service hpcc-init status | wc -l "
