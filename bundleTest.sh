@@ -307,11 +307,13 @@ then
             res=$( ${SUDO} ${PKG_REM_CMD} hpccsystems-platform 2>&1 )
             retCode=$?
             WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
-            WriteLog "Install the latest..." "${ML_TEST_LOG}"
+            WriteLog "res:$res" "${ML_TEST_LOG}"
+            WriteLog "$( sudo rm -v /etc/HPCCSystems/environment.xml)\n" "${ML_TEST_LOG}"
+            WriteLog "Install the latest '${PKG_INST_CMD} ${HPCC_PACKAGE}' ..." "${ML_TEST_LOG}"
             res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
             retCode=$?
             WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
-
+            WriteLog "res:$res" "${ML_TEST_LOG}"
         else
             WriteLog "Error in install! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
             exit
@@ -336,7 +338,7 @@ then
     WriteLog "Patch environment.xml to use ${ML_THOR_MEMSIZE_GB}GB Memory for test on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     WriteLog "Patch environment.xml to use ${ML_THOR_NUMBER_OF_SLAVES} slaves for ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     
-    ${SUDO} cp /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak
+    WriteLog "$( ${SUDO} cp -v /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak )"  "${ML_TEST_LOG}"
     ${SUDO} sed -e 's/totalMemoryLimit="1073741824"/totalMemoryLimit="'${MEMSIZE}'"/g' -e 's/slavesPerNode="1"/slavesPerNode="'${ML_THOR_NUMBER_OF_SLAVES}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
     if [ $? -ne 0 ]
@@ -344,9 +346,9 @@ then
         WriteLog "Error in update environment.xml file! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     else
         WriteLog "The environment.xml file Updated. ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+        WriteLog "$(ls -l /etc/HPCCSystems/environment.xml)" "${ML_TEST_LOG}"
+        WriteLog "$(egrep 'totalMemoryLimit=|slavesPerNode=' /etc/HPCCSystems/environment.xml)" "${ML_TEST_LOG}"
     fi
-
-
 
     #
     #----------------------------------------------------
@@ -413,10 +415,16 @@ then
 
     NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
     
+    if [[ $NUMBER_OF_HPCC_COMPONENTS -eq 0 ]]
+    then
+        WriteLog "Unable start HPCC system!! Only ${NUMBER_OF_HPCC_COMPONENTS} component is configured to run." "${ML_TEST_LOG}"
+        exit -2
+    fi
+
     hpccRunning=$( ${HPCC_SERVICE} status | grep -c 'running' )
 
     WriteLog "Number of HPCC components:$NUMBER_OF_HPCC_COMPONENTS, running:$hpccRunning" "${ML_TEST_LOG}"
-    
+
     if [[ "$hpccRunning" -ne "$NUMBER_OF_HPCC_COMPONENTS" ]]
     then
         WriteLog "Start HPCC System on ${TARGET_PLATFORM}..." "${ML_TEST_LOG}"
