@@ -271,17 +271,17 @@ then
     then
         if [[ ${KEEP_VCPKG_CACHE} -eq 1 ]]
         then
-            WritePlainLog "Keep VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Keep VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
         else
-            WritePlainLog "Remove VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Remove VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
             rm -rf ~/.cache/vcpkg/archives
         fi
     else
-        WritePlainLog "Remove VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "Remove VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
         rm -rf ~/.cache/vcpkg/archives
     fi
 else
-    WritePlainLog "There are not VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
+    WriteLog "There are not VCPKG leftovers." "${OBT_BUILD_LOG_FILE}"
 fi
 
 #
