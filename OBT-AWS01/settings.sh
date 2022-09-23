@@ -655,13 +655,7 @@ ML_BUILD_TYPE=$BUILD_TYPE
 # Control the target(s)
 ML_RUN_THOR=1
 ML_THOR_MEMSIZE_GB=4
-
-if [[ $NUMBER_OF_CPUS -ge 20 ]]
-then
-    ML_THOR_NUMBER_OF_SLAVES=8
-else
-    ML_THOR_NUMBER_OF_SLAVES=$(( $NUMBER_OF_CPUS - 2 ))
-fi
+ML_THOR_NUMBER_OF_SLAVES=6
 
 # Control to Regression Engine
 # 0 - skip Regression Engine execution (dry run to test framework)
