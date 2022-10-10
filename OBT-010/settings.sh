@@ -51,14 +51,14 @@ else
     RUN_3=("BRANCH_ID=candidate-8.4.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_4=("BRANCH_ID=candidate-8.6.x")
     RUN_5=("BRANCH_ID=candidate-8.6.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_6=("BRANCH_ID=candidate-8.8.x")
-    RUN_7=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")    
-    RUN_8=("BRANCH_ID=master")
+    #RUN_6=("BRANCH_ID=candidate-8.8.x")
+    #RUN_7=("BRANCH_ID=candidate-8.8.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")    
+    #RUN_8=("BRANCH_ID=master")
 
     RUN_ARRAY=(
-        RUN_8[@]
-        RUN_7[@]
-        RUN_6[@]
+        #RUN_8[@]
+        #RUN_7[@]
+        #RUN_6[@]
         RUN_5[@]
         RUN_4[@]
         RUN_3[@]
