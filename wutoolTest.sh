@@ -163,6 +163,9 @@ else
     exit 2
 fi
 
+WriteLog "IP:$(ip -4 addr)" "$WUTOOLTEST_EXECUTION_LOG_FILE"
+WriteLog "Check connection:$(ssh -oConnectTimeout=10 -p 7070 -v $LOCAL_IP_STR 2>&1 )" "$WUTOOLTEST_EXECUTION_LOG_FILE"
+
 #
 #-------------------------------
 #
