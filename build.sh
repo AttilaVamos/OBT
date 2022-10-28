@@ -427,7 +427,7 @@ WriteLog "Remove LOG4J items result:\n${removeLog4j}" "$OBT_BUILD_LOG_FILE"
 
 cd ${BUILD_HOME}
 
-WriteLog "Build it...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
+WriteLog "Build ${BRANCH_ID} ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 
 CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
 WriteLog "Start at ${CURRENT_DATE}" "${OBT_BUILD_LOG_FILE}"
@@ -438,7 +438,7 @@ WriteLog "Build docs: ${BUILD_DOCS}" "${OBT_BUILD_LOG_FILE}"
 export BUILD_DOCS
 ${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
 
-WriteLog "Build it...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
+WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 
 TIME_STAMP=$(date +%s)
 
