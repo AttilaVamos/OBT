@@ -475,8 +475,9 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 
 # Enable to run Coverity build and upload result
 
-RUN_COVERITY=0
+RUN_COVERITY=1
 COVERITY_TEST_DAY=1    # Monday
+COVERITY_TEST_DAY=2    # Tuesday
 COVERITY_TEST_BRANCH=master
 
 #
