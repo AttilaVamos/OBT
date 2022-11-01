@@ -477,8 +477,8 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 
 RUN_COVERITY=1
 COVERITY_TEST_DAY=1    # Monday
-COVERITY_TEST_DAY=2    # Tuesday
 COVERITY_TEST_BRANCH=master
+COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
 #
 #----------------------------------------------------

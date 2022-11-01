@@ -11,11 +11,10 @@ SHORT_DATE=$(date "+%Y-%m-%d")
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
 
 WEEK_DAY=$(date "+%w")
-REPORT_PATH=/common/nightly_builds/Coverity
 #RECEIVERS=richard.chapman@lexisnexisrisk.com,gavin.halliday@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
-if [[ -f ${REPORT_PATH}/${REPORT_FILE_NAME} ]]
+if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
 then
     echo "Start Coverity scan upload."
 
@@ -35,7 +34,7 @@ then
 
     curl --form token=Z9iZGv5orqz0Kw5UJA9k6A \
       --form email=${ADMIN_EMAIL_ADDRESS} \
-      --form file=@${REPORT_PATH}/${REPORT_FILE_NAME} \
+      --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} \
       --form version="${BRANCH_ID}-SHA:${branchCrc}" \
       --form description=" " \
       https://scan.coverity.com/builds?project=HPCC-Platform

@@ -7,7 +7,7 @@
 SHORT_DATE=$(date "+%Y-%m-%d")
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
 
-REPORT_PATH=/common/nightly_builds/Coverity
+[ ! -d ${COVERITY_REPORT_PATH} ] && mkdir -p ${COVERITY_REPORT_PATH}
 #RECEIVERS=richard.chapman@lexisnexisrisk.com,gavin.halliday@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
@@ -36,7 +36,7 @@ then
     #if [[ -f ~/cov-analysis-linux64-2021.12.1/bin/cov-build ]]
     if [[ -f ${COVERITY_BIN_DIR}/cov-build ]]
     then
-        if [[ -f ${REPORT_PATH}/${REPORT_FILE_NAME} ]]
+        if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
         then
             echo "Coverity analysis already done. Skip it."
         else
@@ -55,9 +55,9 @@ then
             tar czvf ${REPORT_FILE_NAME} cov-int
             find . -name *.ccfxprep -delete
         
-            cp ${REPORT_FILE_NAME} ${REPORT_PATH}/.
+            cp ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
             echo "Send Email to ${RECEIVERS}"
-            echo -e "Hi,\n\nCoverity analysis at ${REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
+            echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
        
             # To upload
             # When you upload the build can you also include the commit SHA in the version (Gavin)
@@ -72,7 +72,7 @@ then
 
             echo "Uploading started"
 
-            curlParams="--form token=Z9iZGv5orqz0Kw5UJA9k6A --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
+            curlParams="--form token=Z9iZGv5orqz0Kw5UJA9k6A --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
                  
             echo "curl params: ${curlParams}"
 

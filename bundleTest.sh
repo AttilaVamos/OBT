@@ -42,7 +42,7 @@ TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
 
-BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" )
+BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" "LinearRegression" "LogisticRegression" )
 
 ML_CORE_VERSION="V3_0"
 ML_PBLAS_VERSION="V3_0"
