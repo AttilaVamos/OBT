@@ -527,7 +527,7 @@ then
     WriteLog "ML_TEST_HOME  : ${ML_TEST_HOME}" "${ML_TEST_LOG}"
     WriteLog "ML_ENGINE_HOME: ${ML_ENGINE_HOME}" "${ML_TEST_LOG}"
 
-    CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test run -t ${TARGET_PLATFORM} --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES}"
+    CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test run -t ${TARGET_PLATFORM} --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES} ${ML_EXCLUDE_FILES}"
 
     if [ ${EXECUTE_ML_SUITE} -ne 0 ]
     then

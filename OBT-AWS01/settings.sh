@@ -667,6 +667,7 @@ EXECUTE_ML_SUITE=1
 # timeout in seconds (>0) in Regression Engine
 ML_TIMEOUT=360
 ML_PARALLEL_QUERIES=1
+ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl"
 
 #
 #----------------------------------------------------
