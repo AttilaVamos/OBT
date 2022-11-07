@@ -411,6 +411,7 @@ class BuildTask( Task ):
             p_buildExcl = re.compile('\s*Build:\s*(.*)$')
             p_docsExcl = re.compile('\s*Documentation:\s*(.*)$')
             p_unitTestExcl = re.compile('\s*Unittests:\s*(.*)$')
+            p_mlTestExcl = re.compile('\s*MLtests:\s*(.*)$')
 
             print("Global exclusion:")
             for line in open( self.exclusionLogFileFileSystem).readlines( ):
@@ -463,6 +464,18 @@ class BuildTask( Task ):
                             self._globalExclusions['Documentation'] = ''
 
                         self._globalExclusions['Documentation'] += 'not built'
+
+                m = p_mlTestExcl.match(line)
+                if m:
+                    globalExclusion = m.group(1).replace('--ef','').replace(',',', ').replace('-e','').strip()
+                    if len(globalExclusion) != 0:
+                        if len(self._globalExclusion) > 0:
+                            self._globalExclusion += ', '
+                        self._globalExclusion += globalExclusion
+                        if 'MLtest' not in self._globalExclusions:
+                            self._globalExclusions['MLtest'] = ''
+
+                        self._globalExclusions['MLtest'] += re.sub("\s\s+", " ", globalExclusion)
 
         if self._globalExclusion == '':
                 self._globalExclusion = '(None)'
@@ -747,7 +760,7 @@ class BuildNotification( object ):
         self.msgHTML += "<tr><td align=\"right\">Number of channels per Thor slave:</td><td><b>" + self.config.thorChannelsPerSlave + "</b></td></tr>\n"
         #self.msgHTML += "<tr><td>Global exclusion:</td><td>" + self.results[self.buildTaskIndex].globalExclusion + "</td></tr>\n"
         self.msgHTML += "<tr><td align=\"right\">Exclusion:</td><td> </td></tr>\n"
-        exclusionSequence = ['Build', 'Documentation', 'Unittest',  'Regression' ]
+        exclusionSequence = ['Build', 'Documentation', 'Unittest', 'MLtest', 'Regression' ]
         for exclusion in exclusionSequence:
             if exclusion in self.results[self.buildTaskIndex].globalExclusions:
                 self.msgHTML += "<tr><td align=\"right\">" + exclusion + ":</td><td>" + self.results[self.buildTaskIndex].globalExclusions[exclusion] + "</td></tr>\n"

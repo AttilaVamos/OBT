@@ -308,6 +308,8 @@ if [ -e "${TARGET_DIR}" ]
         [[ -n "$SUPRESS_PLUGINS" ]] && echo "Build:${SUPRESS_PLUGINS}" > ${GLOBAL_EXCLUSION_LOG}
 
         [[ -n "$UNITTESTS_EXCLUDE" ]] && echo "Unittests:${UNITTESTS_EXCLUDE[@]}" >> ${GLOBAL_EXCLUSION_LOG}
+        
+        [[ -n "$ML_EXCLUDE_FILES" ]] && echo "MLtests:${ML_EXCLUDE_FILES}" >> ${GLOBAL_EXCLUSION_LOG}
 
         [[ -n "$PERFORMANCE_EXCLUDE_CLASS" ]] && echo "Performance:${PERFORMANCE_EXCLUDE_CLASS}" >> ${GLOBAL_EXCLUSION_LOG}
 
