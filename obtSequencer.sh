@@ -179,5 +179,8 @@ else
     done
 fi
 
+# Clean-up to prevent the next session stalls on an existing build*.log file.
+rm -v /tmp/build*
+
 echo "End."
 
