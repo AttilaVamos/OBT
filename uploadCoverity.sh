@@ -4,15 +4,23 @@
 
 . ./settings.sh
 
-
 SHORT_DATE=$(date "+%Y-%m-%d")
-
-#REPORT_FILE_NAME=hpcc-2018-04-09.tgz
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
 
 WEEK_DAY=$(date "+%w")
-#RECEIVERS=richard.chapman@lexisnexisrisk.com,gavin.halliday@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
+
+if [ -f coverityToken.dat ]
+then
+    echo "Get Coverity upload token."
+    COVERITY_TOKEN=$(cat coverityToken.dat)
+    echo "Done."
+else
+    echo "Send Email to ${RECEIVERS} about missing 'coverityToken'."
+    echo -e "Hi,\n\nCoverity analysis upload failed on missing coverityToken.\n\nThanks\n\nOBT" | mailx -s "Missing coverityToken" -u root  ${RECEIVERS}
+    exit -1
+fi
+
 
 if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
 then
@@ -32,7 +40,7 @@ then
     echo ${branchCrc}
     popd
 
-    curl --form token=Z9iZGv5orqz0Kw5UJA9k6A \
+    curl --form token=$COVERITY_TOKEN \
       --form email=${ADMIN_EMAIL_ADDRESS} \
       --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} \
       --form version="${BRANCH_ID}-SHA:${branchCrc}" \

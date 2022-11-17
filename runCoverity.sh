@@ -8,8 +8,18 @@ SHORT_DATE=$(date "+%Y-%m-%d")
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
 
 [ ! -d ${COVERITY_REPORT_PATH} ] && mkdir -p ${COVERITY_REPORT_PATH}
-#RECEIVERS=richard.chapman@lexisnexisrisk.com,gavin.halliday@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
+
+if [ -f coverityToken.dat ]
+then
+    echo "Get Coverity upload token."
+    COVERITY_TOKEN=$(cat coverityToken.dat)
+    echo "Done."
+else
+    echo "Send Email to ${RECEIVERS} about missing 'coverityToken'."
+    echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} failed on missing coverityToken.\n\nThanks\n\nOBT" | mailx -s "Missing coverityToken" -u root  ${RECEIVERS}
+    exit -1
+fi
 
 WEEK_DAY=$(date "+%w")
 WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
@@ -19,7 +29,7 @@ WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
 COVERITY_BIN_DIR=~/cov-analysis-linux64-2022.6.0/bin
 
 NEXT_TEST_DAY=$(date -d "next Sunday +$COVERITY_TEST_DAY days")
-NEXT_TEST_DAY_NAME=$(date -d "${NEXT_TEST_DAY}" '+%A')
+NEXT_TEST_DAY_NAME=$(date -d "next Sunday +$COVERITY_TEST_DAY days" '+%A')
 
 echo "Start Coverity analysis."
 echo "Test day is      : $NEXT_TEST_DAY_NAME"
@@ -72,7 +82,7 @@ then
 
             echo "Uploading started"
 
-            curlParams="--form token=Z9iZGv5orqz0Kw5UJA9k6A --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
+            curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
                  
             echo "curl params: ${curlParams}"
 
