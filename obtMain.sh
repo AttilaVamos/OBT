@@ -559,7 +559,8 @@ fi
 
     if [ -n "$OBT_ID" ]
     then
-        sender=${OBT_ID,,}
+        sender=$REGRESSION_REPORT_SENDER
+        [[ -z "$sender" ]] && sender=${OBT_ID,,}
         
         WriteLog "Update 'Sender' in BuildNotification.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
         cp -f ./BuildNotification.ini ./BuildNotification.bak
