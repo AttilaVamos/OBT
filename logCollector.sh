@@ -38,7 +38,7 @@ echo "Start unit WUTool test log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
 
 echo "Start build log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM .log &
+exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
 
 
 echo "Wait for processes finished."
