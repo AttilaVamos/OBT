@@ -14,28 +14,31 @@ SSH_OPTIONS="-oConnectionAttempts=3 -oConnectTimeout=20 -oStrictHostKeyChecking=
 SSH_TARGET="10.224.20.54"   #OpenStack Region 8
 echo "Start $0"
 
+YM=$(date +%Y-%m)
+echo "Current year and month: $YM"
+
 pushd $HOME
 
 echo "Start hthor log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | sort | zip -u HthorLogCollection -@ > HthorLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | egrep $YM | sort | zip -u HthorLogCollection-$YM -@ > HthorLogCollection-$YM.log &
 
 echo "Start thor log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | sort | zip -u ThorLogCollection -@ > ThorLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | egrep $YM | sort | zip -u ThorLogCollection-$YM -@ > ThorLogCollection-$YM.log &
 
 echo "Start roxie log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | sort | zip -u RoxieLogCollection -@  > RoxieLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | egrep $YM | sort | zip -u RoxieLogCollection-$YM -@  > RoxieLogCollection-$YM.log &
 
 echo "Start unit test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | sort | zip -u UnittestsLogCollection -@  > UnittestsLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | egrep $YM | sort | zip -u UnittestsLogCollection-$YM -@  > UnittestsLogCollection-$YM.log &
 
 echo "Start ML test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'mltest*.log' -type f -print | sort | zip -u MlLogCollection -@  > MlLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'ml*.log' -type f -print | egrep $YM | sort | zip -u MlLogCollection-$YM -@  > MlLogCollection-$YM.log &
 
 echo "Start unit WUTool test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print | sort | zip -u WutooltestLogCollection -@  > WutooltestLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
 
 echo "Start build log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | sort | zip -u BuildLogCollection -@  > BuildLogCollection.log &
+exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM .log &
 
 
 echo "Wait for processes finished."
