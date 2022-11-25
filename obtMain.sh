@@ -560,15 +560,15 @@ fi
     if [ -n "$OBT_ID" ]
     then
         sender=$REGRESSION_REPORT_SENDER
-        [[ -z "$sender" ]] && sender=${OBT_ID,,}
+        [[ -z "$sender" ]] && sender="testfarm.${OBT_ID,,}@lexisnexisrisk.com"
         
-        WriteLog "Update 'Sender' in BuildNotification.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
+        WriteLog "Update 'Sender' in BuildNotification.ini to Sender : $sender" "${OBT_LOG_FILE}"
         cp -f ./BuildNotification.ini ./BuildNotification.bak
-        sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini 
+        sed  -e '/^Sender : \(.*\)/c Sender : '"$sender" ./BuildNotification.ini > ./BuildNotification.tmp && mv -f ./BuildNotification.tmp ./BuildNotification.ini 
     
-        WriteLog "Update 'Sender' in ReportPerfTestResult.ini to Sender : testfarm.$sender@lexisnexisrisk.com" "${OBT_LOG_FILE}"
+        WriteLog "Update 'Sender' in ReportPerfTestResult.ini to Sender : $sender" "${OBT_LOG_FILE}"
         cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
-        sed  -e '/^Sender : \(.*\)/c Sender : '"testfarm.$sender@lexisnexisrisk.com" ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
+        sed  -e '/^Sender : \(.*\)/c Sender : '"$sender" ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini
     fi
     
     if [[ -n "$REGRESSION_REPORT_RECEIVERS" ]]
