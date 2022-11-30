@@ -459,19 +459,19 @@ then
 
     if [[ ! -f $HOME/$BOOST_PKG ]]
     then
-        WriteLog "The $BOOST_PKG download attempts were unsuccessful." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "The $BOOST_PKG download attempts were unsuccessful." "${PERF_TEST_LOG}"
     else
-        WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${PERF_TEST_LOG}"
         mkdir -p ${BUILD_HOME}/downloads
         res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/  2>&1 )
-        WriteLog "res: ${res}" "${OBT_BUILD_LOG_FILE}"
+        WriteLog "res: ${res}" "${PERF_TEST_LOG}"
     fi
 
     removeLog4j=$( find $SOURCE_HOME/ -iname '*log4j*' -type f -exec rm -fv {} \; )
-    WriteLog "Remove LOG4J items result:\\n${removeLog4j}" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Remove LOG4J items result:\n${removeLog4j}" "${PERF_TEST_LOG}"
 
     removeCommonsText=$( find $SOURCE_HOME/ -iname 'commons-text-*.jar' -type f -exec rm -fv {} \; )
-    WriteLog "Remove 'commons-text-*.jar' items result:\\n${removeCommonsText}" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Remove 'commons-text-*.jar' items result:\n${removeCommonsText}" "${PERF_TEST_LOG}"
 
     #
     # Prepare to build
