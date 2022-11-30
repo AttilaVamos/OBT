@@ -9,10 +9,11 @@ WriteLog()
         trap 'set -x' RETURN
     fi
 
+#    set -x
     IFS=$'\n'
     text=$1
     logFile=$2
-#    set -x
+
     # Length of the content of text
     if [[ ${#text} -le 32768 ]]
     then

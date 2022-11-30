@@ -468,10 +468,10 @@ then
     fi
 
     removeLog4j=$( find $SOURCE_HOME/ -iname '*log4j*' -type f -exec rm -fv {} \; )
-    WriteLog "Remove LOG4J items result:\n${removeLog4j}" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Remove LOG4J items result:\\n${removeLog4j}" "${OBT_BUILD_LOG_FILE}"
 
     removeCommonsText=$( find $SOURCE_HOME/ -iname 'commons-text-*.jar' -type f -exec rm -fv {} \; )
-    WriteLog "Remove 'commons-text-*.jar' items result:\n${removeCommonsText}" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Remove 'commons-text-*.jar' items result:\\n${removeCommonsText}" "${OBT_BUILD_LOG_FILE}"
 
     #
     # Prepare to build
