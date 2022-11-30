@@ -11,6 +11,7 @@ WriteLog()
 
     IFS=$'\n'
     text=$1
+    logFile=$2
 #    set -x
     # Length of the content of text
     if [[ ${#text} -le 32768 ]]
@@ -27,11 +28,11 @@ WriteLog()
     do
         TIMESTAMP=$( date "+%Y-%m-%d %H:%M:%S")
         printf "%s: %s\n" "${TIMESTAMP}" "$i"
-        if [ "$2." == "." ]
+        if [ "$logFile." == "." ]
         then
             echo ${TIMESTAMP}": ERROR: WriteLog() target log file name is empty! ($0)"
         else 
-            echo -e "${TIMESTAMP}: $i" >> $2
+            echo -e "${TIMESTAMP}: $i" >> $logFile
         fi
     done
     unset IFS
