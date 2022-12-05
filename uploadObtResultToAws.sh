@@ -10,7 +10,7 @@ SSH_TARGET="10.224.20.54"   #OpenStack Region 8
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
 
 date >> ~/diskState.log
-df -h | egrep 'Filesys|/dev/vd|common'  >> ~/diskState.log
+df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
 echo "==============================================" >> ~/diskState.log
 
 #rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem"  ~/diskState.log  centos@ec2-35-183-5-250.ca-central-1.compute.amazonaws.com:/home/ec2-user/OBT-010/.
