@@ -183,7 +183,9 @@ class WriteStatsToFile(object):
         self.dateStr = []
         for item in options.dateStrings:
             self.dateStr += item.replace('\'','').split(',')
-            
+        if len(self.dateStr) == 0:
+             self.dateStr.append(datetime.today().strftime("%y%m%d"))
+             
         #self.dateStr = options.dateStrings
         self.verbose = options.verbose
         self.host = options.host
