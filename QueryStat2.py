@@ -475,6 +475,8 @@ class WriteStatsToFile(object):
         today = datetime.today()
         if dateStr == '':
             dateStr = today.strftime("%y%m%d")
+        else:
+            dateStr = dateStr.replace('-', '')
             
         self.resultConfigClass[cluster].set('Result',  'Date',  dateStr)
         self.resultConfigClass[cluster].set('Result',  'Time',  self.timeStampStr )
