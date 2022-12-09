@@ -43,6 +43,8 @@ LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
 
 BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" "LinearRegression" "LogisticRegression" )
+# For testing purposes
+SKIP_INSTALL_BUNDLES=0
 
 ML_CORE_VERSION="V3_0"
 ML_PBLAS_VERSION="V3_0"
@@ -462,6 +464,8 @@ then
     WriteLog "Install ML_Core bundle from GitHub" "${ML_TEST_LOG}"
 
     BUNDLES_COUNT=${#BUNDLES_TO_TEST[@]}
+    [[ $SKIP_INSTALL_BUNDLES -eq 1 ]] && BUNDLES_COUNT=0
+    
     for ((i=0; i<$BUNDLES_COUNT; i++))
     do
         BUNDLE_NAME=${BUNDLES_TO_TEST[i]}
@@ -535,7 +539,8 @@ then
         do
             bundleRunPath=${bundle%/ecl}
             bundlePath=${bundleRunPath%/OBTTests}; 
-            bundleName=$(basename $bundlePath )
+            bundleName=${bundlePath%/test}
+            bundleName=$(basename $bundleName )
             
             # Until it is fully implemented, skip the log running LearningTrees bundle test
             if [[ "$bundle" =~ "LearningTreess" ]]
