@@ -243,7 +243,7 @@ LOCAL_IP_STR=$( ip -f inet -o addr | egrep -v 'lo ' | sed -n "s/^.*inet[[:space:
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
-QUICK_SESSION=1  # If non zero then execute standard unittests, else use default settings
+QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
 #
 #----------------------------------------------------
