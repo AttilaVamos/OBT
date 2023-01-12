@@ -118,7 +118,7 @@ do
         obt-exit*)  WriteLog "mode:OBT-exit-cleanup (log files move into archive, skip copy to wiki)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
                     MOVE_TO_ZIP_FLAG=-m
-                    DO_ARCHIVE=0
+                    DO_ARCHIVE=1
                     MOVE_OBT_CONSOLE_LOG_TO_ZIP_FLAG=-m
                     ARCHIVE_NAME=obt-exit-cleanup
                     ;;
