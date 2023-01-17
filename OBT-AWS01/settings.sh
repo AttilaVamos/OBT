@@ -449,10 +449,11 @@ then
 fi
 
 REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
-if [[ ("$BRANCH_ID" == "candidate-8.8.x") ||  ("$BRANCH_ID" == "master")  ]]
-then
-    REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
-fi
+# Don't exclude spary class
+#if [[ ("$BRANCH_ID" == "candidate-8.8.x") ||  ("$BRANCH_ID" == "master")  ]]
+#then
+#  REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
+#fi
 
 
 
