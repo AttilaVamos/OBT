@@ -407,7 +407,7 @@ TEST_4=( "workflow_contingency_8.ecl" "60" )
 TEST_5=( "stepping7d.ecl" "30" )
 TEST_6=( "stepping7e.ecl" "30" )
 TEST_7=( "stepping7f.ecl" "30" )
-
+TEST_8=( "supercopy.ecl" "200" )
 
 TIMEOUTS=( 
     TEST_1[@]
@@ -417,6 +417,7 @@ TIMEOUTS=(
     TEST_5[@]
     TEST_6[@]
     TEST_7[@]
+    TEST_8[@]
     )
 
 
