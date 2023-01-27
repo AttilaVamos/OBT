@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 SSH_KEYFILE="~/hpcc_keypair.pem"
-SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=100 -oStrictHostKeyChecking=no"
+SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
 #SSH_TARGET="10.240.62.177"
 #SSH_TARGET="10.240.62.57"  #OpenStack Region 5
 SSH_TARGET="10.224.20.54"   #OpenStack Region 8
