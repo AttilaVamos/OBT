@@ -26,7 +26,7 @@ then
     prevMonthYear=$(date --date "$today - 1month" +%y)
     prevMonthYearLong=$(date --date "$today - 1month" +%Y)
 
-    find . -iname 'perfstat-*-'$prevMonthYear$prevMonth'*.c*' -type f -print | zip -m perfstats-prevMonthYearLong-$prevMonth.zip -@
+    find . -iname 'perfstat-*-'$prevMonthYear$prevMonth'*.c*' -type f -print | zip -m perfstats-$prevMonthYearLong-$prevMonth.zip -@
     popd
     
     rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/Perfstat/
