@@ -16,5 +16,19 @@ echo "==============================================" >> ~/diskState.log
 #rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem"  ~/diskState.log  centos@ec2-35-183-5-250.ca-central-1.compute.amazonaws.com:/home/ec2-user/OBT-010/.
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
 
-[[ -d ~/Perfstat ]] && rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/Perfstat/
 
+if [[ -d ~/Perfstat ]]
+then
+    # Archive previous month perfstat files into 'perfstats-YYYY-MM.zip' file
+    pushd ~/Perfstat
+    
+    prevMonth=$(date --date "$today - 1month" +%m)
+    prevMonthYear=$(date --date "$today - 1month" +%y)
+    prevMonthYearLong=$(date --date "$today - 1month" +%Y)
+
+    find . -iname 'perfstat-*-'$prevMonthYear$prevMonth'*.c*' -type f -print | zip -m perfstats-prevMonthYearLong-$prevMonth.zip -@
+    popd
+    
+    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/Perfstat/
+
+fi
