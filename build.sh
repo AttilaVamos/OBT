@@ -81,6 +81,26 @@ mkdir ${buildTarget}
 
 ln -s ${buildTarget} build
 
+BASE_VERSION=${BRANCH_ID#candidate-}
+BASE_VERSION=${BASE_VERSION%.*}
+[[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
+WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$OBT_BUILD_LOG_FILE"
+
+if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
+then
+    WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
+    
+    pushd build
+    res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+    popd
+    
+    WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
+    WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+else
+    WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+fi
+
 WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 
 # Remove all build-* directory older than a week (?)
