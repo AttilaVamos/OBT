@@ -109,6 +109,9 @@ then
     WriteLog "After:\n $(ls -ld /usr/share/systemtap/tapset)" "$OBT_BUILD_LOG_FILE"
 fi 
 
+export VCPKG_BINARY_SOURCES="clear;nuget,GitHub,readwrite"
+export VCPKG_NUGET_REPOSITORY=https://github.com/hpcc-systems/vcpkg
+
 WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 
 # Remove all build-* directory older than a week (?)
