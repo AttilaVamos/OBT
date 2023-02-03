@@ -101,6 +101,14 @@ else
     WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
 fi
 
+if [[ -d /usr/share/systemtap/tapset ]]
+then
+    WriteLog "Set 777 to /usr/share/systemtap/tapset to enable VCPKG (which is not root in this time) \nto copy couchbase related stuff there." "$OBT_BUILD_LOG_FILE"
+    WriteLog "Before:\n $(ls -ld /usr/share/systemtap/tapset)" "$OBT_BUILD_LOG_FILE"
+    sudo chmod 777 /usr/share/systemtap/tapset
+    WriteLog "After:\n $(ls -ld /usr/share/systemtap/tapset)" "$OBT_BUILD_LOG_FILE"
+fi 
+
 WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 
 # Remove all build-* directory older than a week (?)
