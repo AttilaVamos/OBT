@@ -108,6 +108,7 @@ CMAKE_CMD+=$' ../'$SOURCE_DIR
 
 echo "${CMAKE_CMD}"
 
-res=$( eval ${CMAKE_CMD} 2>&1 )
+#res=$( eval ${CMAKE_CMD} 2>&1 )
+# echo "Res: ${res[*]}"
+eval ${CMAKE_CMD}
 
-echo "Res: ${res[*]}"
