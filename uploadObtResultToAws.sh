@@ -1,10 +1,17 @@
 #!/usr/bin/bash
 
-SSH_KEYFILE="~/hpcc_keypair.pem"
-SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
-#SSH_TARGET="10.240.62.177"
-#SSH_TARGET="10.240.62.57"  #OpenStack Region 5
-SSH_TARGET="10.224.20.54"   #OpenStack Region 8
+if [[ "$OBT_ID" =~ "OBT-AWS" ]]
+then
+    SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
+    SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
+        SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
+else
+    SSH_KEYFILE="~/hpcc_keypair.pem"
+    SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
+    #SSH_TARGET="10.240.62.177"
+    #SSH_TARGET="10.240.62.57"  #OpenStack Region 5
+    SSH_TARGET="10.224.20.54"   #OpenStack Region 8
+fi
 
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
