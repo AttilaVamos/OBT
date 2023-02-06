@@ -471,9 +471,9 @@ echo "Start at ${CURRENT_DATE}" > ${BUILD_LOG_FILE} 2>&1
 WriteLog "Generate makefiles ( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 WriteLog "Build docs: ${BUILD_DOCS}" "${OBT_BUILD_LOG_FILE}"
 export BUILD_DOCS
-${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
+unbuffer ${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
 
-WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
+WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} (${REGRESSION_NUMBER_OF_THOR_SLAVES} sl/${REGRESSION_NUMBER_OF_THOR_CHANNELS} ch) ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 
 TIME_STAMP=$(date +%s)
 
