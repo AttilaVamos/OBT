@@ -475,7 +475,7 @@ then
         INSTALL_CMD="ecl bundle install --update --force ${BUNDLE_REPO}"
         WriteLog "Install cmd: $INSTALL_CMD" "${ML_TEST_LOG}"
      
-        tryCountMax=1
+        tryCountMax=5
         tryCount=$tryCountMax
         tryDelay=1m
 
@@ -484,7 +484,7 @@ then
             cRes=$( ${INSTALL_CMD} 2>&1 )
             if [[ 0 -ne  $? ]]
             then
-                WriteLog "cRes: $cRes" "${ML_TEST_LOG}"
+                WriteLog "cRes: '$cRes'" "${ML_TEST_LOG}"
                 tryCount=$(( $tryCount-1 ))
 
                 if [[ $tryCount -ne 0 ]]
@@ -493,10 +493,12 @@ then
                     sleep ${tryDelay}
                     continue
                 else
-                    WriteLog "Install $BUNDLE_NAME bundle was failed after ${tryCountMax} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
-                    WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
-                    ${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
-                    exit -3
+                    WriteLog "Install $BUNDLE_NAME bundle was failed after ${tryCountMax} attempts. Result is: '${cRes}'" "${ML_TEST_LOG}"
+                    
+                    # Don't give up, try the next bundle
+                    #WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
+                    #${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
+                    #exit -3
                 fi
             else
                 WriteLog "Install $BUNDLE_NAMEbundle was success." "${ML_TEST_LOG}"
