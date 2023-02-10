@@ -234,6 +234,7 @@ class WriteStatsToFile(object):
             
             pass
         self.allWorkunits = options.allWorkunits
+        self.addHeader = options.addHeader
         self.timeStamp = options.timeStamp
         self.timeStampStr =  datetime.today().strftime("%H%M%S")  # "HHMMSS"
         
@@ -528,6 +529,7 @@ class WriteStatsToFile(object):
 
             print("statFileName:" + statFileName)
             self.resultConfigClass[cluster].set('Result',  'DataFileName',  statFileName)
+            self.resultConfigClass[cluster].set('Result',  'DataFileHeader', "jobName,clusterTime,compileTime")
             
             if'Workunits' not in resp['WUQueryResponse']:
                 state = "Workuint not found."
@@ -538,6 +540,8 @@ class WriteStatsToFile(object):
             print("Number of workunits in result is: %d" % ( len(stats) ))
 
             statFile = open(statFileName,  "w")
+            if self.addHeader:
+                 statFile.write( "%s\n" % ("jobName,clusterTime,compileTime"))
             #                  self.allWorkunits
             workunitFilter =   {False : ['completed'], 
                                           True  : ['completed',  'compiled',  'failed', 'aborted' ]
@@ -673,6 +677,9 @@ if __name__ == '__main__':
                         
     parser.add_option("--buildBranch",  dest="buildBranch",  default=None, type="string",
                         help="Platform source branch. Default is 'None'",  metavar="BUILDBRANCH")
+                        
+    parser.add_option("--addHeader",  dest="addHeader",  default=False, action="store_true", 
+                        help="Add record header/structure to CSV file.",  metavar="ADDHEADER")
                         
     (options, args) = parser.parse_args()
 
