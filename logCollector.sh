@@ -1,18 +1,27 @@
 #!/bin/bash
 
+echo "Start $0"
+
 if [[ -f ~/build/bin/settings.sh ]] 
 then
+    echo "source settings.sh..."
     . ~/build/bin/settings.sh
 else
     echo "File: '~/build/bin/settings.sh' not found. Exit."
     exit -1
 fi
+echo "   Done."
 
-SSH_KEYFILE="~/hpcc_keypair.pem"
-SSH_OPTIONS="-oConnectionAttempts=3 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
-#SSH_TARGET="10.240.62.177"
-SSH_TARGET="10.224.20.54"   #OpenStack Region 8
-echo "Start $0"
+if [[ "$OBT_ID" =~ "OBT-AWS" ]]
+then
+    SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
+    SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
+    SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
+else
+    SSH_KEYFILE="~/hpcc_keypair.pem"
+    SSH_OPTIONS="-oConnectionAttempts=3 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
+    SSH_TARGET="10.224.20.54"   #OpenStack Region 8
+fi
 
 YM=$(date +%Y-%m)
 echo "Current year and month: $YM"
@@ -40,24 +49,18 @@ exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $
 echo "Start build log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
 
-
 echo "Wait for processes finished."
 
 wait 
 
 echo "All processes are finished."
+popd 
 
 echo "Upload results.."
 
-#rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/*Collection*.zip ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-010/LogCollections/.
 rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
 
 echo "Upload done."
-
-#echo "Clean-up /common (delete all results older than 90 days)"
-#find ${STAGING_DIR_ROOT} -maxdepth 2 -mtime +90 -type d -print -exec rm -rf '{}' \;
-
-#echo "Clean-up done."
 
 echo "End."
 
