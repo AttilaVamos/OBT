@@ -13,4 +13,5 @@ __pycache__/
 *.DS_Store
 .eric*/
 OBT.e4p
+*oken.dat
 
