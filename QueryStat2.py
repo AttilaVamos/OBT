@@ -170,7 +170,8 @@ class WriteStatsToFile(object):
     port = "8010"
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
-    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=0&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
+    compileTimeDetailsDepth=1   #valid values = 0,1,2
+    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     def __init__(self, options):
         
         self.destPath = options.path
@@ -235,6 +236,7 @@ class WriteStatsToFile(object):
             pass
         self.allWorkunits = options.allWorkunits
         self.addHeader = options.addHeader
+        self.compileTimeDetailsDepth = options.compileTimeDetailsDepth
         self.timeStamp = options.timeStamp
         self.timeStampStr =  datetime.today().strftime("%H%M%S")  # "HHMMSS"
         
@@ -245,15 +247,17 @@ class WriteStatsToFile(object):
         else:
             self.hpccVersionStr = self.buildBranch
         
-        print("self.destPath     : '" + self.destPath + "'")
-        print("self.host         : '" + self.host + "'")
-        print("self.url          : '" + self.url + "'")
-        print("self.allWorkunits : '" + str(self.allWorkunits) + "'")
-        print("self.dateStr      : '" + str(self.dateStr) + "'")
-        print("self.timeStamp    : '" + str(self.timeStamp) + "'")
-        print("self.timeStampStr : '" + str(self.timeStampStr) + "'")
-        print("self.verbose      : " + str(self.verbose))
-        print("hpccVersion       : " + self.hpccVersionStr)
+        print("self.destPath                : '" + self.destPath + "'")
+        print("self.host                    : '" + self.host + "'")
+        print("self.url                     : '" + self.url + "'")
+        print("self.allWorkunits            : '" + str(self.allWorkunits) + "'")
+        print("self.dateStr                 : '" + str(self.dateStr) + "'")
+        print("self.timeStamp               : '" + str(self.timeStamp) + "'")
+        print("self.timeStampStr            : '" + str(self.timeStampStr) + "'")
+        print("self.verbose                 : '" + str(self.verbose) + "'")
+        print("self.addHeader               : '" + str(self.addHeader) + "'")
+        print("self.compileTimeDetailsDepth : " + str(self.compileTimeDetailsDepth))
+        print("hpccVersion                  : " + self.hpccVersionStr + "'" )
         pass
         
     def myPrint(self, Msg, *Args):
@@ -456,20 +460,44 @@ class WriteStatsToFile(object):
         def getTime(json_object, name):
             return [obj for obj in json_object if obj['name']==name][0]['rawValue']
             
-        url = self.compileTimeQuery.replace('<WUID>',  wuid)
-        t=0.0
+        url = self.compileTimeQuery.replace('<WUID>',  wuid).replace('<NESTED_DEPTH>', str(self.compileTimeDetailsDepth))
+        times = {}
         try:
                 response_stream = urllib2.urlopen(url)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
                 response_stream = None
-                t = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][0]["Properties"]["Property"][0] ["RawValue"])
+                numOfScopes = len(resp["WUDetailsResponse"]["Scopes"]["Scope"])
+                self.myPrint("\tNumber of scopes: %d" % (numOfScopes))
+                for scope in range(numOfScopes):
+                    # Some magic to make split easier                                                                                    separate subseq. cpp                         separate extensions
+                    scopeName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["ScopeName"].replace('_', ':').replace(' ', '_').replace('.', ':*')
+                    scopeItems = scopeName.split(':')
+                    # Looking for the position of WUID in the scopeItems
+                    w = [i for i in range(len(scopeItems)) if scopeItems[i][0] == "W" ]
+                    if len(w) > 0:
+                        # If found replace real WUID with '<wuid>
+                        # if not found that means the scope name not C++ compiling item)
+                        scopeItems[w[0]] = "<wuid>"
+                        # Check the next item, is it subsequent cpp file name?
+                        if scopeItems[w[0]+1][0] != '*':
+                            # Yes, pading the number with '0' from left 
+                            scopeItems[w[0]+1] = "%03d" % (int(scopeItems[w[0]+1]))
+                        # Assembly the scopeName back
+                        scopeName = '-'.join(scopeItems)
+                        # Reverse the magic done before split. restore extensions, restore '_' before subsequent cpp file number
+                        scopeName = scopeName.replace('-*', '.').replace('>-','>_')
+                    
+                    scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0
+                    self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
+                    times[scopeName] = scopeTime
+                        
         except Exception as ex:
             print(ex)
             pass
-        return (t / 1000000000.0) # Convert ns to sec
-        
+
+        return times
         
     def queryStats(self, cluster,  dateStr = ''):
         url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
@@ -500,9 +528,6 @@ class WriteStatsToFile(object):
         
         self.resultConfigClass[cluster].set('Result',  'Query',  url)
         state = 'OK'
-        sum = 0
-        count = 0
-        compSum = 0
         wuCount = 0
         try:
             try:
@@ -529,7 +554,6 @@ class WriteStatsToFile(object):
 
             print("statFileName:" + statFileName)
             self.resultConfigClass[cluster].set('Result',  'DataFileName',  statFileName)
-            self.resultConfigClass[cluster].set('Result',  'DataFileHeader', "jobName,clusterTime,compileTime")
             
             if'Workunits' not in resp['WUQueryResponse']:
                 state = "Workuint not found."
@@ -537,52 +561,54 @@ class WriteStatsToFile(object):
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
             
-            print("Number of workunits in result is: %d" % ( len(stats) ))
+            numOfWorkunits = len(stats)
+            print("Number of workunits in result is: %d" % ( numOfWorkunits ))
 
             statFile = open(statFileName,  "w")
-            if self.addHeader:
-                 statFile.write( "%s\n" % ("jobName,clusterTime,compileTime"))
-            #                  self.allWorkunits
             workunitFilter =   {False : ['completed'], 
                                           True  : ['completed',  'compiled',  'failed', 'aborted' ]
                                         }
             rex = re.compile("^[0-9][0-9][a-z][a-z]")
-            oldShortJobName=''
-            oldJobName = ''
+ 
+            headerWritten = False
+            index = 1
             
             for stat in stats:
                 if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] in workunitFilter[self.allWorkunits]):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
-                    if shortJobName.startswith('12ac_'):
-                        pass
+
+                    clusterTime = self.convertTimeStringToSec(stat['TotalClusterTime'])
+                    compileTimeHeaders = ''
+                    compileTimeDetails = ''
+                    compileTimeDetailsLog = ''
+                    compileTimes = self.queryCompileTime(stat['Wuid'])
+                    compileTimeValue = compileTimes['compile']
+                    for key in sorted(compileTimes):
+                        if key == 'compile':
+                            continue
+                            
+                        compileTimeHeaders += "," + key
+                        compileTimeDetails += ",%f" % (compileTimes[key])
+                        compileTimeDetailsLog += ", %s:%f" % (key, compileTimes[key])
+
+                    if not headerWritten: 
+                        self.resultConfigClass[cluster].set('Result',  'DataFileHeader', "jobName,clusterTime,compileTime%s" % (compileTimeHeaders))
+                        headerWritten = True
+                        if self.addHeader: 
+                            statFile.write( "%s%s\n" % ("jobName,clusterTime,compileTime", compileTimeHeaders ))
+
                         
-                    compileTimeValue = self.queryCompileTime(stat['Wuid'])
+                    self.myPrint("%5d\%d WUID: %s, job name: %s" % (index, numOfWorkunits, stat['Wuid'],  stat['Jobname']))
+                    index += 1
                     
-                    timeValue = self.convertTimeStringToSec(stat['TotalClusterTime'])
                     wuCount += 1
+
+                    self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec %s" % (jobName,  clusterTime, compileTimeValue, compileTimeDetailsLog))
+                    buff = "%s,%0.3f,%0.3f%s\n" % (jobName, clusterTime, compileTimeValue, compileTimeDetails)
+                    print(buff)
+                    statFile.write(buff )
                     
-                    if (oldShortJobName == shortJobName) or (oldShortJobName == ''):
-                        sum += timeValue
-                        compSum += compileTimeValue
-                        count += 1
-                    else:
-                        clusterTime = sum / count
-                        compileTime = compSum / count
-                        self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec (average of %d)" % (oldJobName,  clusterTime, compileTime,  count))
-                        statFile.write( "%s,%0.3f,%0.3f\n" % (oldJobName, clusterTime, compileTime))
-                        sum = timeValue
-                        compSum = compileTimeValue
-                        count = 1
-                        
-                    oldJobName = jobName
-                    oldShortJobName = shortJobName
-                    
-            if count > 0:
-                clusterTime = sum / count
-                compileTime = compSum / count
-                self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec (average of %d)" % (oldJobName,  clusterTime, compileTime,  count))
-                statFile.write( "%s,%0.3f,%0.3f\n" % (oldJobName, clusterTime, compileTime))
-            else:
+            if wuCount == 0:
                 print("No matching workunit")
 
             statFile.close()
@@ -680,6 +706,10 @@ if __name__ == '__main__':
                         
     parser.add_option("--addHeader",  dest="addHeader",  default=False, action="store_true", 
                         help="Add record header/structure to CSV file.",  metavar="ADDHEADER")
+                        
+    parser.add_option("--compileTimeDetails",  dest="compileTimeDetailsDepth",  default=0, 
+                        help="Set compile time detals. 0 (def) only compile time, 1 one level deeper, 2more compile details, but it can contains compile time from more than one c++ source, so the file header may only partially valid. It may extend the CSV file headers",  
+                        metavar="COMPILETIMEDETAILSDEPTH")
                         
     (options, args) = parser.parse_args()
 
