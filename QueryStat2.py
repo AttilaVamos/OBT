@@ -349,7 +349,7 @@ class WriteStatsToFile(object):
             #  Add time to distinguish different result on same day
             shortJobname += '-' + items[itemsLen-1]
         if itemsLen == 3:
-            # Old jobanem it contains only the ECL name, date and time
+            # Old jobname it contains only the ECL name, date and time
             # Check if there are any verson parameters and if yes add it/them into the jobname
             # wuQuery = self.host +'/WsWorkunits/WUInfo.json?Wuid='+wuid
             #wuQuery = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUInfo.json?Wuid="+wuid
@@ -577,6 +577,9 @@ class WriteStatsToFile(object):
                 if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] in workunitFilter[self.allWorkunits]):
                     (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
 
+                    self.myPrint("%5d\%d WUID: %s, job name: %s" % (index, numOfWorkunits, stat['Wuid'],  stat['Jobname']))
+                    index += 1
+
                     clusterTime = self.convertTimeStringToSec(stat['TotalClusterTime'])
                     compileTimeHeaders = ''
                     compileTimeDetails = ''
@@ -585,6 +588,7 @@ class WriteStatsToFile(object):
                     compileTimeValue = compileTimes['compile']
                     for key in sorted(compileTimes):
                         if key == 'compile':
+                            #It is already handled
                             continue
                             
                         compileTimeHeaders += "," + key
@@ -596,10 +600,6 @@ class WriteStatsToFile(object):
                         headerWritten = True
                         if self.addHeader: 
                             statFile.write( "%s%s\n" % ("jobName,clusterTime,compileTime", compileTimeHeaders ))
-
-                        
-                    self.myPrint("%5d\%d WUID: %s, job name: %s" % (index, numOfWorkunits, stat['Wuid'],  stat['Jobname']))
-                    index += 1
                     
                     wuCount += 1
 
