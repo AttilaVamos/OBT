@@ -4,7 +4,7 @@ if [[ "$OBT_ID" =~ "OBT-AWS" ]]
 then
     SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
     SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
-        SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
+    SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
 else
     SSH_KEYFILE="~/hpcc_keypair.pem"
     SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
@@ -26,7 +26,7 @@ rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  centos@${S
 
 if [[ -d ~/Perfstat ]]
 then
-    # Archive previous month perfstat files into 'perfstats-YYYY-MM.zip' file
+    # Archive previous month's perfstat files into 'perfstats-YYYY-MM.zip' file
     pushd ~/Perfstat
     
     prevMonth=$(date --date "$today - 1month" +%m)
@@ -34,6 +34,14 @@ then
     prevMonthYearLong=$(date --date "$today - 1month" +%Y)
 
     find . -iname 'perfstat-*-'$prevMonthYear$prevMonth'*.c*' -type f -print | zip -m perfstats-$prevMonthYearLong-$prevMonth.zip -@
+    
+    # Same for this month's perfstat files into 'perfstats-YYYY-MM.zip' file
+    thisMonth=$(date +%m)
+    thisMonthYear=$(date +%y)
+    thisMonthYearLong=$(date +%Y)
+  
+    find . -iname 'perfstat-*-'$thisMonthYear$thisMonth'*.c*' -type f -print | zip -m perfstats-$thisMonthYearLong-$thisMonth.zip -@
+    
     popd
     
     rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/Perfstat/
