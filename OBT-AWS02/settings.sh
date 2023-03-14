@@ -44,17 +44,21 @@ then
     )
 else
     # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-8.12.x' 'master' )
+    BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x' 'master' )
 
     # For versioning
     RUN_1=("BRANCH_ID=master")
-    RUN_2=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_3=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
+    RUN_2=("BRANCH_ID=candidate-9.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_3=("BRANCH_ID=candidate-9.0.x" "KEEP_VCPKG_CACHE=1")
+    RUN_4=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
+    RUN_5=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
 
     RUN_ARRAY=(
         RUN_1[@]
         RUN_2[@]
         RUN_3[@]
+        RUN_4[@]
+        RUN_5[@]
     )
 fi
 #
