@@ -471,7 +471,12 @@ echo "Start at ${CURRENT_DATE}" > ${BUILD_LOG_FILE} 2>&1
 WriteLog "Generate makefiles ( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 WriteLog "Build docs: ${BUILD_DOCS}" "${OBT_BUILD_LOG_FILE}"
 export BUILD_DOCS
+
+BUILD_START_TIME_STAMP=$(date +%s)
+
+TIME_STAMP=$(date +%s)
 ${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
+CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
 WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} (${REGRESSION_NUMBER_OF_THOR_SLAVES} sl/${REGRESSION_NUMBER_OF_THOR_CHANNELS} ch) ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 
@@ -484,6 +489,15 @@ WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
 ${CMD} >> ${BUILD_LOG_FILE} 2>&1
 
 BUILD_TIME=$(( $(date +%s) - $TIME_STAMP ))
+
+# Create package
+TIME_STAMP=$(date +%s)
+CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
+WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
+${CMD} >> ${BUILD_LOG_FILE} 2>&1
+PKG_TIME=$(( $(date +%s) - $TIME_STAMP ))
+
+WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
 
 if [ $? -ne 0 ] 
 then
@@ -500,7 +514,10 @@ else
       buildResult=SUCCEED
    fi
 fi
-echo "Elaps:$( SecToTimeStr ${BUILD_TIME} )" >> ${BUILD_LOG_FILE}
+echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >> ${BUILD_LOG_FILE}
+echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >> ${BUILD_LOG_FILE}
+echo "Package:$( SecToTimeStr ${PKG_TIME} )" >> ${BUILD_LOG_FILE}
+echo "Elaps:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> ${BUILD_LOG_FILE}
 
 CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
 WriteLog "Build end at ${CURRENT_DATE}" "${OBT_BUILD_LOG_FILE}"

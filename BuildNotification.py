@@ -322,21 +322,45 @@ class BuildTask( Task ):
         
         logLines = open( self.logFileFileSystem ).readlines()
 
-        i = 5
-        p = re.compile('\s*Build succeed\s*$')
-        e = re.compile('\s*Elaps:(.*)$')
+        i = 8
+        result = re.compile('\s*Build succeed\s*$')
+        elaps = re.compile('\s*Elaps:(.*)$')
+        cmake = re.compile('\s*CMake:(.*)$')
+        build = re.compile('\s*Build:(.*)$')
+        package = re.compile('\s*Package:(.*)$')
         for line in reversed(logLines):
-            m = p.match( line )
+            m = result.match( line )
             if m:
                 self._status = self._result = 'PASSED'
+                continue 
                 
-            m = e.match( line )
+            m = elaps.match( line )
             if m:
-                self._elapsTime.append(m.group(1))
+                self._elapsTime.append("Altogether:" + m.group(1))
+                continue 
+                
+            m = cmake.match( line )
+            if m:
+                self._elapsTime.append(line)
+                continue 
+                
+            m = build.match( line )
+            if m:
+                self._elapsTime.append(line)
+                continue 
+                
+            m = package.match( line )
+            if m:
+                self._elapsTime.append(line)
+                continue 
           
             i -= 1
             #print( line, end='' )
             if i == 0: break 
+            
+        # The build.log processed from back, therefore all ties are
+        # in reverse order, Restore the original sequence
+        self._elapsTime.reverse()
         
         if self._result == 'FAILED':
             errline = re.compile('\s([Ee]rror[:]*|[Ff]ailed|!checking|http[s]?:)\s.*$')
