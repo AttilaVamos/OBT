@@ -728,7 +728,7 @@ done
 if [[ -f $OBT_BIN_DIR/QueryStat2.py ]]
 then
     WriteLog "Get tests stat..." "${REGRESS_LOG_FILE}"
-    CMD="$OBT_BIN_DIR/QueryStat2.py -p ${HOME}/Perfstat/ -d '' -a --timestamp --compileTimeDetails "
+    CMD="$OBT_BIN_DIR/QueryStat2.py -p ${HOME}/Perfstat/ -d '' -a --timestamp --compileTimeDetails 1 "
     WriteLog "  CMD: '$CMD'" "${REGRESS_LOG_FILE}"
     ${CMD} >> ${REGRESS_LOG_FILE} 2>&1
     retCode=$( echo $? )
