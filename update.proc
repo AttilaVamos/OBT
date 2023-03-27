@@ -29,7 +29,7 @@ if [ -d ~/OBT ]
 then
     pushd ~/OBT
 
-    res=$( git pull 2>&1 )
+    res=$( git pull origin master 2>&1 )
     echo "${res}"  >> ${logFile}
     echo "${res}"
 
