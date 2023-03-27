@@ -43,11 +43,14 @@ exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | egrep $YM 
 echo "Start ML test log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'ml*.log' -type f -print | egrep $YM | sort | zip -u MlLogCollection-$YM -@  > MlLogCollection-$YM.log &
 
-echo "Start unit WUTool test log collection..."
+echo "Start WUTool test log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
 
 echo "Start build log collection..."
 exec find ${STAGING_DIR_ROOT} -iname 'build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
+
+echo "Start misc (report.htm, GlobalExclusion and git_2days) log collection..."
+exec find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f -print | egrep $YM | sort | zip -u MiscLogCollection-$YM  -@  > MiscLogCollection-$YM.log &
 
 echo "Wait for processes finished."
 
