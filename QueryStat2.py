@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #
 # Query and store Perfromance Test suite results by clusters and store them into 
@@ -195,6 +195,14 @@ class WriteStatsToFile(object):
         self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits"
         self.obtSystem = options.obtSystem
         self.buildBranch = options.buildBranch
+        
+        # To query use: "http://" + self.host + ":" + self.port + "/WsSMC/Activity.json"
+        # "ActivityResponse": {"Build": "community_7.12.0-1Debug[community_7.12.0-1-dirty]"}
+        if options.buildType != None:
+            self.buildType = options.buildType
+        else:
+            self.buildType = ''
+            
         #global compileTimeQuery
         self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host).replace('<ESP_PORT>',  self.port)
         
@@ -517,6 +525,8 @@ class WriteStatsToFile(object):
         if self.buildBranch != None:
             self.resultConfigClass[cluster].set('Build', 'BuildBranch', self.buildBranch)
         
+        self.resultConfigClass[cluster].set('Build', 'BuildType', self.buildType)
+        
         if self.jobNameSuffix != '':
             queryJobname = "*" + self.jobNameSuffix + "-*"
         else:
@@ -710,6 +720,10 @@ if __name__ == '__main__':
     parser.add_option("--compileTimeDetails",  dest="compileTimeDetailsDepth",  default=0, 
                         help="Set compile time detals. 0 (def) only compile time, 1 one level deeper, 2more compile details, but it can contains compile time from more than one c++ source, so the file header may only partially valid. It may extend the CSV file headers",  
                         metavar="COMPILETIMEDETAILSDEPTH")
+
+    parser.add_option("--buildType",  dest="buildType",  default=None,  type="string", 
+                        help="Platform build type. Default is None (until I found out how to query it.)",  
+                        metavar="BUILDTYPE")
                         
     (options, args) = parser.parse_args()
 
