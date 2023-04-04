@@ -207,8 +207,9 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-# Always build in Debug mode
-DEBUG_BUILD_DAY=8
+# A day when we build Debug version
+# Use 8 for disable Debug build
+DEBUG_BUILD_DAY=0  #Sunday
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")
