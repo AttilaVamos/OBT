@@ -40,7 +40,7 @@ def createMsg(config):
 
     for test in tests:
         file = test+"-performance-test.log" 
-        print file
+        print( file)
     try:
             temp = open(file).readlines( )
             part = MIMEBase('application', 'octet-stream')
