@@ -463,7 +463,7 @@ PYTHON_PLUGIN=''
 COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
 
-#REGRESSION_REPORT_SENDER="attila.vamos@lexisnexisrisk.com"
+REGRESSION_REPORT_SENDER="\"${OBT_ID,,}\"$USER"
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 

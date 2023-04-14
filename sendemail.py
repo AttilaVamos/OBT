@@ -30,7 +30,7 @@ class BuildNotificationConfig( object ):
 def createMsg(config):
     logDir = config.get( 'Environment', 'PerformanceResultDir' ) 
     curDir = os.getcwd()
-    os.chdir( logDir )
+    #os.chdir( logDir )
     tests = config.get( 'Performance', 'TestList' ) .split(',')
     msgText['From'] = config.get( 'Email', 'Sender')
     msgText['To']     = config.get( 'Email', 'Receivers')
