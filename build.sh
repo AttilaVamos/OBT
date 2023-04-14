@@ -556,13 +556,12 @@ then
     if [ -f "$hpcc_package" ]
     then    
         WriteLog "Archive the package" "${OBT_BUILD_LOG_FILE}"
-
         cp $hpcc_package  $TARGET_DIR/
-        res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/$hpcc_package 2>&1 )
 
         WriteLog "Clean-up /opt/HPCCSystems/lib and plugins directories" "${OBT_BUILD_LOG_FILE}"
         sudo rm -rf /opt/HPCCSystems/lib/ /opt/HPCCSystems/plugins/
-        
+
+        res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/$hpcc_package 2>&1 )
         WriteLog "Install package" "${OBT_BUILD_LOG_FILE}"
 
         echo "${res}" > install.log
