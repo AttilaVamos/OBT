@@ -477,9 +477,9 @@ CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
 WriteLog "Start at ${CURRENT_DATE}" "${OBT_BUILD_LOG_FILE}"
 echo "Start at ${CURRENT_DATE}" > ${BUILD_LOG_FILE} 2>&1
 
-CMAKE_TIME='N/A'
-BUILD_TIME='N/A'
-PKG_TIME='N/A'
+CMAKE_TIME=0
+BUILD_TIME=0
+PKG_TIME=0
 
 BUILD_START_TIME_STAMP=$(date +%s)
 hpcc_package=$( find . -maxdepth 1 -iname 'hpcc*'${PKG_EXT} -type f -print)
