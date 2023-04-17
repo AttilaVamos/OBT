@@ -585,7 +585,7 @@ then
         sudo rm -rf /opt/HPCCSystems/lib/ /opt/HPCCSystems/plugins/
         
         WriteLog "Clean-up build/vcpkg_* directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-        rm -rf ${BUILD_HOME}/vcpkg_*
+        rm -rf ${BUILD_HOME}/vcpkg_downloads ${BUILD_HOME}/vcpkg_buildtrees ${BUILD_HOME}/vcpkg_packages
 
         res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/$hpcc_package 2>&1 )
         WriteLog "Install package" "${OBT_BUILD_LOG_FILE}"
