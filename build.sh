@@ -81,24 +81,33 @@ mkdir ${buildTarget}
 
 ln -s ${buildTarget} build
 
-BASE_VERSION=${BRANCH_ID#candidate-}
-BASE_VERSION=${BASE_VERSION%.*}
-[[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
-WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$OBT_BUILD_LOG_FILE"
-
-if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
+[ ! -d  $OBT_BIN_DIR/PkgCache/$BRANCH_ID ] && mkdir -p  $OBT_BIN_DIR/PkgCache/$BRANCH_ID
+builtPackage=$( find $OBT_BIN_DIR/PkgCache/$BRANCH_ID/ -maxdepth 1 -iname 'hpccsystems*' -type f )
+if [[ -n "$builtPackage" ]]
 then
-    WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
-    
-    pushd build
-    res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
-    popd
-    
-    WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
-    WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+    WriteLog "Platform package for $BRANCH_ID found in cache, copy it into build dir." "${OBT_BUILD_LOG_FILE}"
+    res=$(cp -v $builtPackage build/ 2>&1)
+    WriteLog "res:$res" "${OBT_BUILD_LOG_FILE}"
 else
-    WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+    BASE_VERSION=${BRANCH_ID#candidate-}
+    BASE_VERSION=${BASE_VERSION%.*}
+    [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+    VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
+    WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$OBT_BUILD_LOG_FILE"
+
+    if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
+    then
+        WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
+        
+        pushd build
+        res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+        popd
+        
+        WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
+        WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+    else
+        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+    fi
 fi
 
 if [[ -d /usr/share/systemtap/tapset ]]
@@ -468,35 +477,44 @@ CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
 WriteLog "Start at ${CURRENT_DATE}" "${OBT_BUILD_LOG_FILE}"
 echo "Start at ${CURRENT_DATE}" > ${BUILD_LOG_FILE} 2>&1
 
-WriteLog "Generate makefiles ( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
-WriteLog "Build docs: ${BUILD_DOCS}" "${OBT_BUILD_LOG_FILE}"
-export BUILD_DOCS
+CMAKE_TIME='N/A'
+BUILD_TIME='N/A'
+PKG_TIME='N/A'
 
 BUILD_START_TIME_STAMP=$(date +%s)
+hpcc_package=$( find . -maxdepth 1 -iname 'hpcc*'${PKG_EXT} -type f -print)
+if [ -z "$hpcc_package" ]
+then    
+    WriteLog "Generate makefiles ( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Build docs: ${BUILD_DOCS}" "${OBT_BUILD_LOG_FILE}"
+    export BUILD_DOCS
 
-TIME_STAMP=$(date +%s)
-${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
-CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    TIME_STAMP=$(date +%s)
+    ${OBT_BIN_DIR}/build_pf.sh HPCC-Platform ${BUILD_TYPE} >> ${BUILD_LOG_FILE} 2>&1
+    CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
-WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} (${REGRESSION_NUMBER_OF_THOR_SLAVES} sl/${REGRESSION_NUMBER_OF_THOR_CHANNELS} ch) ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Build ${BRANCH_ID} ${BUILD_TYPE} (${REGRESSION_NUMBER_OF_THOR_SLAVES} sl/${REGRESSION_NUMBER_OF_THOR_CHANNELS} ch) ...( $( pwd ) )" "${OBT_BUILD_LOG_FILE}"
 
-TIME_STAMP=$(date +%s)
+    TIME_STAMP=$(date +%s)
 
-CMD="make -j ${NUMBER_OF_BUILD_THREADS}"
+    CMD="make -j ${NUMBER_OF_BUILD_THREADS}"
 
-WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
+    WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
 
-${CMD} >> ${BUILD_LOG_FILE} 2>&1
+    ${CMD} >> ${BUILD_LOG_FILE} 2>&1
 
-BUILD_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    BUILD_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
-# Create package
-TIME_STAMP=$(date +%s)
-CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
-WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
-${CMD} >> ${BUILD_LOG_FILE} 2>&1
-PKG_TIME=$(( $(date +%s) - $TIME_STAMP ))
-
+    # Create package
+    TIME_STAMP=$(date +%s)
+    CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
+    WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
+    ${CMD} >> ${BUILD_LOG_FILE} 2>&1
+    PKG_TIME=$(( $(date +%s) - $TIME_STAMP ))
+else
+    WriteLog "Build skipped, use cached install package: '$hpcc_package'." "${OBT_BUILD_LOG_FILE}"
+fi
+    
 WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
 
 if [ $? -ne 0 ] 
@@ -557,9 +575,17 @@ then
     then    
         WriteLog "Archive the package" "${OBT_BUILD_LOG_FILE}"
         cp $hpcc_package  $TARGET_DIR/
-
+        
+        WriteLog "Copy package into the cache" "${OBT_BUILD_LOG_FILE}"
+        [ ! -d  $OBT_BIN_DIR/PkgCache/$BRANCH_ID ] && mkdir -p  $OBT_BIN_DIR/PkgCache/$BRANCH_ID
+        res=$( cp -v $hpcc_package $OBT_BIN_DIR/PkgCache/$BRANCH_ID/ 2>&1)
+        WriteLog "res:$res" "${OBT_BUILD_LOG_FILE}"
+        
         WriteLog "Clean-up /opt/HPCCSystems/lib and plugins directories" "${OBT_BUILD_LOG_FILE}"
         sudo rm -rf /opt/HPCCSystems/lib/ /opt/HPCCSystems/plugins/
+        
+        WriteLog "Clean-up build/vcpkg_* directories to save disk space." "${OBT_BUILD_LOG_FILE}"
+        rm -rf ${BUILD_HOME}/vcpkg_*
 
         res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/$hpcc_package 2>&1 )
         WriteLog "Install package" "${OBT_BUILD_LOG_FILE}"

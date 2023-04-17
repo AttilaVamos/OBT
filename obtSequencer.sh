@@ -182,5 +182,8 @@ fi
 # Clean-up to prevent the next session stalls on an existing build*.log file.
 rm -v /tmp/build*
 
+# Clean-up package cache
+[[ -d $OBT_BIN_DIR/PkgCache ]] && rm -rf $OBT_BIN_DIR/PkgCache/*
+
 echo "End."
 

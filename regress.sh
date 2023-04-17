@@ -631,13 +631,14 @@ do
             WriteLog "Regression setup on ${cluster} returns with ${retCode}" "${REGRESS_LOG_FILE}"
             #                                  get part from        Start        End             Remove  END              &  empyt line
             inSuiteErrorLog=$( cat ${REGRESS_LOG_FILE} | sed -n "/\[Error\]/,/Suite destructor./ { /Suite destructor./d ; /^$/d ; p }" )
-            WriteLog "${inSuiteErrorLog}" "${REGRESS_LOG_FILE}"
+            WriteLog "inSuiteErrorLog:${inSuiteErrorLog}" "${REGRESS_LOG_FILE}"
             grep -i passed ${TEST_ROOT}/setup.summary 
             [ $? -eq 0 ] && echo -n "," >> ${OBT_LOG_DIR}/setup.summary 
             echo -n "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " >> ${TEST_ROOT}/setup.summary
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/setup.summary
             WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
             
+            WriteLog "Exit with code 7" "${REGRESS_LOG_FILE}"
             exit 7
         fi
     else
