@@ -590,8 +590,11 @@ then
             BASE_VERSION=${BASE_VERSION%.*}
             [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
             WriteLog "Create fresh vcpkg_download-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
+            # We need relative paths to use this archive in Smoketest as well
+            pushd ${BUILD_HOME}
             mv -fv ~/vcpkg_downloads-${BASE_VERSION}.zip ~/vcpkg_downloads-${BASE_VERSION}-old.zip
-            zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip ${BUILD_HOME}/vcpkg_installed/*
+            zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
+            popd
 
             WriteLog "Clean-up build/vcpkg_* directories to save disk space." "${OBT_BUILD_LOG_FILE}"
             rm -rf ${BUILD_HOME}/vcpkg_downloads ${BUILD_HOME}/vcpkg_buildtrees ${BUILD_HOME}/vcpkg_packages
