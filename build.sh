@@ -589,15 +589,17 @@ then
             BASE_VERSION=${BRANCH_ID#candidate-}
             BASE_VERSION=${BASE_VERSION%.*}
             [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-            WriteLog "Create fresh vcpkg_download-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Create fresh vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
             # We need relative paths to use this archive in Smoketest as well
             pushd ${BUILD_HOME}
             mv -fv ~/vcpkg_downloads-${BASE_VERSION}.zip ~/vcpkg_downloads-${BASE_VERSION}-old.zip
             zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
-            popd
+            zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
 
             WriteLog "Clean-up build/vcpkg_* directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-            rm -rf ${BUILD_HOME}/vcpkg_downloads ${BUILD_HOME}/vcpkg_buildtrees ${BUILD_HOME}/vcpkg_packages
+            rm -rf vcpkg_downloads vcpkg_buildtrees vcpkg_packages
+
+            popd
         else
             WriteLog "VCPKG not used for build." "${OBT_BUILD_LOG_FILE}"
         fi
@@ -648,6 +650,7 @@ then
         WriteLog "There is an unwanted lib64 directory, copy its contents into lib" "${OBT_BUILD_LOG_FILE}"
         sudo cp -v /opt/HPCCSystems/lib64/* /opt/HPCCSystems/lib/
     fi
+    cp ${OBT_BUILD_LOG_FILE} $TARGET_DIR/obt-build.log
  
 else
    echo "BuildResult:FAILED" >   $TARGET_DIR/build_summary
@@ -663,7 +666,6 @@ else
    cd ${OBT_BIN_DIR}
    ./BuildNotification.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} >> "${OBT_BUILD_LOG_FILE}" 2>&1
 
-
+   cp ${OBT_BUILD_LOG_FILE} $TARGET_DIR/obt-build.log
    ExitEpilog "${OBT_BUILD_LOG_FILE}" "-1"
-
 fi
