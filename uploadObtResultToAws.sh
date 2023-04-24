@@ -48,9 +48,9 @@ then
 
 fi
 
-vcpkgZips=$(find ~/ -maxdepth 1 -iname 'vcpkg_downloads_*.zip' -type f )
+vcpkgZips=$(find ~/ -maxdepth 1 -iname 'vcpkg_downloads-*[rx].zip' -type f )
 if [[ -n "$vcpkgZips" ]]
 then
-    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/vcpkg_downloads*.zip  centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
+    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/vcpkg_downloads*.zip  centos@${SSH_TARGET}:/home/centos/OBT/
 fi
 
