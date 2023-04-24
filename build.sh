@@ -595,6 +595,7 @@ then
             changesInInstalled=1
             changesInDownloads=1
             if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
+            then
                 cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
                 changesInInstalled=$(zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* | wc -l)
                 changesInDownloads=$(zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* | wc -l)
