@@ -589,12 +589,29 @@ then
             BASE_VERSION=${BRANCH_ID#candidate-}
             BASE_VERSION=${BASE_VERSION%.*}
             [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-            WriteLog "Create fresh vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
             # We need relative paths to use this archive in Smoketest as well
             pushd ${BUILD_HOME}
-            mv -fv ~/vcpkg_downloads-${BASE_VERSION}.zip ~/vcpkg_downloads-${BASE_VERSION}.zip-old
-            zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
-            zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+            changesInInstalled=1
+            changesInDownloads=1
+            if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
+                cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
+                changesInInstalled=$(zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* | wc -l)
+                changesInDownloads=$(zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* | wc -l)
+            fi
+
+            if [[ $changesInInstalled -ne 0 || $changesInDownloads -ne 0 ]]
+            then
+                # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
+                # because it can contain older version of components along with the new one and
+                # its size can grows more than necessary.
+                WriteLog "Something changed (installed:$changesInInstalled, downloads:$changesInDownloads).\nGenerate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+                zip -ru ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
+                zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+            else
+                WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+            fi
+            [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
 
             WriteLog "Clean-up build/vcpkg_* directories to save disk space." "${OBT_BUILD_LOG_FILE}"
             rm -rf vcpkg_downloads vcpkg_buildtrees vcpkg_packages
