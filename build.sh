@@ -592,7 +592,7 @@ then
             WriteLog "Create fresh vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
             # We need relative paths to use this archive in Smoketest as well
             pushd ${BUILD_HOME}
-            mv -fv ~/vcpkg_downloads-${BASE_VERSION}.zip ~/vcpkg_downloads-${BASE_VERSION}-old.zip
+            mv -fv ~/vcpkg_downloads-${BASE_VERSION}.zip ~/vcpkg_downloads-${BASE_VERSION}.zip-old
             zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
             zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
 
