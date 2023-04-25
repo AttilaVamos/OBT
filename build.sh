@@ -597,19 +597,19 @@ then
             if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
             then
                 cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
-                changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* | wc -l )
+                changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
                 WriteLog "Changes in installed: $changesInInstalled." "${OBT_BUILD_LOG_FILE}"
                                 
-                changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* | wc -l )
+                changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
                 WriteLog "Changes in downloads: $changesInDownloads." "${OBT_BUILD_LOG_FILE}"
             fi
 
-            if [[ $changesInInstalled -ne 0 || $changesInDownloads -ne 0 ]]
+            if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
             then
                 # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
                 # because it can contain older version of components along with the new one and
                 # its size can grows more than necessary.
-                WriteLog "Something changed (installed:$changesInInstalled, downloads:$changesInDownloads).\nGenerate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
                 [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
                 zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
                 zip ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
