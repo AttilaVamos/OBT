@@ -607,8 +607,10 @@ then
                 # because it can contain older version of components along with the new one and
                 # its size can grows more than necessary.
                 WriteLog "Something changed (installed:$changesInInstalled, downloads:$changesInDownloads).\nGenerate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
-                zip -ru ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
-                zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+                res=$( zip -ru ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* 2>&1 )
+                WriteLog "Result of update vcpkg_installed: $res." "${OBT_BUILD_LOG_FILE}"
+                res=$( zip -u ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* 2>&1 )
+                WriteLog "Result of update vcpkg_downloads: $res." "${OBT_BUILD_LOG_FILE}"
             else
                 WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
             fi
