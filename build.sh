@@ -592,16 +592,17 @@ then
             WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
             # We need relative paths to use this archive in Smoketest as well
             pushd ${BUILD_HOME}
+            rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
             changesInInstalled=1
             changesInDownloads=1
             if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
             then
                 cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
                 changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
-                WriteLog "Changes in installed: $changesInInstalled." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Changes in installed: '$changesInInstalled'." "${OBT_BUILD_LOG_FILE}"
                                 
                 changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
-                WriteLog "Changes in downloads: $changesInDownloads." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Changes in downloads: '$changesInDownloads'." "${OBT_BUILD_LOG_FILE}"
             fi
 
             if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
