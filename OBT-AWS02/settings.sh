@@ -52,6 +52,7 @@ else
     RUN_3=("BRANCH_ID=candidate-9.0.x" "KEEP_VCPKG_CACHE=1")
     RUN_4=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
     RUN_5=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
+    RUN_6=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
 
     RUN_ARRAY=(
         RUN_1[@]
@@ -59,6 +60,7 @@ else
         RUN_3[@]
         RUN_4[@]
         RUN_5[@]
+        RUN_6[@]
     )
 fi
 #
