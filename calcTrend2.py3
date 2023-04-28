@@ -111,7 +111,7 @@ class TrendReport(object):
         self.diagramWidth = 16 # Original width
         self.diagramHeight = 10 # Original height 
         self.enableReportGood = True
-        self.enablePlotGeneration = True
+        self.enableTestPlotGeneration = options.enableTestPlotGeneration
         if smallDataSet:
             self.maxDatapoints = 4
         self.numberOfTestDays = 0
@@ -215,6 +215,8 @@ class TrendReport(object):
             testDay = ''
             value = 0.0
  
+            # Regression test based extra parameter, can cause problem to create diagram. Remove
+            line = line.replace("-hpccbasedir('/opt/HPCCSystems/')", "")
             items = line.split(',')
             testNameItems = items[0].split('-')
             testNameLen = len(testNameItems)
@@ -258,7 +260,9 @@ class TrendReport(object):
             date = '20' + nameItems[2][0:2] + '.' + nameItems[2][2:4] + '.' + nameItems[2][4:6]
             
             if len(nameItems) > 3:
-                self.hpccVersion = nameItems[3]
+                # It is the last element
+                self.hpccVersion = nameItems[-1]
+                
                     
             if cluster not in self.results2:
                 self.results2[cluster] = {}
@@ -593,12 +597,12 @@ class TrendReport(object):
         else:
             print(("\tIt is %s." % (tag)))
             
-        if self.enablePlotGeneration:
+        if self.enableTestPlotGeneration:
             self.createPlot(cluster, test, tag)
     
     def createPlot(self,  cluster, test,  tag):
         self.myPrint("cluster:%s, test:%s, tag:%s" % (cluster, test, tag))
-        
+        diagramFileName =''
         try:
 #            print("cluster:%s, test: %s" % (cluster,  test))
             fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
@@ -748,7 +752,8 @@ class TrendReport(object):
             print(("\t %s created." % (diagramFileName)))
             pass
         except Exception as e:
-            PrintException(repr(e) + " No diagram generated")
+            PrintException(repr(e) + " No diagram generated for %s" %(diagramFileName))
+            pass
             
         pass
             
@@ -792,7 +797,7 @@ class TrendReport(object):
             numberOfTests = len(self.results2[cluster])
             testIndex = 0
             
-            reportFileName = self.reportPath+ "perfreport-" + cluster + "-" + dateStr + ".csv"
+            reportFileName = self.reportPath+ "perfreport-" + cluster + "-" + self.hpccVersion + "-" + dateStr + ".csv"
             print(("reportFileName:" + reportFileName))
             reportFile = open(reportFileName,  "w")
             reportFile.write("Testcase,twoDaysTredValue,twoDaysTred,twoDaysTredPercentage,fiveDaysTredValue,fiveDaysTred,fiveDaysTredPercentage,TredValue,Tred,TredPercentage,avg,sigma,fluctuation\n")
@@ -936,11 +941,11 @@ class TrendReport(object):
                 print(("num of bad (increasing) tests:%d, average time of them:%f\n" % (numOfBadTests, averageTimeOfBadTests)))
            
         if self.enablePdfReport:
-            pdfReport.create_pdfdoc(self.reportPath + 'PerformanceTestReport-'+ today.strftime("%y-%m-%d") +'.pdf')
-            pdfShortReport.create_pdfdoc(self.reportPath+'PerformanceTestShortReport-'+ today.strftime("%y-%m-%d") +'.pdf')
+            pdfReport.create_pdfdoc(self.reportPath + 'PerformanceTestReport-' + self.hpccVersion  + "-" + today.strftime("%y-%m-%d") +'.pdf')
+            pdfShortReport.create_pdfdoc(self.reportPath+'PerformanceTestShortReport-' + self.hpccVersion  + "-" + today.strftime("%y-%m-%d") +'.pdf')
 
         # Write out Performance Test summary file
-        summaryFileName = self.reportPath + "perftest-" + dateStr + ".summary"
+        summaryFileName = self.reportPath + "perftest-" + self.hpccVersion  + "-" + dateStr + ".summary"
         print(("summaryFileName:" + summaryFileName))
         summaryFile = open(summaryFileName,  "w")
         summaryFile.write("# cluster, time, twoDaysTredValue, twoDaysTred, twoDaysTredPercentage, fiveDaysTredValue, fiveDaysTred, fiveDaysTredPercentage, TredValue, Tred, TredPercentage\n")
@@ -957,7 +962,7 @@ class TrendReport(object):
         
         # Write out Performance Test totals
         try:
-            totalsFileName = self.reportPath + "perftest-totals" + dateStr + ".csv"
+            totalsFileName = self.reportPath + "perftest-totals" + "-" + self.hpccVersion  + "-" + dateStr + ".csv"
             print(("totalsFileName:" + totalsFileName))
             totalsFile = open(totalsFileName,  "w")
             totalsFile.write("# cluster, date, time\n")
@@ -1009,7 +1014,7 @@ class TrendReport(object):
                 ax.yaxis.set_minor_locator(ml)
                 
             ax.grid(True, which='both')
-            myTitle = 'Performance Suite execution time trends in the last '+ str(dataPoints) +' days'
+            myTitle = 'Performance Suite execution time trends on ' +  self.hpccVersion +' in the last '+ str(dataPoints) +' days'
             myTitle += self.getTestInfo(cluster)
             ax.set_title(myTitle)
             ax.set_xlabel('Date')
@@ -1017,7 +1022,7 @@ class TrendReport(object):
             ax.legend(loc = 'best')
 
             #plt.show()
-            plt.savefig(self.reportPath + "perftest-" + dateStr + ".png")
+            plt.savefig(self.reportPath + "perftest-" + self.hpccVersion + "-" + dateStr + ".png")
             pass
             
         self.handleIssues()
@@ -1133,6 +1138,10 @@ if __name__ == "__main__":
     parser.add_option("--enableMax", dest="enableMax", default=False, action="store_true", 
                       help="Enable to draw Max values. Default is False"
                       , metavar="ENABLEMAX")
+
+    parser.add_option("--enableTestPlotGeneration", dest="enableTestPlotGeneration", default=False, action="store_true", 
+                      help="Enable to generate diagram for each test case. Default is False"
+                      , metavar="ENABLETESTPLOTGENERATION")
 
     (options, args) = parser.parse_args()
 
