@@ -84,7 +84,7 @@ NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | 
 SPEED_OF_CPUS=$( grep 'cpu MHz' /proc/cpuinfo | awk '{print $4}' | sort -nru | head -1 | cut -d. -f1 )
 SPEED_OF_CPUS_UNIT='MHz'
 
-BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 )
+BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 | tr -d ' ' )
 
 MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 
@@ -617,9 +617,9 @@ PERF_EXCLUDE_CLASS="-e stress"
 #PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
 PERF_QUERY_LIST="02bb_sort*"
 
-PERF_FLUSH_DISK_CACHE="--flushDiskCache --flushDiskCachePolicy 1 "
+PERF_FLUSH_DISK_CACHE="" #"--flushDiskCache --flushDiskCachePolicy 1 "
 # Dont use this setting (yet)
-PERF_RUNCOUNT="--runcount 20"
+PERF_RUNCOUNT="" # "--runcount 20"
 
 PERF_TEST_MODE="STD"
 

@@ -198,10 +198,7 @@ class WriteStatsToFile(object):
         
         # To query use: "http://" + self.host + ":" + self.port + "/WsSMC/Activity.json"
         # "ActivityResponse": {"Build": "community_7.12.0-1Debug[community_7.12.0-1-dirty]"}
-        if options.buildType != None:
-            self.buildType = options.buildType
-        else:
-            self.buildType = ''
+        self.buildType = options.buildType
             
         #global compileTimeQuery
         self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host).replace('<ESP_PORT>',  self.port)
@@ -386,6 +383,8 @@ class WriteStatsToFile(object):
                         #versionInfo += value + '('+debugValue['Value']+')'
                 if len(versionsFromDebug) > 0: 
                     versionInfo = ''.join(sorted(versionsFromDebug))
+                    # Regression test based extra parameter, can cause problem to create diagram. Remove
+                    versionInfo = versionInfo.replace("-hpccbasedir('/opt/HPCCSystems/')", "")
                     shortJobname = items[0] + versionInfo
                     
                     if self.dateTransform :
@@ -525,7 +524,8 @@ class WriteStatsToFile(object):
         if self.buildBranch != None:
             self.resultConfigClass[cluster].set('Build', 'BuildBranch', self.buildBranch)
         
-        self.resultConfigClass[cluster].set('Build', 'BuildType', self.buildType)
+        if self.buildType != None:
+            self.resultConfigClass[cluster].set('Build', 'BuildType', self.buildType)
         
         if self.jobNameSuffix != '':
             queryJobname = "*" + self.jobNameSuffix + "-*"
