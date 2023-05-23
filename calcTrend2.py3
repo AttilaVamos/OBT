@@ -110,6 +110,7 @@ class TrendReport(object):
         if smallDataSet:
             self.maxDatapoints = 4
         self.numberOfTestDays = 0
+        self.BuildFilter = "RelWithDebInfo"
         
         if self.verbose:
             print(("self.dataPath       :%s" % (self.dataPath)))
@@ -237,10 +238,10 @@ class TrendReport(object):
                             testName += '-' + testNameItem
                 testDay = '20' + testNameItems[testNameLen-2][0:2] + '.' + testNameItems[testNameLen-2][2:4] + '.' + testNameItems[testNameLen-2][4:6] 
                 value = float(items[1])
-            
+
             return (retCode, testName, loop, testDay, value)
-            
-            
+
+        config = configparser.ConfigParser()
         allFiles = glob.glob(self.dataPath+'perfstat-*.csv')
         allFiles.sort(reverse = True)
         files = self.filterOutOldDatafiles(allFiles)
@@ -263,11 +264,18 @@ class TrendReport(object):
                 self.results2[cluster] = {}
                 self.numOfRuns[cluster] = 0
                 self.clusterTrends[cluster] = {'Dates' : [], 'Totals' :[], 'ConfigName':''}
-                
+
+            # Check build type and skip this file if different build
+            # Te default build type is RelWitDebInfo and it filters out the Debug builds
+            self.clusterTrends[cluster]['ConfigName'] = fileName.replace('.csv', '.cfg')
+            config.read(self.clusterTrends[cluster]['ConfigName'])
+            buildType = config.get("Build", "BuildType")
+            if buildType != self.BuildFilter:
+                continue
+
             if  date not in  self.clusterTrends[cluster]['Dates']:
                 self.clusterTrends[cluster]['Dates'].append(date)
-                
-            self.clusterTrends[cluster]['ConfigName'] = fileName.replace('.csv', '.cfg')
+
             file = open(fileName,  "r")
             for line in file:
                 line = line.strip().replace('\n', '')
