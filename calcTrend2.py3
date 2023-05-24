@@ -110,7 +110,10 @@ class TrendReport(object):
         if smallDataSet:
             self.maxDatapoints = 4
         self.numberOfTestDays = 0
+
+        # These two should be controlled by CLI parameter
         self.BuildFilter = "RelWithDebInfo"
+        self.useAllData = True
         
         if self.verbose:
             print(("self.dataPath       :%s" % (self.dataPath)))
@@ -991,6 +994,9 @@ class TrendReport(object):
             for cluster in sorted(self.clusterTrends):
                 # Plot the data
                 dataPoints = min(self.numOfRuns[cluster],  thirtyDays)
+                if self.useAllData == True:
+                    dataPoints = self.numOfRuns[cluster]
+
                 dates2 = self.createDateSeries(self.clusterTrends[cluster]['Dates'][-dataPoints:], dataPoints)
                 dataPoints = len(dates2)
                 dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
