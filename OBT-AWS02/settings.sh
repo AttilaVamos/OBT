@@ -19,6 +19,18 @@ SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
 
+# A day when we build Debug version
+# Use 8 for disable Debug build
+DEBUG_BUILD_DAY=0  #Sunday
+BUILD_TYPE=RelWithDebInfo
+
+WEEK_DAY=$(date "+%w")
+
+if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
+then
+    BUILD_TYPE=Debug
+fi
+
 #
 #----------------------------------------------------
 #
@@ -57,16 +69,26 @@ else
     RUN_7=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
     RUN_8=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
 
-    RUN_ARRAY=(
-        RUN_1[@]
-        RUN_2[@]
-        RUN_3[@]
-        RUN_4[@]
-        RUN_5[@]
-        RUN_6[@]
-#        RUN_7[@]
-#        RUN_8[@]
-    )
+   if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
+   then
+        RUN_ARRAY=(
+            RUN_1[@]
+            RUN_2[@]
+            RUN_3[@]
+            RUN_4[@]        
+            RUN_5[@]
+            RUN_6[@]
+        #        RUN_7[@]
+        #        RUN_8[@]
+        )
+    else
+        RUN_ARRAY=(
+            RUN_1[@]
+            RUN_2[@]
+            RUN_3[@]
+            RUN_4[@]   
+        )
+    fi
 fi
 #
 #----------------------------------------------------
@@ -214,17 +236,6 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-# A day when we build Debug version
-# Use 8 for disable Debug build
-DEBUG_BUILD_DAY=0  #Sunday
-BUILD_TYPE=RelWithDebInfo
-
-WEEK_DAY=$(date "+%w")
-
-if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
-then
-    BUILD_TYPE=Debug
-fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
