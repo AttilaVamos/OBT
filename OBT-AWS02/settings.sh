@@ -72,12 +72,12 @@ else
    if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
    then
         RUN_ARRAY=(
-#            RUN_1[@]
+            RUN_1[@]
             RUN_2[@]
             RUN_3[@]
-#            RUN_4[@]        
-#           RUN_5[@]
-#            RUN_6[@]
+            RUN_4[@]        
+           RUN_5[@]
+            RUN_6[@]
         #        RUN_7[@]
         #        RUN_8[@]
         )
