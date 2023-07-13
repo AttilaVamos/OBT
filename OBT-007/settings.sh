@@ -60,8 +60,8 @@ else
         #RUN_5[@]
         RUN_4[@]
         RUN_3[@]
-#        RUN_2[@]
-#        RUN_1[@]
+        RUN_2[@]
+        RUN_1[@]
     )
 fi
 #
