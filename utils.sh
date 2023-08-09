@@ -186,13 +186,14 @@ LatestBrRelease()
 ElementIn()
 {
     lookFor=$1
+    
     if [[ -n "$2" ]]
     then
-        arr="$2"
+        arr=($@)
     fi
     
     local e
-    for e in arr
+    for e in ${arr[@]:1}
     do
         if [[ "$e" == "$lookFor" ]]
         then
