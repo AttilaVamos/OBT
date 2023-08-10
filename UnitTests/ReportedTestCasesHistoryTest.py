@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import ReportedTestCasesHistory as RTCH
 import datetime as dt
 import os

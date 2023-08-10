@@ -1,6 +1,13 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import glob
 import os
+
+
+#import matplotlib as mpl
+#mpl.use('Agg')           # use a non-interactive backend
+#import matplotlib.pyplot as plt
 
 os.environ['testMode'] = '1'
 
@@ -70,8 +77,7 @@ def getOptions():
     
 #
 # Main
-    
-    
+     
 options = getOptions()
 
 tr = TrendReport(options[0])
@@ -139,6 +145,10 @@ for input in inputs:
         
 if failed == 0:
     print("All tests passed!\n")
+    
+#print("\ncreateDateSeries FUNCTION TEST\n")
+
+#print(tr.createDateSeries(["2018.09.11", "2018.11.27", "2018.11.28"], 5))
     
 os.environ['testMode'] = '0'      
 

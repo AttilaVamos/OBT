@@ -1,4 +1,11 @@
-. ./utils.sh
+ #!/bin/bash
+ 
+if [ -f utils.sh ]
+then   
+    . ./utils.sh
+else
+    . ./../utils.sh
+fi
 
 compare()
 {
