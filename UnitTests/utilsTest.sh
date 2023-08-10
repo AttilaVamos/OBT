@@ -48,16 +48,25 @@ echo
 echo "ElementIn Tests"
 echo 
 
-Failed=0  
-
 myArr=("1" "8" "3")
 
 ElementIn "8" ${myArr[@]}
 
 if [ $? == "1" ]
 then
-    echo "Test Passed"
+    echo "Test 1 Passed"
 else
-    echo "Test Failed"
+    echo "Test 1 Failed"
+fi
+
+myArr=("7" "23" "10")
+
+ElementIn "15" ${myArr[@]}
+
+if [ $? == "0" ]
+then
+    echo "Test 2 Passed"
+else
+    echo "Test 2 Failed"
 fi
 
