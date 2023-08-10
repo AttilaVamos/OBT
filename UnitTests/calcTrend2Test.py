@@ -79,8 +79,6 @@ tr = TrendReport(options[0])
 numSummaryFiles = len(glob.glob("perftest-*.summary"))
 numCsvFiles = len(glob.glob("perftest-*.csv"))
 
-# This part of the test is commented out due to an error caused in processResults
-'''
 tr.readData()
 tr.processResults()
 
@@ -95,8 +93,7 @@ if len(glob.glob("perftest-*.csv")) - numCsvFiles == 1:
     print("Pass: Csv File Produced")
 else:
     print("Error: Csv File Not Produced")
-'''
- 
+
 print("\nCALCMOVINGAVERAGE TESTS\n")
 
 inputs = [(2, [2, 3, 8]), (1, [1, 2, 3]), (4, [5, 8, 11, 7])]

@@ -1004,7 +1004,11 @@ class TrendReport(object):
                 
             ax.grid(True, which='both')
             myTitle = 'Performance Suite execution time trends on ' +  self.hpccVersion +' in the last '+ str(dataPoints) +' days'
-            myTitle += self.getTestInfo(cluster)
+            try:
+                myTitle += self.getTestInfo(cluster)
+            except:
+                pass
+                
             ax.set_title(myTitle)
             ax.set_xlabel('Date')
             ax.set_ylabel('Performance Suite execution time (Seconds)')
