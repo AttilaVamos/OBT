@@ -163,5 +163,29 @@ for input in inputs:
 if failed == 0:
     print("All tests passed!\n")
     
+print("\nSEPARATEANDWRAPTESTNAME FUNCTION TEST\n")
+    
+inputs = ["aggds3-keyedfilters(true)-multipart(true)-opremoteread(true)-usesequential(true)", "indexread_keyed-forceremotekeyedfetch(true)-forceremotekeyedlookup(true)-multipart(false)-uselocal(true)"]
+expecteds = ["aggds3\n   keyedfilters(true), multipart(true), opremoteread(true), \n   usesequential(true), ",
+"indexread_keyed\n   forceremotekeyedfetch(true), forceremotekeyedlookup(true), \n   multipart(false), uselocal(true), "]
+
+i = 0
+failed = 0
+
+for input in inputs:
+    name = tr.separateAndWrapTestName(input)
+    
+    if name != expecteds[i]:
+        print("Error")
+        print("Input", input)
+        print(expecteds[i])
+        print(name)
+        failed = 1
+        
+    i += 1
+    
+if failed == 0:
+    print("All tests passed!\n")
+    
 os.environ['testMode'] = '0'      
 
