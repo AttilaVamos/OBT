@@ -387,7 +387,17 @@ REGRESSION_WIPE_OFF_HPCC=1
 EXECUTE_REGRESSION_SUITE=1
 
 REGRESSION_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
-REGRESSION_PARALLEL_QUERIES=$TEST_PARALLEL_QUERIES
+if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
+then
+    REGRESSION_PARALLEL_QUERIES=$TEST_PARALLEL_QUERIES
+else
+    # In Debug build sometimes roxie queries are failed with 
+    # "Pool memory exhausted" caused by system running out from memory
+    # based on a lots of quick queries but slow memory pool reclaim.
+    # It will slow down a bit the regression testing, but doesn't impact the cluster times.
+    # It happenes in 9.2.x and beyond
+    REGRESSION_PARALLEL_QUERIES=$(( $TEST_PARALLEL_QUERIES  * 3 / 4 )) 
+fi
 
 REGRESSION_NUMBER_OF_THOR_SLAVES=4
 
