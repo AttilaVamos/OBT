@@ -18,15 +18,17 @@ if [ -f ./settings.sh ]
 then
     . ./settings.sh
     SOURCE_DIR=$SOURCE_HOME
-    PKG_DIR=$OBT_BIN_DIR/PkgCache
     SUITEDIR=$TEST_ENGINE_HOME
     RTE_DIR=$REGRESSION_TEST_ENGINE_HOME
+    QUERY_STAT2_DIR="$OBT_BIN_DIR"
+    PKG_DIR=$OBT_BIN_DIR/PkgCache
 else
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
     #RTE_DIR="$SOURCE_DIR/testing/regress"
     #RTE_DIR="$HOME/RTE-NEW"
+    QUERY_STAT2_DIR="$RTE_DIR"
 
     PKG_DIR="$HOME/HPCC-Platform-build"
     PKG_IS_DEB=$( type "dpkg" 2>&1 | grep -v -c "not found" )
@@ -88,12 +90,23 @@ echo "baseTag: ${baseTag}"
 base=${baseTag##community_}
 [[ $gold -eq 1 ]] && base=${base%-*}
 baseMajorMinor=${base%.*}
-pkg="*community_$baseMajorMinor$PKG_EXT"
+pkg="*community?$baseMajorMinor*$PKG_EXT"
+#if [ "$PKG_EXT" == ".deb" ]
+#then
+#    pkg="*community_$baseMajorMinor*$PKG_EXT"
+#else
+#    pkg="*community-$baseMajorMinor*$PKG_EXT"
+#fi
 echo "base: ${base}"
 echo "gold:$gold"
 echo "base major.minor:$baseMajorMinor"
 echo "pkg:$pkg"
-CURRENT_PKG=$( ${PKG_QRY_CMD} | grep 'hpccsystems-pl' | awk '{ print $3 }' )
+if [ "$PKG_EXT" == ".deb" ]
+then
+    CURRENT_PKG=$( ${PKG_QRY_CMD} | grep 'hpccsystems-pl' | awk '{ print $3 }' )
+else
+    CURRENT_PKG=$( ${PKG_QRY_CMD} | grep 'hpccsystems-pl' | awk -F - '{ print $3 }' )
+fi
 [ -z "$CURRENT_PKG" ] && CURRENT_PKG="Not installed"
 echo "current installed pkg: $CURRENT_PKG"
 
@@ -180,7 +193,8 @@ then
 
     echo "Run tests."
     pwd
-    EXCLUSIONS='--ef pipefail.ecl,soapcall*,httpcall* -e plugin,3rdparty,embedded,python2,spray'
+    #EXCLUSIONS='--ef pipefail.ecl,soapcall*,httpcall* -e plugin,3rdparty,embedded,python2,spray'
+    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
     
     CONFIG="./ecl-test-minikube.json"
     PQ="--pq 2"
@@ -205,7 +219,7 @@ then
     else
         # For sanity testing on all engines
         #res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info teststdlib* 2>&1 )
-        res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl 2>&1 )
+        res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* 2>&1 )
     fi    
     
     retCode=$?
@@ -219,7 +233,9 @@ then
         echo "${res}" | egrep 'Suite|Queries|Passing|Failure|Elapsed'
     fi
 
+    pushd $QUERY_STAT2_DIR
     ./QueryStat2.py  -a -v  -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p Minikube/ --addHeader --compileTimeDetails 1 --timestamp
+    popd
 
     popd
 else
@@ -243,7 +259,42 @@ fi
 helm uninstall minikube 
 
 # Wait until everyting is down
-while true; do date; e=0; r=0; while read a b c; do r=$(( $r + $a )); e=$(( $e + $b )); printf "%-45s: %s/%s  %s\n" "$c" "$a" "$b"  $( [[ $a -ne $b ]] && echo "starting" || echo "up" ) ; done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); printf "\nExpected: %s, running %s\n" "$e" "$r"; [[ $e -eq 0 ]] && break || sleep 10; done; echo "System is down"
+tryCount=60
+delay=10
+while true
+do
+    date;
+    expected=0;
+    running=0;
+    while read a b c;
+    do
+        running=$(( $running + $a ));
+        expected=$(( $expected + $b ));
+        printf "%-45s: %s/%s  %s\n" "$c" "$a" "$b"  $( [[ $a -ne $b ]] && echo "starting" || echo "up" ) ;
+    done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " ");
+    printf "\nExpected: %s, running %s (%s)\n" "$expected" "$running" "$tryCount";
+
+    [[ $expected -eq 0 ]] && break || sleep $delay;
+
+    tryCount=$(( $tryCount - 1 ))
+
+    if [[ $tryCount -eq 0 ]]
+    then
+        echo "Try count exhauset, but there are $running still runing pods, collect logs about then delete them."
+        # Collect logs from still running pods
+        dirName="$HOME/shared/Minikube/test-$(date +%Y-%m-%d_%H-%M-%S)"; [[ ! -d $dirName ]] && mkdir -p $dirName; kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' | while read p; do [[ "$p" =~ "mydali" ]] && param="mydali" || param=""; echo "pod:$p - $param"; kubectl describe pod $p > $dirName/$p.desc;  kubectl logs $p $param > $dirName/$p.log; done; kubectl get pods > $dirName/pods.log;  kubectl get services > $dirName/services.log;  kubectl describe nodes > $dirName/nodes.desc; minikube logs >  $dirName/all.log 2>&1
+
+        # delete them with 1 Minute grace period
+        for f in `kubectl get pods | grep -v ^NAME | awk '{print $1}'` ;
+        do
+            kubectl delete pod $f --grace-period=60  # or with --force
+        done
+
+        # give it 10 more attempts
+        tryCount=10
+    fi
+done;
+echo "System is down"
 
 minikube stop
 
