@@ -29,19 +29,25 @@ usage()
 getLogs=0
 if [ -f ./settings.sh ]
 then
+    # We are in OBT environment
     . ./settings.sh
     SOURCE_DIR=$SOURCE_HOME
     SUITEDIR=$TEST_ENGINE_HOME
     RTE_DIR=$REGRESSION_TEST_ENGINE_HOME
     QUERY_STAT2_DIR="$OBT_BIN_DIR"
+    PERFSTAT_DIR="$HOME/Perfstat-Minikube/"
     PKG_DIR=$OBT_BIN_DIR/PkgCache
+    EXCLUSIONS='--ef pipefail.ecl,soapcall*,httpcall* -e plugin,3rdparty,embedded,python2,spray'
 else
+    # Non OBT environment, like local VM/BM
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
     #RTE_DIR="$SOURCE_DIR/testing/regress"
     #RTE_DIR="$HOME/RTE-NEW"
     QUERY_STAT2_DIR="$RTE_DIR"
+    PERFSTAT_DIR="Minikube/"
+    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 
     PKG_DIR="$HOME/HPCC-Platform-build"
     PKG_IS_DEB=$( type "dpkg" 2>&1 | grep -v -c "not found" )
@@ -58,6 +64,10 @@ else
         PKG_REM_CMD="rpm -e --nodeps "
     fi
 fi
+
+CONFIG="./ecl-test-minikube.json"
+PQ="--pq 2"
+TIMEOUT="--timeout 1200"
 
 logFile=regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log 
 #gnome-terminal --title "regressMinikube log" -- bash -c "tail -f -n 200 $logFile" &
@@ -109,12 +119,6 @@ base=${baseTag##community_}
 [[ $gold -eq 1 ]] && base=${base%-*}
 baseMajorMinor=${base%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
-#if [ "$PKG_EXT" == ".deb" ]
-#then
-#    pkg="*community_$baseMajorMinor*$PKG_EXT"
-#else
-#    pkg="*community-$baseMajorMinor*$PKG_EXT"
-#fi
 echo "base: ${base}"
 echo "gold:$gold"
 echo "base major.minor:$baseMajorMinor"
@@ -211,12 +215,6 @@ then
 
     echo "Run tests."
     pwd
-    #EXCLUSIONS='--ef pipefail.ecl,soapcall*,httpcall* -e plugin,3rdparty,embedded,python2,spray'
-    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
-    
-    CONFIG="./ecl-test-minikube.json"
-    PQ="--pq 2"
-    TIMEOUT="--timeout 1200"
 
     res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG  $PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
@@ -252,7 +250,7 @@ then
     fi
 
     pushd $QUERY_STAT2_DIR
-    ./QueryStat2.py  -a -v  -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p Minikube/ --addHeader --compileTimeDetails 1 --timestamp
+    ./QueryStat2.py  -a -v  -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp
     popd
 
     popd
