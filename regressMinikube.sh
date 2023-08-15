@@ -11,6 +11,19 @@ myEcho()
     echo "$msg" >> $out 2>&1
 }
 
+usage()
+{
+    echo "usage:"
+    echo "  $0 [-i] [-q] [-h]"
+    echo "where:"
+    echo " -i   - Interactive, stop before unistall helm chart and stop minikube."
+    echo " -q   - Quick test, doesn't execute whole Regression Suite, only a subset"
+    echo "        of it."
+    echo " -h   - This help."
+    echo " "
+
+}
+
 #set -x;
 
 getLogs=0
@@ -52,7 +65,7 @@ logFile=regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log
 
 #set -x
 INTERACTIVE=0
-FULL_REGRESSION=0
+FULL_REGRESSION=1
 
 while [ $# -gt 0 ]
 do
@@ -64,7 +77,12 @@ do
         I)  INTERACTIVE=1
             ;;
                
-        F)  FULL_REGRESSION=1
+        Q)  FULL_REGRESSION=0
+            ;;
+
+        H* | *)  
+            usage
+            exit 1
             ;;
     esac
     shift
@@ -215,11 +233,11 @@ then
     if [[ $FULL_REGRESSION -eq 1 ]]
     then 
         # For full regression on hthor
-        res=$( ./ecl-test run -t hthor --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
+        res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
     else
         # For sanity testing on all engines
         #res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info teststdlib* 2>&1 )
-        res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* 2>&1 )
+        res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib* 2>&1 )
     fi    
     
     retCode=$?
