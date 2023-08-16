@@ -179,6 +179,15 @@ else
     done
 fi
 
+if [[ "$OBT_ID" == "OBT-AWS02" ]]
+then
+    # Run regressMinikube.sh
+    echo "Start regressMinikube.sh..."
+    [ ! -f rte/ecl-test-minikube.json ] && cp -v ecl-test-minikube.json
+    ./regressMinikube.sh 
+    echo "    End."
+fi
+
 # Clean-up to prevent the next session stalls on an existing build*.log file.
 rm -v /tmp/build*
 
