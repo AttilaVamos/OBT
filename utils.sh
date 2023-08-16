@@ -133,7 +133,7 @@ ExitEpilog()
     WriteLog "End of OBT. Something went wrong: in '${myParent}' ($2\n${myTrace})." "$1"
     #echo "End of OBT"
 
-    echo "End of OBT on ${OBT_SYSTEM} with ${BRANCH_ID}. Somethng went wrong: in '${myParent}' ($2\n${myTrace}).\nError:$3" | mailx -s "Problem with OBT on ${OBT_SYSTEM} with ${BRANCH_ID}" -u $USER ${ADMIN_EMAIL_ADDRESS}
+    echo "End of OBT on ${OBT_SYSTEM} with ${BRANCH_ID}. Something went wrong: in '${myParent}' ($2\n${myTrace}).\nError:$3" | mailx -s "Problem with OBT on ${OBT_SYSTEM} with ${BRANCH_ID}" -u $USER ${ADMIN_EMAIL_ADDRESS}
 
 
     if [ "$2." == "$2" ]
