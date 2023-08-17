@@ -1,0 +1,176 @@
+#global:
+#
+# image:
+#    ## It is recommended to name a specific version rather than latest, for any non-trivial deployment
+#    ## For best results, the helm chart version and platform version should match, which is the default if version is
+#    ## not specified. Do not override without good reason as undefined behavior may result. 
+#    ## version: x.y.z
+#    version: "51bd82876f-Debug"
+#    #root: "hpccsystems"    # change this if you want to pull your images from somewhere other than DockerHub hpccsystems
+#    root: "vamosa"
+#    name: "hpcc"
+#    pullPolicy: IfNotPresent
+#    ## If you need to provide credentials to pull your image, they should be added as a k8s secret, and the secret name provided here
+#    # imagePullSecrets: xxx#
+#  privileged: true
+
+#containers: 
+#  securityContext:
+#capabilities:
+# add: [ "SYS_PTRACE" ]
+
+dfuserver:
+- name: dfuserver
+  port: 9945
+#  - containerPort: 9945
+
+#securityContext:
+#- name: securityContext 
+#  privileged: true
+#  capabilities: 
+#   - SYS_PTRACE
+#  readOnlyRootFilesystem: false
+
+eclagent:
+- name: hthor
+  #keepJobs: all
+  ## replicas indicates how many eclagent pods should be started
+  replicas: 3
+  ## maxActive controls how many workunits may be active at once (per replica)
+  maxActive: 4
+  ## prefix may be used to set a filename prefix applied to any relative filenames used by jobs submitted to this queue
+  prefix: hthor
+  ## Set to false if you want to launch each workunit in its own container, true to run as child processes in eclagent pod
+  useChildProcesses: true
+  ## type may be 'hthor' (the default) or 'roxie', to specify that the roxie engine rather than the hthor engine should be used for eclagent workunit processing
+  type: hthor
+  ## The following resources apply to child hThor pods when useChildProcesses=false, otherwise they apply to hThor pod.
+  #resources:
+  #  cpu: "1"
+  #  memory: "1G"
+  allowedPipePrograms: 
+   - "*"
+
+- name: roxie-workunit
+  #keepJobs: all
+  replicas: 1
+  prefix: roxie_workunit
+  maxActive: 20
+  useChildProcesses: true
+  type: roxie
+  #resources:
+  #  cpu: "1"
+  #  memory: "1G"
+  allowedPipePrograms:
+   - "*"
+
+eclccserver:
+- name: myeclccserver
+  keepJobs: all
+  replicas: 2
+  ## Set to false if you want to launch each workunit compile in its own container, true to run as child processes in eclccserver pod.
+  useChildProcesses: true
+  ## If non-zero, and useChildProcesses is false, try spending up to this number of seconds compiling using a child process before switching to 
+  ## a separate container. Speeds up throughput of small jobs.
+  childProcessTimeLimit: 0
+  ## maxActive controls how many workunit compiles may be active at once (per replica)
+  maxActive: 8
+  ## Specify a list of queues to listen on if you don't want this eclccserver listening on all queues. If empty or missing, listens on all queues
+  listen: []
+  ## The following allows eclcc options (names start with a -) and debug options to be defined for each of the workunits that are compiled.
+  #options:
+  #- name: globalAutoHoist
+  #  value: false
+  #  cluster: name   # optional cluster this is applied to
+
+  ## The following resources apply to child compile pods when useChildProcesses=false, otherwise they apply to eclccserver pod.
+  #resources:
+  #  cpu: "1"
+  #  memory: "4G"
+    
+roxie:
+- name: roxie
+  disabled: false
+  prefix: roxie
+  services:
+  - name: roxie
+    servicePort: 9876
+    listenQueue: 200
+    numThreads: 30
+    visibility: local
+  ## replicas indicates the number of replicas per channel
+  replicas: 2  
+  numChannels: 2
+  ## Set serverReplicas to indicate a separate replicaSet of roxie servers, with agent nodes not acting as servers
+  serverReplicas: 0
+  ## Set localAgent to true for a scalable cluster of "single-node" roxie servers, each implementing all channels locally
+  localAgent: false
+  ## Adjust traceLevel to taste (1 is default)
+  traceLevel: 1
+  ## Set mtuPayload to the maximum amount of data Roxie will put in a single packet. This should be just less than the system MTU. Default is 1400
+  # mtuPayload: 3800
+  channelResources:
+  #  cpu: "4"
+  #  memory: "4G"
+    memory: "1G"
+  #serverResources:
+  #  cpu: "1"
+  #  memory: "1G"
+  # Roxie may take a while to start up if there are a lot of queries to load. Yuo may need to 
+  #override the default startup/readiness probing by setting these values
+  #minStartupTime: 30      # How long to wait before initiating startup probing
+  #maxStartupTime: 600     # Maximum time to wait for startup to complete before failing
+  topoServer:
+    replicas: 1
+
+thor:
+- name: thor
+  #keepJobs: all
+  prefix: thor
+  numWorkers: 2
+  maxJobs: 4
+  maxGraphs: 2
+  #managerResources:
+  #  cpu: "1"
+  #  memory: "2G"
+  #workerResources:
+  #  cpu: "4"
+  #  memory: "4G"
+  #eclAgentResources:
+  #  cpu: "1"
+  #  memory: "2G"
+  multiJobLinger: true
+  lingerPeriod: 200
+  logging:
+    detail: 100
+  allowedPipePrograms:
+   - "*"
+
+storage:
+  planes:
+  - name: dali
+    storageClass: ""
+    storageSize: 2Gi
+    prefix: "/var/lib/HPCCSystems/dalistorage"
+    category: dali
+  - name: sasha
+    storageClass: ""
+    storageSize: 1Gi
+    prefix: "/var/lib/HPCCSystems/sashastorage"
+    category: sasha
+  - name: dll
+    storageClass: ""
+    storageSize: 1Gi
+    prefix: "/var/lib/HPCCSystems/queries"
+    category: dll
+  - name: data
+    storageClass: ""
+    storageSize: 3Gi
+    prefix: "/var/lib/HPCCSystems/hpcc-data"
+    category: data
+  - name: mydropzone
+    storageClass: ""
+    storageSize: 1Gi
+    prefix: "/var/lib/HPCCSystems/mydropzone"
+    category: lz
+

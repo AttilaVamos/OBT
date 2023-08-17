@@ -183,8 +183,18 @@ if [[ "$OBT_ID" == "OBT-AWS02" ]]
 then
     # Run regressMinikube.sh
     echo "Start regressMinikube.sh..."
-    [ ! -f rte/ecl-test-minikube.json ] && cp -v ecl-test-minikube.json
-    ./regressMinikube.sh 
+    if [[ -f obt-values.yaml  && -f ecl-test-minikube.json ]]
+    then
+        [ ! -f rte/ecl-test-minikube.json ] && cp -v ecl-test-minikube.json rte/
+        
+        ./regressMinikube.sh 
+        
+        pushd ~/
+        zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
+        popd
+    else
+        echo "Missing 'obt-values.yaml' and/or 'ecl-test-minikube.json' file, skip Minikube testing."
+    fi
     echo "    End."
 fi
 
