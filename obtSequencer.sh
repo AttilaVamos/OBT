@@ -196,6 +196,10 @@ then
         echo "Missing 'obt-values.yaml' and/or 'ecl-test-minikube.json' file, skip Minikube testing."
     fi
     echo "    End."
+    
+    echo "Upload PkgCache to SmoketestScheduler (CA - 10.20.0.215) ..."
+    rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/PkgCache centos@10.20.0.215:/home/centos/
+    echo "    End."
 fi
 
 # Clean-up to prevent the next session stalls on an existing build*.log file.

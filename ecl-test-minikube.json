@@ -18,46 +18,36 @@
         "zapDir":"zap",
         "regressionDir": "~/HPCCSystems-regression",
         "logDir": "~/HPCCSystems-regression/log",
-        "_Engines": [
+        "Engines": [
             "hthor",
-            "thor",
-            "roxie"
-        ],
-        "_ClusterEngine": {
-            "hthor" : "hthor",
-            "thor"  : "thor",
-            "roxie-workunit" : "roxie"
-        },
-        "___Comment___" : "Both ClusterToRun and ClusterToPublish dict contains 'Cluster name' : 'Engine' items",
-        "ClusterToRun": {
-            "hthor" : "hthor",
-            "thor"  : "thor",
-            "roxie-workunit" : "roxie"
-        },
-        "ClusterToPublish": {
-            "hthor" : "hthor",
-            "thor"  : "thor",
-            "roxie" : "roxie"
-        },
-        "___Comment2___" : "All default*Clusters list can holds idividual cluster names, 'all' or any of them can remove.",
-        "defaultSetupTargetClusters": [
             "thor",
             "roxie-workunit"
         ],
-        "defaultSetupPublishClusters": [
-            "all"
-        ],
-        "defaultTargetClusters": [
-            "all"
-        ],
-        "defaultPublishClusters": [
-            "all"
-        ],
-        "timeout":"1800",
+        "Clusters": {
+            "hthor" : "hthor",
+            "thor"  : "thor",
+            "roxie-workunit" : "roxie-workunit"
+        },
+        "ClusterNames": {
+            "hthor" : "myhthor",
+            "thor"  : "mythor",
+            "roxie-workunit" : "myroxie"
+        },
+        "timeout":"3600",
         "maxAttemptCount":"1",
-        "wuStatusTimeout":"1800",
-        "wuAbortTimeout":"360",
+        "wuStatusTimeout":"3600",
+        "wuAbortTimeout":"720",
         "usePoll":"True",
+        "defaultSetupTargets": [
+            "hthor",
+            "thor",
+            "roxie-workunit"
+        ],
+        "defaultTargets": [
+            "hthor",
+            "thor",
+            "roxie-workunit"
+        ],
         "Params":[
             "PassTest.ecl:bla='A value'",
             "httpcall_multiheader.ecl:TargetIP=eclwatch",
@@ -72,7 +62,7 @@
         "engineParams":[
             "failOnLeaks",
             "disableLocalOptimizations",
-            "thorConnectTimeout=1200"
+            "thorConnectTimeout=36000"
         ],
         "setupExtraParams":{
             "OriginalTextFilesOsPath" : "/opt/HPCCSystems/testing/regress",
