@@ -364,7 +364,7 @@ do
 
     if [[ $tryCount -eq 0 ]]
     then
-        WriteLog "Try count exhauset, but there are $running still runing pods, collect logs about then delete them."  "$logFile"
+        WriteLog "Try count exhauset, but there are $running still running pods, collect logs about then delete them."  "$logFile"
         # Collect logs from still running pods
         dirName="$HOME/shared/Minikube/test-$(date +%Y-%m-%d_%H-%M-%S)"; 
         [[ ! -d $dirName ]] && mkdir -p $dirName; 
