@@ -188,6 +188,9 @@ then
         [ ! -f rte/ecl-test-minikube.json ] && cp -v ecl-test-minikube.json rte/
         
         ./regressMinikube.sh 
+
+        echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - 10.20.0.215) ..."
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@10.20.0.215:/home/centos/
         
         pushd ~/
         zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
