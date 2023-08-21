@@ -228,9 +228,10 @@ ulimit -u ${OBT_SYSTEM_NUMBER_OF_PROCESS}
 WriteLog "Increase number of open files to ${OBT_SYSTEM_NUMBER_OF_FILES}." "${OBT_LOG_FILE}"
 ulimit -n ${OBT_SYSTEM_NUMBER_OF_FILES}
 
-res=$( ulimit -a | egrep '[pr]ocesses|open|stack' )
+#res=$( ulimit -a | egrep '[pr]ocesses|open|stack' )
+res=$( ulimit -a )
 
-WriteLog "${res}" "${OBT_LOG_FILE}"
+WriteLog "Limits:\n${res}" "${OBT_LOG_FILE}"
 
 #
 #----------------------------------------------------
