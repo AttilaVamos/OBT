@@ -73,11 +73,11 @@ fi
 CONFIG="./ecl-test-minikube.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
-#QUICK_TEST_SET='teststdlib*'
-QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
+QUICK_TEST_SET='teststdlib*'
+#QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 
-logFile=regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log 
+logFile=$(pwd)/regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log 
 
 WriteLog "Start          : $0 $@" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"

@@ -190,7 +190,11 @@ then
         ./regressMinikube.sh 
 
         echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - 10.20.0.215) ..."
-        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@10.20.0.215:/home/centos/
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@10.20.0.215:/home/centos/AWS-Minikube/
+        
+        echo "Upload regressMinikube-*.log as well ..."
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.log centos@10.20.0.215:/home/centos/AWS-Minikube/
+        zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.log
         
         pushd ~/
         zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
