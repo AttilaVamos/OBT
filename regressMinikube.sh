@@ -134,7 +134,25 @@ WriteLog "$res" "$logFile"
 res=$(git fetch --tags --all 2>&1)
 WriteLog "$res" "$logFile"
 
-baseTag=$( git tag --sort=-creatordate | egrep 'community' | head -n 1 )
+# We need this magic, because somebody can cretate new tag for previous minor or major release
+# and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
+# Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
+# related to the latest branch)
+topTag=$(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 1)
+WriteLog "Latest branch tag: $topTag" "$logFile"
+
+# Clear the 'community_' prefix
+tag=${topTag##community_}
+WriteLog "$tag" "$logFile"
+
+# Remove '-x' (gold) or '-rcx' (release candidate) suffix
+tag=${tag%-*}
+
+# We have the latest version of latest release branch in '<major>.<minor>.<point>' form
+WriteLog "$tag" "$logFile"
+
+# Use that version for get the lates tag of the latest branch
+baseTag=$( git tag --sort=-creatordate | egrep 'community_'$tag | head -n 1 )
 res=$( git checkout $baseTag  2>&1 )
 WriteLog "res: $res" "$logFile"
 gold=1
@@ -142,8 +160,11 @@ gold=1
 popd > /dev/null
 
 WriteLog "baseTag: ${baseTag}" "$logFile"
+# Clear the 'community_' prefix
 base=${baseTag##community_}
+# If gold, remove the '-x' suffix
 [[ $gold -eq 1 ]] && base=${base%-*}
+# Remove the point build
 baseMajorMinor=${base%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
 WriteLog "base: ${base}" "$logFile"
@@ -159,6 +180,7 @@ fi
 [ -z "$CURRENT_PKG" ] && CURRENT_PKG="Not installed"
 WriteLog "current installed pkg: $CURRENT_PKG" "$logFile"
 
+# Remove the point build
 CURRENT_PKG_MajorMinor=${CURRENT_PKG%.*}
 WriteLog "current installed pkg major.minor: $CURRENT_PKG_MajorMinor" "$logFile"
 if [[ "$CURRENT_PKG_MajorMinor" == "$baseMajorMinor" ]]
