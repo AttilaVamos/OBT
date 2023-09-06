@@ -264,7 +264,7 @@ sleep 10
 # test it
 WriteLog "$(printf '\nExpected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
 
-if [[ $expected -eq $running ]]
+if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
     # Pods are up
 
