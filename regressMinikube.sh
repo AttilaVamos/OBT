@@ -296,11 +296,9 @@ then
     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
         getLogs=1
-        WriteLog "${res}" "$logFile"
-    else
-        _res=$(echo "$res" | egrep 'Suite|Queries|Passing|Failure|Elapsed' )
-        WriteLog "$_res" "$logFile"
     fi
+    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+    WriteLog "$_res" "$logFile"
     
     WriteLog "Run regression ..." "$logFile"
     if [[ $FULL_REGRESSION -eq 1 ]]
@@ -318,11 +316,9 @@ then
     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
         getLogs=1
-        WriteLog "${res}" "$logFile"
-    else
-        _res=$(echo "$res" | egrep 'Suite|Queries|Passing|Failure|Elapsed' )
-        WriteLog "$_res" "$logFile"
     fi
+    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+    WriteLog "$_res" "$logFile"
 
     pushd $QUERY_STAT2_DIR > /dev/null
     res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
