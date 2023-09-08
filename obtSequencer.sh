@@ -12,6 +12,12 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 . ./settings.sh
 
+
+if [[ -f ./obtSequence.inc ]]
+then
+    . ./obtSequence.inc
+fi
+
 #
 #------------------------------
 #
