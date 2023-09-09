@@ -18,9 +18,9 @@ addRun()
 {
   index=$1
   br=$2
-  par=$3
+  kind=$3
   retVal=""
-  case $par in
+  case $kind in
     0) retVal="RUN_$index=(\"BRANCH_ID=$br\")"
        ;;
 
@@ -32,7 +32,7 @@ addRun()
 
   esac
   runs+=("$retVal")
-  runArray+=("  RUN_$index[@]")
+  runArray+=("  RUN_$index[@]    # $br ($( [[ $kind -eq 1 ]] && echo '4 ch/th sl' || echo '1 ch/th sl' ))")
   #echo $retVal
 }
 
