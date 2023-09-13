@@ -38,19 +38,30 @@ addRun()
 
 addRun "1" "master" "0"
 
-branchIndex=1
+isMultiChannelTest=0
 
-while read br
+branchIndex=1
+runIndex=$(( branchIndex * 2 ))
+
+while read branch
 do
-  printf "%d: %s\n" "$branchIndex" "$br"
-  branches+="'$br' "
+  printf "%d: %s\n" "$branchIndex" "$branch"
+  branches+="'$branch' "
 
   # Each branch testing in 2 settings except the last (the oldest) one
-  addRun "$(( branchIndex * 2 ))" "$br" "1"
-
-  if [[ $branchIndex -ne $maxAutoBranch ]]
+  
+  if [[ $isMultiChannelTest -eq 1 ]]
   then
-    addRun "$(( branchIndex * 2 + 1 ))" "$br" "2"
+      addRun "$runIndex" "$branch" "1"
+  else
+      addRun "$runIndex" "$branch" "0"
+  fi    
+  runIndex=$(( runIndex + 1 ))
+
+  if [[ ($branchIndex -ne $maxAutoBranch) && ($isMultiChannelTest -eq 1) ]]
+  then
+    addRun "$runIndex" "$branch" "2"
+    runIndex=$(( runIndex + 1 ))
   fi
 
   branchIndex=$(( branchIndex + 1 ))
