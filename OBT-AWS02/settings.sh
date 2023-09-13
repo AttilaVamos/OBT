@@ -21,7 +21,7 @@ SYSTEM_ID=${SYSTEM_ID//./_}
 
 # A day when we build Debug version
 # Use 8 for disable Debug build
-DEBUG_BUILD_DAY=0  #Sunday
+DEBUG_BUILD_DAY=0  # Sunday
 BUILD_TYPE=RelWithDebInfo
 
 WEEK_DAY=$(date "+%w")
@@ -33,63 +33,61 @@ fi
 
 #
 #----------------------------------------------------
-#
+# To control the sequence  generation
+
+# A day when we run test in 1 ch and 4 ch Thor slaves
+# Use 8 for disable multi channel testing
+MULTI_CHANNEL_THOR_SLAVES_TEST_DAY=6 # Saturday
+ENABLE_MULTI_CHANNEL_THOR_SLAVES_TEST=0
+
+if [[ $WEEK_DAY -eq $MULTI_CHANNEL_THOR_SLAVES_TEST_DAY ]]
+then
+    ENABLE_MULTI_CHANNEL_THOR_SLAVES_TEST=1
+fi
+
 
 BRANCH_ID=master
 DAYS_FOR_CHECK_COMMITS=2
 KEEP_VCPKG_CACHE=0
 
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]]
-then
-    # For obtSequencer.sh 
-    BRANCHES_TO_TEST=( 'candidate-7.4.x' 'candidate-7.6.x' 'candidate-7.8.x' )
+#
+# This part moved to/generated into the obtSequence.inc
+#
+# For obtSequencer.sh
+# BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x'  'master' )
+# BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x' 'candidate-9.2.x'  'master' )
+#
+# # For versioning
+# RUN_1=("BRANCH_ID=master")
+# RUN_2=("BRANCH_ID=candidate-9.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+# RUN_3=("BRANCH_ID=candidate-9.2.x" "KEEP_VCPKG_CACHE=1")
+# RUN_4=("BRANCH_ID=candidate-9.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+# RUN_5=("BRANCH_ID=candidate-9.0.x" "KEEP_VCPKG_CACHE=1")
+# RUN_6=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+# RUN_7=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
+# RUN_8=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
+#
+# if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
+# then
+#     RUN_ARRAY=(
+#        RUN_1[@]
+#        RUN_2[@]
+#        RUN_3[@]
+#        RUN_4[@]
+#        RUN_5[@]
+#        RUN_6[@]
+# #       RUN_7[@]
+# #       RUN_8[@]
+#    )
+# else
+#     RUN_ARRAY=(
+#        RUN_1[@]
+#        RUN_2[@]
+#        RUN_3[@]
+#        RUN_4[@]
+#     )
+# fi
 
-    # For versioning
-    RUN_1=("BRANCH_ID=candidate-7.4.x")
-    RUN_2=("BRANCH_ID=candidate-7.6.x")
-    RUN_3=("BRANCH_ID=candidate-7.8.x")
-
-    RUN_ARRAY=(
-      RUN_1[@]
-      RUN_2[@]
-      RUN_3[@]
-    )
-else
-    # For obtSequencer.sh 
-#    BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x'  'master' )    
-    BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x' 'candidate-9.2.x'  'master' )
-
-    # For versioning
-    RUN_1=("BRANCH_ID=master")
-    RUN_2=("BRANCH_ID=candidate-9.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_3=("BRANCH_ID=candidate-9.2.x" "KEEP_VCPKG_CACHE=1")
-    RUN_4=("BRANCH_ID=candidate-9.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_5=("BRANCH_ID=candidate-9.0.x" "KEEP_VCPKG_CACHE=1")
-    RUN_6=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-    RUN_7=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
-    RUN_8=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4") 
-
-   if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
-   then
-        RUN_ARRAY=(
-            RUN_1[@]
-            RUN_2[@]
-            RUN_3[@]
-            RUN_4[@]        
-            RUN_5[@]
-            RUN_6[@]
-        #        RUN_7[@]
-        #        RUN_8[@]
-        )
-    else
-        RUN_ARRAY=(
-            RUN_1[@]
-            RUN_2[@]
-            RUN_3[@]
-            RUN_4[@]   
-        )
-    fi
-fi
 #
 #----------------------------------------------------
 #
