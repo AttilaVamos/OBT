@@ -192,6 +192,8 @@ fi
 
 if [[ "$OBT_ID" == "OBT-AWS02" ]]
 then
+    SmoketestSchedulerIp='10.20.0.14'
+
     # Run regressMinikube.sh
     echo "Start regressMinikube.sh..."
     if [[ -f obt-values.yaml  && -f ecl-test-minikube.json ]]
@@ -200,11 +202,11 @@ then
         
         ./regressMinikube.sh 
 
-        echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - 10.20.0.215) ..."
-        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@10.20.0.215:/home/centos/AWS-Minikube/
+        echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - $SmoketestSchedulerIp) ..."
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
 
         echo "Upload regressMinikube-*.log as well ..."
-        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.log centos@10.20.0.215:/home/centos/AWS-Minikube/
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.log centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
         zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.log
         
         pushd ~/
@@ -215,8 +217,8 @@ then
     fi
     echo "    End."
     
-    echo "Upload PkgCache to SmoketestScheduler (CA - 10.20.0.215) ..."
-    rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/PkgCache centos@10.20.0.215:/home/centos/
+    echo "Upload PkgCache to SmoketestScheduler (CA - $SmoketestSchedulerIp) ..."
+    rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/PkgCache centos@$SmoketestSchedulerIp:/home/centos/
     echo "    End."
 fi
 
