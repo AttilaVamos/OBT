@@ -1,0 +1,30 @@
+
+eclagent:
+- name: hthor
+  replicas: 3
+  maxActive: 4
+  useChildProcesses: true
+  type: hthor
+  allowedPipePrograms: 
+   - "*"
+
+- name: roxie-workunit
+  replicas: 1
+  prefix: roxie_workunit
+  maxActive: 20
+  useChildProcesses: true
+  type: roxie
+  allowedPipePrograms:
+   - "*"
+
+thor:
+- name: thor
+  prefix: thor
+  numWorkers: 2
+  maxJobs: 4
+  maxGraphs: 2
+  multiJobLinger: true
+  lingerPeriod: 200
+  allowedPipePrograms:
+   - "*"
+

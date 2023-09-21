@@ -2,16 +2,18 @@
 
 if [ -f ./timestampLogger.sh ]
 then
+    echo "Using WriteLog() from the existing timestampLogger.sh"
     . ./timestampLogger.sh
 else
+    echo "Define a lightweight WriteLog() function"
     WriteLog()
     {
         msg=$1
         out=$2
         [ -z "$out" ] && out=/dev/null
 
-        echo "$msg"
-        echo "$msg" >> $out 2>&1
+        echo -e "$msg"
+        echo -e "$msg" >> $out 2>&1
     }
 fi
 
@@ -21,7 +23,7 @@ usage()
     WriteLog "  $0 [-i] [-q] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
     WriteLog " -i   - Interactive, stop before unistall with terraform." "/dev/null"
-    WriteLog " -q   - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
+    WriteLog " -f   - Execute full Regression Suite." "/dev/null"
     WriteLog " -h   - This help." "/dev/null"
     WriteLog " " "/dev/null"
 
@@ -46,9 +48,13 @@ else
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
+    [[ ! -d $RTE_DIR ]] && RTE_DIR=$SUITEDIR
     PKG_DIR="$HOME/HPCC-Platform-build/"
-    
+
     QUERY_STAT2_DIR="$RTE_DIR"
+    [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=$(pwd)
+    [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=''
+
     PERFSTAT_DIR="Azure/"
     EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 
@@ -72,10 +78,11 @@ CONFIG="./ecl-test-azure.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
+QUICK_TEST_SET='teststdlib* pipe* httpcall* soapcall* roxie*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 
-logFile=regressAks-$(date +%Y-%m-%d_%H-%M-%S).log 
+logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
 WriteLog "Start          : $0 $@" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
@@ -95,7 +102,7 @@ WriteLog "PQ             : $PQ" "$logFile"
 WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
 
 #set -x
-INTERACTIVE=1
+INTERACTIVE=0
 FULL_REGRESSION=0
 
 while [ $# -gt 0 ]
@@ -108,7 +115,7 @@ do
         I)  INTERACTIVE=1
             ;;
                
-        Q)  FULL_REGRESSION=0
+        F)  FULL_REGRESSION=1
             ;;
 
         H* | *)
@@ -132,7 +139,25 @@ WriteLog "$res" "$logFile"
 res=$(git fetch --tags --all 2>&1)
 WriteLog "$res" "$logFile"
 
-baseTag=$( git tag --sort=-creatordate | egrep 'community' | head -n 1 )
+# We need this magic, because somebody can cretate new tag for previous minor or major release
+# and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
+# Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
+# related to the latest branch)
+topTag=$(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 1)
+WriteLog "Latest branch tag: $topTag" "$logFile"
+
+# Clear the 'community_' prefix
+tag=${topTag##community_}
+WriteLog "$tag" "$logFile"
+
+# Remove '-x' (gold) or '-rcx' (release candidate) suffix
+tag=${tag%-*}
+
+# We have the latest version of latest release branch in '<major>.<minor>.<point>' form
+WriteLog "$tag" "$logFile"
+
+# Use that version for get the lates tag of the latest branch
+baseTag=$( git tag --sort=-creatordate | egrep 'community_'$tag | head -n 1 )
 res=$( git checkout $baseTag  2>&1 )
 WriteLog "res: $res" "$logFile"
 gold=1
@@ -210,7 +235,7 @@ WriteLog "$loginCheck" "$logFile"
 
 if [[ $retCode != 0 ]] 
 then
-    # Not aleady logged in, login
+    # Not logged in, login
     az login
 fi
 
@@ -220,21 +245,38 @@ WriteLog "account: $account" "$logFile"
 
 [[ $( echo $account | awk '{ print $6 }' ) != "True" ]] && (WriteLog "us-hpccplatform-dev is not the default"  "$logFile"; exit 1) 
 
-WriteLog "Update helm repo..." "$logFile"
-res=$(helm repo update 2>&1)
-WriteLog "$res" "$logFile"
+#WriteLog "Update helm repo..." "$logFile"
+#res=$(helm repo update 2>&1)
+#WriteLog "$res" "$logFile"
 
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 WriteLog "res:$res" "$logFile"
-cred=$( echo "$res" | egrep 'get-credentials ' | tr -d "'" | cut -d '=' -f 2 | tr -d '"' )
-cred="$cred --overwrite-existing"
-WriteLog "credentials: '$cred'" "$logFile"
-res=$( eval ${cred} 2>&1 )
-WriteLog "$res" "$logFile"
+cred=$( echo "$res" | egrep 'get-credentials ' | tr -d "'" | cut -d '=' -f 2 | tr -d '"[]' )
+if [[ -n "$cred" ]]
+then
+    WriteLog "cred: $cred" "$logFile"
+    WriteLog "Is there '(local-exec)': $( echo $cred | egrep -c 'local-exec')" "$logFile"
+    if [[ $( echo $cred | egrep -c 'local-exec') -eq 0 ]]
+    then
+        cred="$cred --overwrite-existing"
+        WriteLog "credentials: '$cred'" "$logFile"
+        res=$( eval ${cred} 2>&1 )
+        WriteLog "$res" "$logFile"
+    else
+        WriteLog "The credentials already aquired." "$logFile"
+    fi
+else
+    WriteLog "Error in deploy hpcc." "$logFile"
+    WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
+    res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
+    WriteLog "${res}" "$logFile"
+    WriteLog "  Done, exit." "$logFile"
+    exit 1
+fi
 
 WriteLog "Wait until everything is up..." "$logFile"
-tryCount=10
+tryCount=30
 delay=10
 expected=0
 running=0
@@ -245,7 +287,7 @@ do
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
         #printf "%-45s: %s/%s  %s\n" "$c" "$a" "$b"  $( [[ $a -ne $b ]] && echo "starting" || echo "up" ) ; 
-    done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
+    done < <( kubectl get pods 2>&1| egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " ");
     WriteLog "$( printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount)" "$logFile"
     [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
     tryCount=$(( $tryCount - 1)); 
@@ -254,17 +296,14 @@ do
     running=0; 
 done
 
-WriteLog "$(printf 'Expected: %s, running %s (%2d)\n' $e $r $tryCount )" "$logFile"
-
-WriteLog "Platform is up, run tests." "$logFile"
+WriteLog "$(printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
 
 sleep 10
-# test it
-#printf "\nExpected: %s, running %s (%2d)\n" "$e" "$r" "$tryCount"
 
-if [[ $e -eq $r ]]
+if [[ ($expected -eq $running) && ($running -ne 0)]]
 then
     # Pods are up
+    WriteLog "Platform is up, run tests." "$logFile"
 
     pushd $RTE_DIR > /dev/null
     WriteLog "cwd: $(pwd)" "$logFile"
@@ -288,8 +327,9 @@ then
     sleep 30
 
     WriteLog "Run tests." "$logFile"
-    pwd
+    #pwd
 
+    setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
     res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG  $PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
@@ -298,34 +338,57 @@ then
     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
         getLogs=1
-        echo "${res}"
-    else
-        _res=$(echo "$res" | egrep 'Suite|Queries|Passing|Failure|Elapsed' )
-        WriteLog "$_res" "$logFile"
+        setupPass=0
     fi
+    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+    WriteLog "$_res" "$logFile"
 
-    WriteLog "Run regression ..." "$logFile"    
-    # For testing
-    res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info teststdlib* 2>&1 )
-    # For real
-    #res=$( ./ecl-test run -t hthor --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
-    retCode=$?
-
-    isError=$( echo "${res}" | egrep -c 'Fail ' )
-    WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
-    if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
+    if [[ $setupPass -eq 1 ]]
     then
-        getLogs=1
-        echo "${res}"
-    else
-        _res=$(echo "$res" | egrep 'Suite|Queries|Passing|Failure|Elapsed' )
+        # Experimental code for publish Queries to Roxie
+        WriteLog "Publish queries to Roxie ..." "$logFile"
+        while read query
+        do
+            WriteLog "Query: $query" "$logFile"
+            res=$( ecl publish -t roxie --server $ip $query 2>&1 )
+            WriteLog "$res" "$logFile"
+        done< <(egrep -l '\/\/publish' $SUITEDIR/ecl/setup/*.ecl)
+        WriteLog "  Done." "$logFile"
+
+        # Regression stage
+        if [[ $FULL_REGRESSION -eq 1 ]]
+        then
+            WriteLog "Run Regression Suite ..." "$logFile"
+            # For full regression on hthor
+            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
+        else
+            WriteLog "Run regression quick sanity chceck with ($QUICK_TEST_SET)" "$logFile"
+            # For sanity testing on all engines
+            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+        fi
+
+        retCode=$?
+        isError=$( echo "${res}" | egrep -c 'Fail ' )
+        WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+        if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
+        then
+            getLogs=1
+        fi
+        _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
         WriteLog "$_res" "$logFile"
+    else
+        WriteLog "Setup is failed, skip regression tessting." "$logFile"
     fi
 
-    pushd $QUERY_STAT2_DIR > /dev/null
-    res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
-    WriteLog "${res}" "$logFile"
-    popd > /dev/null
+    if [[ -n "$QUERY_STAT2_DIR" ]]
+    then
+        pushd $QUERY_STAT2_DIR > /dev/null
+        res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
+        WriteLog "${res}" "$logFile"
+        popd > /dev/null
+    else
+        WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
+    fi
 
     popd > /dev/null
 else
@@ -342,10 +405,11 @@ fi
 
 if [[ $INTERACTIVE -eq 1 ]]
 then
-    WriteLog "Testing finished, press <Enter> to stop pods." "$logFile"
-    read
+    WriteLog "Testing finished, press <Enter> to stop pods.\n(After 60 seconds it will continue)" "$logFile"
+    read -t 60
 fi
 
+WriteLog "To destroy AKS is started ..." "$logFile"
 res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
 WriteLog "${res}" "$logFile"
 
@@ -360,11 +424,11 @@ do
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
         #printf "%-45s: %s/%s  %s\n" "$c" "$a" "$b"  $( [[ $a -ne $b ]] && echo "starting" || echo "up" ) ; 
-    done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
+    done < <( kubectl get pods 2>&1 | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " ");
     WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
 
     [[ $expected -eq 0 ]] && break || sleep 10; 
-done; 
+done;
 WriteLog "System is down" "$logFile"
 
 

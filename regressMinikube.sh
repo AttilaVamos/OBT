@@ -286,8 +286,9 @@ then
     #read
 
     WriteLog "Run tests." "$logFile"
-    pwd
+    #pwd
 
+    setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
     res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG  $PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
@@ -296,34 +297,56 @@ then
     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
         getLogs=1
-    fi
-    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
-    WriteLog "$_res" "$logFile"
-    
-    WriteLog "Run regression ..." "$logFile"
-    if [[ $FULL_REGRESSION -eq 1 ]]
-    then 
-        # For full regression on hthor
-        res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
-    else
-        # For sanity testing on all engines
-        res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
-    fi    
-    
-    retCode=$?
-    isError=$( echo "${res}" | egrep -c 'Fail ' )
-    WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
-    if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
-    then
-        getLogs=1
+        setupPass=0
     fi
     _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
     WriteLog "$_res" "$logFile"
 
-    pushd $QUERY_STAT2_DIR > /dev/null
-    res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
-    WriteLog "${res}" "$logFile"
-    popd > /dev/null
+    if [[ $setupPass -eq 1 ]]
+    then
+        # Experimental code for publish Queries to Roxie
+        WriteLog "Publish queries to Roxie ..." "$logFile"
+        while read query
+        do
+            WriteLog "Query: $query" "$logFile"
+            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
+            WriteLog "$res" "$logFile"
+        done< <(egrep -l '\/\/publish' $SUITEDIR/ecl/setup/*.ecl)
+        WriteLog "  Done." "$logFile"
+
+        # Regression stage
+        WriteLog "Run regression ..." "$logFile"
+        if [[ $FULL_REGRESSION -eq 1 ]]
+        then
+            # For full regression on hthor
+            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
+        else
+            # For sanity testing on all engines
+            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+        fi
+
+        retCode=$?
+        isError=$( echo "${res}" | egrep -c 'Fail ' )
+        WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+        if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
+        then
+            getLogs=1
+        fi
+        _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+        WriteLog "$_res" "$logFile"
+    else
+        WriteLog "Setup is failed, skip regression tessting." "$logFile"
+    fi
+
+    if [[ -n "$QUERY_STAT2_DIR" ]]
+    then
+        pushd $QUERY_STAT2_DIR > /dev/null
+        res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
+        WriteLog "${res}" "$logFile"
+        popd > /dev/null
+    else
+        WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
+    fi
 
     popd > /dev/null
 else
@@ -352,8 +375,8 @@ fi
 
 if [[ $INTERACTIVE -eq 1 ]]
 then
-    WriteLog "Testing finished, press <Enter> to stop pods." "$logFile"
-    read
+    WriteLog "Testing finished, press <Enter> to stop pods.\n(After 60 seconds it will continue)" "$logFile"
+    read -t 60
 fi
 
 WriteLog "Uninstall PODs ..." "$logFile"

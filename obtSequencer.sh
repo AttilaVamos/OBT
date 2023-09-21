@@ -192,7 +192,7 @@ fi
 
 if [[ "$OBT_ID" == "OBT-AWS02" ]]
 then
-    SmoketestSchedulerIp='10.20.0.14'
+    SmoketestSchedulerIp='10.20.0.14'  # It is in same region, so use local IP
 
     # Run regressMinikube.sh
     echo "Start regressMinikube.sh..."
