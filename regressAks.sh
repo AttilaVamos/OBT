@@ -167,6 +167,11 @@ popd > /dev/null
 
 WriteLog "baseTag: ${baseTag}" "$logFile"
 base=${baseTag##community_}
+
+# If lates release no available set manually to an older one
+#base=9.4.0-rc4
+#WriteLog "Manually set base: '$base'" "$logFile"
+
 [[ $gold -eq 1 ]] && base=${base%-*}
 baseMajorMinor=${base%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
@@ -223,7 +228,7 @@ WriteLog "Update obt-admin.tfvars..." "$logFile"
 pushd ~/terraform-azurerm-hpcc-aks > /dev/null
 
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
-	
+    
 sed -i -e 's/^\(\s*\)version\s*=\s*\(.*\)/\1version = "'"${base}"'"/g' obt-admin.tfvars
 WriteLog "$(egrep '^\s*version ' obt-admin.tfvars)" "$logFile"
 WriteLog "  Done." "$logFile"
@@ -347,12 +352,15 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
+        # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
+        pushd $SUITEDIR/ecl
         while read query
         do
             WriteLog "Query: $query" "$logFile"
-            res=$( ecl publish -t roxie --server $ip $query 2>&1 )
+            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
-        done< <(egrep -l '\/\/publish' $SUITEDIR/ecl/setup/*.ecl)
+        done< <(egrep -l '\/\/publish' setup/*.ecl)
+        popd
         WriteLog "  Done." "$logFile"
 
         # Regression stage

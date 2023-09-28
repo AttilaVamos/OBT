@@ -162,6 +162,11 @@ popd > /dev/null
 WriteLog "baseTag: ${baseTag}" "$logFile"
 # Clear the 'community_' prefix
 base=${baseTag##community_}
+
+# If lates release no available set manually to an older one
+#base=9.4.0-rc4
+#WriteLog "Manually set base: '$base'" "$logFile"
+
 # If gold, remove the '-x' suffix
 [[ $gold -eq 1 ]] && base=${base%-*}
 # Remove the point build
@@ -306,12 +311,15 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
+        # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
+        pushd $SUITEDIR/ecl
         while read query
         do
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
-        done< <(egrep -l '\/\/publish' $SUITEDIR/ecl/setup/*.ecl)
+        done< <(egrep -l '\/\/publish' setup/*.ecl)
+        popd
         WriteLog "  Done." "$logFile"
 
         # Regression stage
