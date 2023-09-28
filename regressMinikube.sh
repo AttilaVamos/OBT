@@ -351,7 +351,9 @@ then
     popd > /dev/null
 else
     WriteLog "Problem with pods start" "$logFile"
+    getLogs=1
 fi
+
 # Get all logs if needed
 if [[ ${getLogs} -ne 0 ]]
 then
