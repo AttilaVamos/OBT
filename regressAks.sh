@@ -22,11 +22,12 @@ usage()
     WriteLog "usage:" "/dev/null"
     WriteLog "  $0 [-i] [-q] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
-    WriteLog " -i   - Interactive, stop before unistall with terraform." "/dev/null"
-    WriteLog " -f   - Execute full Regression Suite." "/dev/null"
-    WriteLog " -h   - This help." "/dev/null"
+    WriteLog " -i       - Interactive, stop before unistall with terraform." "/dev/null"
+    WriteLog " -f       - Execute full Regression Suite." "/dev/null"
+    WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
+    WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
+    WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
-
 }
 
 #set -x;
@@ -78,7 +79,7 @@ CONFIG="./ecl-test-azure.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
-QUICK_TEST_SET='teststdlib* pipe* httpcall* soapcall* roxie*'
+QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 
@@ -104,6 +105,8 @@ WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
 #set -x
 INTERACTIVE=0
 FULL_REGRESSION=0
+TAG=''
+VERBOSE=0
 
 while [ $# -gt 0 ]
 do
@@ -117,6 +120,13 @@ do
                
         F)  FULL_REGRESSION=1
             ;;
+            
+        T)  shift
+            TAG=$1
+            ;;
+
+        V) VERBOSE=1
+           ;;
 
         H* | *)
             WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
@@ -129,6 +139,8 @@ done
 
 WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
 WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
+WriteLog "TAG            : $TAG" "$logFile"
+WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -169,8 +181,12 @@ WriteLog "baseTag: ${baseTag}" "$logFile"
 base=${baseTag##community_}
 
 # If lates release no available set manually to an older one
-#base=9.4.0-rc4
-#WriteLog "Manually set base: '$base'" "$logFile"
+# Use parameter if given
+if [ -n "$TAG" ]
+then
+    base=$TAG
+    WriteLog "Manually set base: '$base'" "$logFile"
+fi
 
 [[ $gold -eq 1 ]] && base=${base%-*}
 baseMajorMinor=${base%.*}
@@ -256,7 +272,13 @@ WriteLog "account: $account" "$logFile"
 
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
-WriteLog "res:$res" "$logFile"
+if [[ $VERBOSE -ne 0 ]]
+then 
+    WriteLog "res:$res" "$logFile"
+else
+    WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+fi
+
 cred=$( echo "$res" | egrep 'get-credentials ' | tr -d "'" | cut -d '=' -f 2 | tr -d '"[]' )
 if [[ -n "$cred" ]]
 then
@@ -408,7 +430,7 @@ fi
 if [[ ${getLogs} -ne 0 ]]
 then
     WriteLog "Collect logs" "$logFile"
-    dirName="$HOME/shared/Minikube/test-$(date +%Y-%m-%d_%H-%M-%S)"; [[ ! -d $dirName ]] && mkdir -p $dirName; kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' | while read p; do [[ "$p" =~ "mydali" ]] && param="mydali" || param=""; echo "pod:$p - $param"; kubectl describe pod $p > $dirName/$p.desc;  kubectl logs $p $param > $dirName/$p.log; done; kubectl get pods > $dirName/pods.log;  kubectl get services > $dirName/services.log;  kubectl describe nodes > $dirName/nodes.desc; minikube logs >  $dirName/all.log 2>&1
+    dirName="$HOME/shared/Azure/test-$(date +%Y-%m-%d_%H-%M-%S)"; [[ ! -d $dirName ]] && mkdir -p $dirName; kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' | while read p; do [[ "$p" =~ "mydali" ]] && param="mydali" || param=""; echo "pod:$p - $param"; kubectl describe pod $p > $dirName/$p.desc;  kubectl logs $p $param > $dirName/$p.log; done; kubectl get pods > $dirName/pods.log;  kubectl get services > $dirName/services.log;  kubectl describe nodes > $dirName/nodes.desc; minikube logs >  $dirName/all.log 2>&1
 else
     WriteLog "Skip log collection" "$logFile"
 fi    
@@ -421,7 +443,12 @@ fi
 
 WriteLog "To destroy AKS is started ..." "$logFile"
 res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
-WriteLog "${res}" "$logFile"
+if [[ $VERBOSE -ne 0 ]]
+then 
+    WriteLog "res:$res" "$logFile"
+else
+    WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+fi
 
 # Wait until everyting is down
 while true; 
