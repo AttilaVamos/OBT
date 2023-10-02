@@ -196,7 +196,7 @@ then
 
     # Run regressMinikube.sh
     echo "Start regressMinikube.sh..."
-    if [[ -f obt-values.yaml  && -f ecl-test-minikube.json ]]
+    if [[ -f obt-values.yaml ]]
     then
         ./regressMinikube.sh 
 
@@ -211,7 +211,7 @@ then
         zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
         popd
     else
-        echo "Missing 'obt-values.yaml' and/or 'ecl-test-minikube.json' file, skip Minikube testing."
+        echo "Missing 'obt-values.yaml' file, skip Minikube testing."
     fi
     echo "    End."
     
