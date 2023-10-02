@@ -198,8 +198,6 @@ then
     echo "Start regressMinikube.sh..."
     if [[ -f obt-values.yaml  && -f ecl-test-minikube.json ]]
     then
-        [ ! -f rte/ecl-test-minikube.json ] && cp -v ecl-test-minikube.json rte/
-        
         ./regressMinikube.sh 
 
         echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - $SmoketestSchedulerIp) ..."
