@@ -49,6 +49,7 @@ else
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
+    [[ ! -d $RTE_DIR ]] && RTE_DIR="$HOME/RTE"
     [[ ! -d $RTE_DIR ]] && RTE_DIR=$SUITEDIR
     PKG_DIR="$HOME/HPCC-Platform-build/"
 
