@@ -70,7 +70,7 @@ else
     fi
 fi
 
-CONFIG="./ecl-test-minikube.json"
+CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
