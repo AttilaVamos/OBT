@@ -86,7 +86,7 @@ QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 
 logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
-WriteLog "Start          : $0 $@" "$logFile"
+WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
 WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
 WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"

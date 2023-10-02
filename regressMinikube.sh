@@ -79,7 +79,7 @@ QUICK_TEST_SET='teststdlib*'
 
 logFile=$(pwd)/regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log 
 
-WriteLog "Start          : $0 $@" "$logFile"
+WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
 WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
 WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
