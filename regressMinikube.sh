@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+#set -x;
 
 if [ -f ./timestampLogger.sh ]
 then
@@ -27,12 +28,10 @@ usage()
 
 }
 
-#set -x;
-
 getLogs=0
-if [ -f ./settings.sh ]
+if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
 then
-    # We are in OBT environment
+    # # We have setting.sh and we are on an OBT machine
     . ./settings.sh
     SOURCE_DIR=$SOURCE_HOME
     SUITEDIR=$TEST_ENGINE_HOME
@@ -40,10 +39,8 @@ then
     QUERY_STAT2_DIR="$OBT_BIN_DIR"
     PERFSTAT_DIR="$HOME/Perfstat-Minikube/"
     PKG_DIR=$OBT_BIN_DIR/PkgCache
-    EXCLUSIONS='--ef pipefail.ecl,soapcall*,httpcall* -e plugin,3rdparty,embedded,python2,spray'
+    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 else
-
-
     # Non OBT environment, like local VM/BM
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
@@ -51,6 +48,9 @@ else
     #RTE_DIR="$SOURCE_DIR/testing/regress"
     #RTE_DIR="$HOME/RTE-NEW"
     QUERY_STAT2_DIR="$RTE_DIR"
+    [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=$(pwd)
+    [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=''
+
     PERFSTAT_DIR="Minikube/"
     EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 
@@ -138,12 +138,22 @@ WriteLog "$res" "$logFile"
 # and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
 # Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
 # related to the latest branch)
-topTag=$(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 1)
-WriteLog "Latest branch tag: $topTag" "$logFile"
+while read topTag
+do
+    WriteLog "Latest branch tag: $topTag" "$logFile"
 
-# Clear the 'community_' prefix
-tag=${topTag##community_}
-WriteLog "$tag" "$logFile"
+    # Clear the 'community_' prefix
+    tag=${topTag##community_}
+    WriteLog "$tag" "$logFile"
+    res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
+    if [[  "$res" =~ "image" ]]
+    then
+        WriteLog "It has deployable image, use this." "$logFile"
+        break
+    else
+        WriteLog "It has not deployable image, step back one tag." "$logFile"
+    fi
+done< <(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 10)
 
 # Remove '-x' (gold) or '-rcx' (release candidate) suffix
 tag=${tag%-*}
