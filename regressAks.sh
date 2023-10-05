@@ -31,11 +31,12 @@ usage()
 }
 
 #set -x;
+logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
 getLogs=0
 if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
 then
-    # We are in OBT environment
+    WriteLog "We are in OBT environment" "$logFile"
     . ./settings.sh
     SOURCE_DIR=$SOURCE_HOME
     SUITEDIR=$TEST_ENGINE_HOME
@@ -45,7 +46,7 @@ then
     PKG_DIR=$OBT_BIN_DIR/PkgCache
     EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 else
-    # Non OBT environment, like local VM/BM
+    WriteLog "Non OBT environment, like local VM/BM" "$logFile"
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
@@ -83,8 +84,6 @@ QUICK_TEST_SET='teststdlib*'
 QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
-
-logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
 WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
