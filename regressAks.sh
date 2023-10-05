@@ -146,68 +146,102 @@ WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 pushd $SOURCE_DIR > /dev/null
 
 res=$(git checkout -f master 2>&1)
-WriteLog "$res" "$logFile"
-res=$(git pull upstream master 2>&1)
-WriteLog "$res" "$logFile"
+WriteLog "git checkout -f master\n  $res" "$logFile"
+res=$(git clean -f -fd 2>&1)
+WriteLog "git clean -f -fd\n  $res" "$logFile"
 res=$(git fetch --tags --all 2>&1)
-WriteLog "$res" "$logFile"
+WriteLog "git fetch --tags --all\n  $res" "$logFile"
 
-# We need this magic, because somebody can cretate new tag for previous minor or major release
-# and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
-# Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
-# related to the latest branch)
-while read topTag
-do
-    WriteLog "Latest branch tag: $topTag" "$logFile"
-
-    # Clear the 'community_' prefix
-    tag=${topTag##community_}
-    WriteLog "$tag" "$logFile"
-    res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
-    if [[  "$res" =~ "image" ]]
-    then
-        WriteLog "It has deployable image, use this." "$logFile"
-        break
-    else
-        WriteLog "It has not deployable image, step back one tag." "$logFile"
-    fi
-done< <(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 10)
-
-# Clear the 'community_' prefix
-tag=${topTag##community_}
-WriteLog "$tag" "$logFile"
-
-# Remove '-x' (gold) or '-rcx' (release candidate) suffix
-tag=${tag%-*}
-
-# We have the latest version of latest release branch in '<major>.<minor>.<point>' form
-WriteLog "$tag" "$logFile"
-
-# Use that version for get the lates tag of the latest branch
-baseTag=$( git tag --sort=-creatordate | egrep 'community_'$tag | head -n 1 )
-res=$( git checkout $baseTag  2>&1 )
-WriteLog "res: $res" "$logFile"
-gold=1
-[[ "$baseTag" =~ "-rc" ]] && gold=0
-popd > /dev/null
-
-
-WriteLog "baseTag: ${baseTag}" "$logFile"
-base=${baseTag##community_}
-
+gold=0
+suffix=""
 # If lates release no available set manually to an older one
 # Use parameter if given
 if [ -n "$TAG" ]
 then
-    base=$TAG
-    WriteLog "Manually set base: '$base'" "$logFile"
+    tagToTest=$TAG
+    WriteLog "Manually set tag to test: '$tagToTest'" "$logFile"
+    if [[ ! "$tagToTest" =~ "community_" ]]
+    then 
+        WriteLog "add 'community_' prefix to '$tagToTest'" "$logFile"
+        base=$tagToTest
+        tagToTest="community_$TAG"
+    else
+        # Clear the 'community_' prefix
+        base=${tagToTest##community_}
+    fi
+    
+    # If gold, remove the '-x' suffix
+    if [[ ! "$base" =~ "-rc" ]]
+    then 
+        tag=${base%-*}
+        gold=1
+        suffix=" Gold"
+    else
+        tag=$base
+        suffix=""
+    fi
+    WriteLog "Check the $tag$suffix has image to deploy in k8s." "$logFile"
+    res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
+    if [[  "$res" =~ "image" ]]
+    then
+        WriteLog "  It has deployable image, use this." "$logFile"
+    else
+        WriteLog "  It has not deployable image, try a different tag." "$logFile"
+        exit 2
+    fi
+else
+    # We need this magic, because somebody can cretate new tag for previous minor or major release
+    # and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
+    # Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
+    # related to the latest branch)
+    latestBranchTag=$(git tag --sort=-creatordate | egrep 'community_' |  head -n 10 | sort -rV | head -n 1)
+    latestBranch=${latestBranchTag%-*}
+    latestBranch=${latestBranch##community_}
+    WriteLog "Latest branch : $latestBranch (tag: $latestBranchTag)" "$logFile"
+
+    while read tagToTest
+    do
+        WriteLog "Test candidate tag: $tagToTest" "$logFile"
+
+        # Clear the 'community_' prefix
+        tag=${tagToTest##community_}
+        # If it is gold, remove -x suffix
+        if [[ ! "$tag" =~ "-rc" ]]
+        then 
+            tag=${tag%-*}
+            gold=1
+            suffix=" Gold"
+        else
+            gold=0
+            suffix=""
+        fi
+        
+        WriteLog "Check the $tag$suffix has image to deploy in k8s." "$logFile"
+        res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
+        if [[  "$res" =~ "image" ]]
+        then
+            WriteLog "  It has deployable image, use this." "$logFile"
+            break
+        else
+            WriteLog "  It has not deployable image, step back one tag." "$logFile"
+        fi
+    done< <(git tag --sort=-creatordate | egrep 'community_'$latestBranch |  head -n 10 )
 fi
 
-[[ $gold -eq 1 ]] && base=${base%-*}
+# We have the latest version of latest release branch in '<major>.<minor>.<point>' form
+WriteLog "Final tag to test: $tagToTest$suffix" "$logFile"
+
+# Use that version for get the lates tag of the latest branch
+res=$( git checkout $tagToTest  2>&1 )
+WriteLog "checkout $tagToTest\nres: $res" "$logFile"
+popd > /dev/null
+
+base=$tag
+# Remove the point build
 baseMajorMinor=${base%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
 WriteLog "base: ${base}" "$logFile"
-WriteLog "gold:$gold" "$logFile"
+
 WriteLog "base major.minor:$baseMajorMinor" "$logFile"
 WriteLog "pkg:$pkg" "$logFile"
 if [ "$PKG_EXT" == ".deb" ]

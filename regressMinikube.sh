@@ -5,14 +5,15 @@ if [ -f ./timestampLogger.sh ]
 then
     . ./timestampLogger.sh
 else
+    echo "Define a lightweight WriteLog() function"
     WriteLog()
     {
         msg=$1
         out=$2
         [ -z "$out" ] && out=/dev/null
 
-        echo "$msg"
-        echo "$msg" >> $out 2>&1
+        echo -e "$msg"
+        echo -e "$msg" >> $out 2>&1
     }
 fi
 
@@ -23,10 +24,13 @@ usage()
     WriteLog "where:" "/dev/null"
     WriteLog " -i   - Interactive, stop before unistall helm chart and stop minikube." "/dev/null"
     WriteLog " -q   - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
-    WriteLog " -h   - This help." "/dev/null"
+    WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
+    WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
+    WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
-
 }
+
+#set -x;
 
 getLogs=0
 if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
@@ -45,8 +49,10 @@ else
     SOURCE_DIR="$HOME/HPCC-Platform"
     SUITEDIR="$SOURCE_DIR/testing/regress/"
     RTE_DIR="$HOME/RTE-NEWER"
-    #RTE_DIR="$SOURCE_DIR/testing/regress"
-    #RTE_DIR="$HOME/RTE-NEW"
+    [[ ! -d $RTE_DIR ]] && RTE_DIR="$HOME/RTE"
+    [[ ! -d $RTE_DIR ]] && RTE_DIR=$SUITEDIR
+    PKG_DIR="$HOME/HPCC-Platform-build/"
+
     QUERY_STAT2_DIR="$RTE_DIR"
     [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=$(pwd)
     [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=''
@@ -74,6 +80,7 @@ CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
+QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 
@@ -99,6 +106,8 @@ WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
 #set -x
 INTERACTIVE=0
 FULL_REGRESSION=1
+TAG=''
+VERBOSE=0
 
 while [ $# -gt 0 ]
 do
@@ -113,6 +122,13 @@ do
         Q)  FULL_REGRESSION=0
             ;;
 
+        T)  shift
+            TAG=$1
+            ;;
+
+        V) VERBOSE=1
+           ;;
+
         H* | *)
             WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
             usage
@@ -124,66 +140,108 @@ done
 
 WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
 WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
+WriteLog "TAG            : $TAG" "$logFile"
+WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
 res=$(git checkout -f master 2>&1)
-WriteLog "$res" "$logFile"
-res=$(git pull upstream master 2>&1)
-WriteLog "$res" "$logFile"
+WriteLog "git checkout -f master\n  $res" "$logFile"
+res=$(git clean -f -fd 2>&1)
+WriteLog "git clean -f -fd\n  $res" "$logFile"
 res=$(git fetch --tags --all 2>&1)
-WriteLog "$res" "$logFile"
+WriteLog "git fetch --tags --all\n  $res" "$logFile"
 
-# We need this magic, because somebody can cretate new tag for previous minor or major release
-# and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
-# Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
-# related to the latest branch)
-while read topTag
-do
-    WriteLog "Latest branch tag: $topTag" "$logFile"
-
-    # Clear the 'community_' prefix
-    tag=${topTag##community_}
-    WriteLog "$tag" "$logFile"
+gold=0
+suffix=""
+# If lates release no available set manually to an older one
+# Use parameter if given
+if [ -n "$TAG" ]
+then
+    tagToTest=$TAG
+    WriteLog "Manually set tag to test: '$tagToTest'" "$logFile"
+    if [[ ! "$tagToTest" =~ "community_" ]]
+    then 
+        WriteLog "add 'community_' prefix to '$tagToTest'" "$logFile"
+        base=$tagToTest
+        tagToTest="community_$TAG"
+    else
+        # Clear the 'community_' prefix
+        base=${tagToTest##community_}
+    fi
+    
+    # If gold, remove the '-x' suffix
+    if [[ ! "$base" =~ "-rc" ]]
+    then 
+        tag=${base%-*}
+        gold=1
+        suffix=" Gold"
+    else
+        tag=$base
+        suffix=""
+    fi
+    WriteLog "Check the $tag$suffix has image to deploy in k8s." "$logFile"
     res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
     if [[  "$res" =~ "image" ]]
     then
-        WriteLog "It has deployable image, use this." "$logFile"
-        break
+        WriteLog "  It has deployable image, use this." "$logFile"
     else
-        WriteLog "It has not deployable image, step back one tag." "$logFile"
+        WriteLog "  It has not deployable image, try a different tag." "$logFile"
+        exit 2
     fi
-done< <(git tag --sort=-creatordate | egrep 'community' |  head -n 10 | sort -rV | head -n 10)
+else
+    # We need this magic, because somebody can cretate new tag for previous minor or major release
+    # and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
+    # Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
+    # related to the latest branch)
+    latestBranchTag=$(git tag --sort=-creatordate | egrep 'community_' |  head -n 10 | sort -rV | head -n 1)
+    latestBranch=${latestBranchTag%-*}
+    latestBranch=${latestBranch##community_}
+    WriteLog "Latest branch : $latestBranch (tag: $latestBranchTag)" "$logFile"
 
-# Remove '-x' (gold) or '-rcx' (release candidate) suffix
-tag=${tag%-*}
+    while read tagToTest
+    do
+        WriteLog "Test candidate tag: $tagToTest" "$logFile"
+
+        # Clear the 'community_' prefix
+        tag=${tagToTest##community_}
+        # If it is gold, remove -x suffix
+        if [[ ! "$tag" =~ "-rc" ]]
+        then 
+            tag=${tag%-*}
+            gold=1
+            suffix=" Gold"
+        else
+            gold=0
+            suffix=""
+        fi
+        
+        WriteLog "Check the $tag$suffix has image to deploy in k8s." "$logFile"
+        res=$(curl -s https://hub.docker.com/v2/repositories/hpccsystems/platform-core/tags/$tag 2>&1)
+        if [[  "$res" =~ "image" ]]
+        then
+            WriteLog "  It has deployable image, use this." "$logFile"
+            break
+        else
+            WriteLog "  It has not deployable image, step back one tag." "$logFile"
+        fi
+    done< <(git tag --sort=-creatordate | egrep 'community_'$latestBranch |  head -n 10 )
+fi
 
 # We have the latest version of latest release branch in '<major>.<minor>.<point>' form
-WriteLog "$tag" "$logFile"
+WriteLog "Final tag to test: $tagToTest$suffix" "$logFile"
 
 # Use that version for get the lates tag of the latest branch
-baseTag=$( git tag --sort=-creatordate | egrep 'community_'$tag | head -n 1 )
-res=$( git checkout $baseTag  2>&1 )
-WriteLog "res: $res" "$logFile"
-gold=1
-[[ "$baseTag" =~ "-rc" ]] && gold=0
+res=$( git checkout $tagToTest  2>&1 )
+WriteLog "checkout $tagToTest\nres: $res" "$logFile"
 popd > /dev/null
 
-WriteLog "baseTag: ${baseTag}" "$logFile"
-# Clear the 'community_' prefix
-base=${baseTag##community_}
-
-# If lates release no available set manually to an older one
-#base=9.4.0-rc4
-#WriteLog "Manually set base: '$base'" "$logFile"
-
-# If gold, remove the '-x' suffix
-[[ $gold -eq 1 ]] && base=${base%-*}
+base=$tag
 # Remove the point build
 baseMajorMinor=${base%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
 WriteLog "base: ${base}" "$logFile"
-WriteLog "gold:$gold" "$logFile"
+
 WriteLog "base major.minor:$baseMajorMinor" "$logFile"
 WriteLog "pkg:$pkg" "$logFile"
 if [ "$PKG_EXT" == ".deb" ]
@@ -195,7 +253,6 @@ fi
 [ -z "$CURRENT_PKG" ] && CURRENT_PKG="Not installed"
 WriteLog "current installed pkg: $CURRENT_PKG" "$logFile"
 
-# Remove the point build
 CURRENT_PKG_MajorMinor=${CURRENT_PKG%.*}
 WriteLog "current installed pkg major.minor: $CURRENT_PKG_MajorMinor" "$logFile"
 if [[ "$CURRENT_PKG_MajorMinor" == "$baseMajorMinor" ]]
