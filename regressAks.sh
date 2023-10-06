@@ -105,7 +105,7 @@ WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
 #set -x
 INTERACTIVE=0
 FULL_REGRESSION=0
-TAG=''
+TAG='<latest>'
 VERBOSE=0
 
 while [ $# -gt 0 ]
@@ -153,9 +153,10 @@ WriteLog "git fetch --tags --all\n  $res" "$logFile"
 
 gold=0
 suffix=""
+found=0
 # If lates release no available set manually to an older one
 # Use parameter if given
-if [ -n "$TAG" ]
+if [[  "$TAG" != "<latest>" ]]
 then
     tagToTest=$TAG
     WriteLog "Manually set tag to test: '$tagToTest'" "$logFile"
@@ -184,6 +185,7 @@ then
     if [[  "$res" =~ "image" ]]
     then
         WriteLog "  It has deployable image, use this." "$logFile"
+        found=1
     else
         WriteLog "  It has not deployable image, try a different tag." "$logFile"
         exit 2
@@ -220,15 +222,23 @@ else
         if [[  "$res" =~ "image" ]]
         then
             WriteLog "  It has deployable image, use this." "$logFile"
+            found=1
             break
         else
             WriteLog "  It has not deployable image, step back one tag." "$logFile"
         fi
-    done< <(git tag --sort=-creatordate | egrep 'community_'$latestBranch |  head -n 10 )
+    done< <(git tag --sort=-creatordate | egrep 'community_'$latestBranch | head -n 10 )
 fi
 
-# We have the latest version of latest release branch in '<major>.<minor>.<point>' form
-WriteLog "Final tag to test: $tagToTest$suffix" "$logFile"
+if [[ $found -ne 1 ]]
+then
+    WriteLog "Can't find a tag with deployable image in: " "$logFile"
+    WriteLog "$(git tag --sort=-creatordate | egrep 'community_'$latestBranch | head -n 10). Exit." "$logFile"
+    exit 2
+else
+    # We have the latest version of latest release branch in '<major>.<minor>.<point>' form
+    WriteLog "Final tag to test: $tagToTest$suffix" "$logFile"
+fi
 
 # Use that version for get the lates tag of the latest branch
 res=$( git checkout $tagToTest  2>&1 )
