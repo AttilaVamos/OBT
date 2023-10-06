@@ -198,7 +198,8 @@ else
     latestBranchTag=$(git tag --sort=-creatordate | egrep 'community_' |  head -n 10 | sort -rV | head -n 1)
     latestBranch=${latestBranchTag%-*}
     latestBranch=${latestBranch##community_}
-    WriteLog "Latest branch : $latestBranch (tag: $latestBranchTag)" "$logFile"
+    latestMajorMinor=${latestBranch%.*}
+    WriteLog "Latest branch : $latestBranch (tag: $latestBranchTag, latest major.minor: $latestMajorMinor)" "$logFile"
 
     while read tagToTest
     do
@@ -233,7 +234,7 @@ fi
 if [[ $found -ne 1 ]]
 then
     WriteLog "Can't find a tag with deployable image in: " "$logFile"
-    WriteLog "$(git tag --sort=-creatordate | egrep 'community_'$latestBranch | head -n 10). Exit." "$logFile"
+    WriteLog "$(git tag --sort=-creatordate | egrep 'community_'$latestBranch | head -n 10). \nExit." "$logFile"
     exit 2
 else
     # We have the latest version of latest release branch in '<major>.<minor>.<point>' form
