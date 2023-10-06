@@ -209,6 +209,8 @@ then
         
         pushd ~/
         zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
+        echo "Upload HPCCSystems-regression-<date_stamp>.zip as well ..."
+        rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d").zip centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
         popd
     else
         echo "Missing 'obt-values.yaml' file, skip Minikube testing."
