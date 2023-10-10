@@ -269,7 +269,7 @@ else
 
     cd ${BUILD_HOME}
     #HPCC_PACKAGE=$(find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f | sort -r | head -n 1 )    
-    HPCC_PACKAGE=$(find ~/build/CE/platform/build/ -maxdepth 1 -iname 'hpccsystems-platform*' -type f )
+    HPCC_PACKAGE=$(find ~/build/CE/platform/build/ -maxdepth 1 -iname 'hpccsystems-platform*' -type f | sort -rV | head -n 1 )
     WriteLog " Default package: \n\t'${HPCC_PACKAGE}' ." "${ML_TEST_LOG}"
     WriteLog "                                           " "${ML_TEST_LOG}"      
 
