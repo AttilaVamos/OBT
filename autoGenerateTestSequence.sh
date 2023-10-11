@@ -1,6 +1,24 @@
 #!/bin/bash
 
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+
+#--------------------------------------------------------------------------
+#
+# This script generates obtSeqience.inc (used by obtSequencer.sh) from the
+# master and the latest maxAutoBranch number of candidate-<major>.<minor>.x branches.
+# Based on the value of 'isMultiChannelTest' it generates a single version with 1 channel / thor slave or
+# 1 ch/sl and 4ch/sl versions for each .x branches, except the last one, because all versioned test makes 
+# the daily test cycle longer.
+#
+#  It can be use either:
+#
+# 1. Put it into test machine crontab and execute it after the update.sh and before obtSequencer.sh started.
+#
+# 2. Manually generate obtSequence.inc, copy it to the relevant machine settings
+#     directory (e.c. OBT-AWS02/) then push changes into GitHub.
+#
+#--------------------------------------------------------------------------
+
 #set -x
 
 echo "Start ..."
