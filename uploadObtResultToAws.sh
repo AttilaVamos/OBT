@@ -54,3 +54,12 @@ then
     rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/vcpkg_downloads*.zip  centos@${SSH_TARGET}:/home/centos/OBT/
 fi
 
+if [[ -f ~/HPCCSystems-log-archive/ml-thor-logs.zip ]]
+then
+    pushd ~/HPCCSystems-log-archive
+    zip -u ml-thor-logs $(find . -iname 'ml-thor-*.zip' -type f)
+
+    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ml-thor-logs.zip centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
+    popd
+fi
+

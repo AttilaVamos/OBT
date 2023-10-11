@@ -22,16 +22,16 @@ GetCommitSha()
     echo $sha
     
     popd > /dev/null
-    set +x
+    #set +x
 }
 
 
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
-firstDate="2020-06-24"
+firstDate="2023-09-16"
 sourceDate=$firstDate
 testDate=$( date -I -d "$firstDate + 1 day" )
-lastDate="2020-06-27"
+lastDate="2023-09-19"
 
 printf "from %s to %s\n" "$firstDate" "$lastDate"
 printf "#\n" > ${targetFile}
@@ -48,7 +48,7 @@ do
     #echo "cmd: $cmd"
     commit=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00" --merges | grep -A3 'commit' )
     #echo "$commit"
-    sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00" --merges | grep -A3 'commit' | head -n 1 | cut -d' ' -f2 )
+    sha=$( git log --after="$sourceDate 00:00" --before="$testDate 00:00" --merges | grep -A3 'commit' | head -n 2 | cut -d' ' -f2 )
     if [[ -n "$sha" ]]
     then
         testSha=$sha
@@ -74,3 +74,4 @@ printf "test date %s, sha: %s\n" "$testDate" "$sha"
 
 popd
 
+#set +x
