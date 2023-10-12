@@ -510,6 +510,7 @@ else
 fi
 
 # Wait until everyting is down
+tryCount=30  # To avoid infinite loop if something went wrong (connection, AKS, Azure, M$)
 while true; 
 do 
     date;  
@@ -524,9 +525,16 @@ do
     WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
 
     [[ $expected -eq 0 ]] && break || sleep 10; 
+    tryCount=$(( $tryCount - 1)); 
+    [[ $tryCount -eq 0 ]] && break; 
 done;
-WriteLog "System is down" "$logFile"
 
+if [[ $expected -eq 0 ]]
+then
+    WriteLog "AKS system is down." "$logFile"
+else
+   WriteLog "Something went wrong. Try to destroy AKS manually via https://portal.azure.com ." "$logFile"
+fi
 
 WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"
