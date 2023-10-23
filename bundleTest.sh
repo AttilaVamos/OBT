@@ -43,6 +43,12 @@ LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
 
 BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" "LinearRegression" "LogisticRegression" )
+
+if [[ -n "$1" ]]
+then
+    BUNDLES_TO_TEST=( "$1" )
+fi
+
 # For testing purposes
 SKIP_INSTALL_BUNDLES=0
 
@@ -62,20 +68,6 @@ ML_TEST_SUMMARY=${OBT_LOG_DIR}/mltests.summary
 TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
 TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/MlTimeoutedTests.csv
 TIMEOUT_TAG="//timeout 900"
-
-#if [[ "${SYSTEM_ID}" =~ "Ubuntu" ]]
-#then
-#    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
-#    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
-#else
-#    #HPCC_SERVICE="${SUDO} service hpcc-init"
-#    #DAFILESRV_STOP="${SUDO} service dafilesrv stop"
-#    HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
-#    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
-#fi
-
-#STATUS_HPCC="${SUDO} service hpcc-init status | grep -c 'running'"
-#NUMBER_OF_RUNNING_HPCC_COMPONENT="${SUDO} service hpcc-init status | wc -l "
 
 #
 #----------------------------------------------------
@@ -148,6 +140,7 @@ else
     WriteLog "No target selected. This is a dry run." "${ML_TEST_LOG}"
 fi
 
+WriteLog "Bundles to tests ${BUNDLES_TO_TEST[*]}" "${ML_TEST_LOG}"
 
 #
 #---------------------------
@@ -294,32 +287,37 @@ then
     # --------------------------------------------------------------
     # Install HPCC
     #
-    WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-    
-    res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
-    retCode=$?
-    WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
-    
-    if [ $retCode -ne 0 ]
+    if [[ ${ML_KEEP_HPCC} -eq 0 ]]
     then
-        if [[ "$res" =~ "already installed" ]]
+        WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+        
+        res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
+        retCode=$?
+        WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
+        
+        if [ $retCode -ne 0 ]
         then
-            WriteLog "$res" "${ML_TEST_LOG}"
-            WriteLog "REmove installed one..." "${ML_TEST_LOG}"
-            res=$( ${SUDO} ${PKG_REM_CMD} hpccsystems-platform 2>&1 )
-            retCode=$?
-            WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
-            WriteLog "res:$res" "${ML_TEST_LOG}"
-            WriteLog "$( sudo rm -v /etc/HPCCSystems/environment.xml)\n" "${ML_TEST_LOG}"
-            WriteLog "Install the latest '${PKG_INST_CMD} ${HPCC_PACKAGE}' ..." "${ML_TEST_LOG}"
-            res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
-            retCode=$?
-            WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
-            WriteLog "res:$res" "${ML_TEST_LOG}"
-        else
-            WriteLog "Error in install! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-            exit
+            if [[ "$res" =~ "already installed" ]]
+            then
+                WriteLog "$res" "${ML_TEST_LOG}"
+                WriteLog "REmove installed one..." "${ML_TEST_LOG}"
+                res=$( ${SUDO} ${PKG_REM_CMD} hpccsystems-platform 2>&1 )
+                retCode=$?
+                WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
+                WriteLog "res:$res" "${ML_TEST_LOG}"
+                WriteLog "$( sudo rm -v /etc/HPCCSystems/environment.xml)\n" "${ML_TEST_LOG}"
+                WriteLog "Install the latest '${PKG_INST_CMD} ${HPCC_PACKAGE}' ..." "${ML_TEST_LOG}"
+                res=$( ${SUDO} ${PKG_INST_CMD} ${HPCC_PACKAGE} 2>&1 )
+                retCode=$?
+                WriteLog "ret code:$retCode" "${ML_TEST_LOG}"
+                WriteLog "res:$res" "${ML_TEST_LOG}"
+            else
+                WriteLog "Error in install! ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+                exit
+            fi
         fi
+    else
+        WriteLog "Use the already installed ${HPCC_PACKAGE} version." "${ML_TEST_LOG}"
     fi
 
     #
@@ -389,25 +387,7 @@ then
         fi
         WriteLog "Free memory is: $( GetFreeMemGB ) on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     fi
-    
 
-    #
-    #---------------------------
-    #
-    # Kill Couchbase server if running and ecessary
-    #
-    #  ps aux | grep '[c]ouchbase'
-    #  sudo /opt/couchbase/bin/couchbase-server -k 
-    #
-    #WriteLog "Check HPCC Systems on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-
-    #
-    #---------------------------
-    # Patch environment.conf
-    #sudo sed -i -e 's/interface=\(*\)/interface=10.*/' /etc/HPCCSystems/environment.conf
-    #WriteLog "Interface setting in environment.conf file is:" "${ML_TEST_LOG}"
-    #WriteLog "$( egrep 'interface' /etc/HPCCSystems/environment.conf )" "${ML_TEST_LOG}"
-    
     #
     #---------------------------
     #
@@ -551,6 +531,12 @@ then
                 continue
             fi
             
+            if [[ ! "$bundle" =~ "${BUNDLES_TO_TEST[*]}" ]]
+            then
+                WriteLog "Skip $bundleName test." "${ML_TEST_LOG}"
+                continue
+            fi
+            
             WriteLog "Bundle with Regression Test: $bundleName" "${ML_TEST_LOG}"
             pushd $bundleRunPath
         
@@ -597,7 +583,7 @@ then
 
     # Check if any core file generated. If yes, create stack trace with gdb
 
-    NUM_OF_ML_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' -type f -exec printf "%s\n" '{}' \; ) )
+    NUM_OF_ML_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' +mtime -1 -type f -exec printf "%s\n" '{}' \; ) )
     
     if [ ${#NUM_OF_ML_CORES[@]} -ne 0 ]
     then

@@ -24,8 +24,6 @@ fi
 WEEK_DAY=$(date "+%w")
 WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
 
-# Only for test upload
-#COVERITY_TEST_DAY=$WEEK_DAY
 COVERITY_BIN_DIR=~/cov-analysis-linux64-2022.6.0/bin
 
 NEXT_TEST_DAY=$(date -d "next Sunday +$COVERITY_TEST_DAY days")
@@ -41,9 +39,6 @@ if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BR
 then
     echo "Today is $WEEK_DAY_NAME and current branch is $BRANCH_ID. Perform Coverity analysis."
 
-    #if [[ -f ~/cov-analysis-linux64-8.7.0/bin/cov-build ]]
-    #if [[ -f ~/cov-analysis-linux64-2019.03/bin/cov-build ]]
-    #if [[ -f ~/cov-analysis-linux64-2021.12.1/bin/cov-build ]]
     if [[ -f ${COVERITY_BIN_DIR}/cov-build ]]
     then
         if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
@@ -57,14 +52,15 @@ then
             pushd ~/build/CE/platform/build    
             rm cov-int -r
 
-            #mv ${REPORT_PATH}/${REPORT_FILE_NAME} ${REPORT_PATH}/${REPORT_FILE_NAME}.prev
-
             find . -name *.ccfxprep -delete
             make clean -j
-            #~/cov-analysis-linux64-6.6.1/bin/cov-build --dir cov-int make -j
-            #~/cov-analysis-linux64-8.5.0.3/bin/cov-build --dir cov-int make -j
-            #~/cov-analysis-linux64-2019.03/bin/cov-build --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
-            #~/cov-analysis-linux64-2021.12.1/bin/cov-build  --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
+            
+            if [[ -f ~/vcpkg_downloads-$BRANCH_ID.zip ]] 
+            then 
+                unzip ~/vcpkg_downloads-$BRANCH_ID.zip
+                cmake ../HPCC-Platform
+            fi
+            
             ${COVERITY_BIN_DIR}/cov-build   --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
             tar czvf ${REPORT_FILE_NAME} cov-int
             find . -name *.ccfxprep -delete
