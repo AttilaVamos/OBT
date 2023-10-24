@@ -697,9 +697,11 @@ then
     
     if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
     then
-        WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
+        pushd ${BUILD_DIR}/$RELEASE_TYPE
+        WriteLog "Make copy from 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
         cp -r build $buildTarget
         WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
+        popd
     fi
  
 else
@@ -709,9 +711,11 @@ else
 
     if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
     then
-        WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
+        pushd ${BUILD_DIR}/$RELEASE_TYPE
+        WriteLog "Make copy from 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
         cp -r build $buildTarget
         WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
+        popd
     fi
  
    WriteLog "Send Email notification about build failure" "${OBT_BUILD_LOG_FILE}"
