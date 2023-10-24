@@ -531,7 +531,7 @@ then
                 continue
             fi
             
-            if [[ ! "$bundle" =~ "${BUNDLES_TO_TEST[*]}" ]]
+            if [[ ! "${BUNDLES_TO_TEST[*]}" =~ "$bundle"  ]]
             then
                 WriteLog "Skip $bundleName test." "${ML_TEST_LOG}"
                 continue
