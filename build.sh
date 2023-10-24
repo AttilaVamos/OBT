@@ -69,17 +69,36 @@ WriteLog "PWD: $(pwd)" "${OBT_BUILD_LOG_FILE}"
 
 cd ${BUILD_DIR}/$RELEASE_TYPE
 
-WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
-
-res=$( rm  build )
-[[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
-
 buildTarget=build-${BRANCH_ID}-${LONG_DATE}
+NEW_BUILD_DIR_STRUCTURE=1
+if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+then
+    if [[ -d build ]]
+    then 
+        WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+        res=$( rm -rf build )
+        [[ $? -ne 0 ]] && WriteLog " 'rm -rf build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+    fi
+    if [[ -f build ]]
+    then
+        WriteLog "$BUILD_TYPE build remove link to build dir." "${OBT_BUILD_LOG_FILE}"
+        res=$( rm build )
+        [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+    fi
+    mkdir build
+    [[ -d build ]] && WriteLog " 'build' directory createds" "${OBT_BUILD_LOG_FILE}"
 
-WriteLog "Create symlink for build to ${buildTarget}." "${OBT_BUILD_LOG_FILE}"
-mkdir ${buildTarget}
-
-ln -s ${buildTarget} build
+else
+    WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+    
+    res=$( rm  build )
+    [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+    
+    WriteLog "Create symlink for build to ${buildTarget}." "${OBT_BUILD_LOG_FILE}"
+    mkdir ${buildTarget}
+    
+    ln -s ${buildTarget} build
+fi
 
 [ ! -d  $OBT_BIN_DIR/PkgCache/$BRANCH_ID ] && mkdir -p  $OBT_BIN_DIR/PkgCache/$BRANCH_ID
 builtPackage=$( find $OBT_BIN_DIR/PkgCache/$BRANCH_ID/ -maxdepth 1 -iname 'hpccsystems*' -type f )
@@ -674,14 +693,23 @@ then
         sudo cp -v /opt/HPCCSystems/lib64/* /opt/HPCCSystems/lib/
     fi
     cp ${OBT_BUILD_LOG_FILE} $TARGET_DIR/obt-build.log
+    
+    if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+    then
+        WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
+        cp -r build $buildTarget
+    fi
  
 else
    echo "BuildResult:FAILED" >   $TARGET_DIR/build_summary
    WriteLog "BuildResult:FAILED" "${OBT_BUILD_LOG_FILE}"
    cp $TARGET_DIR/build_summary ${OBT_BIN_DIR}
 
-   # Remove old builds
-   #${BUILD_DIR}/bin/clean_builds.sh
+   if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+    then
+        WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
+        cp -r build $buildTarget
+    fi
 
    WriteLog "Send Email notification about build failure" "${OBT_BUILD_LOG_FILE}"
    

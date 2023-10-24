@@ -260,7 +260,7 @@ LOCAL_IP_STR=$( ip -f inet -o addr | egrep -v 'lo ' | sed -n "s/^.*inet[[:space:
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
-QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
+QUICK_SESSION=1  # If non zero then execute standard unittests, else run 'all'
 
 #
 #----------------------------------------------------
@@ -277,13 +277,17 @@ SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 BUILD_DIR_EXPIRE=1   # days
 BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
-
 # Local log archive
 LOG_ARCHIEVE_DIR_EXPIRE=20 # days
 
 # Remote, WEB log archive
 WEB_LOG_ARCHIEVE_DIR_EXPIRE=20 # days
 
+# How to create and use build dir.
+# If it is 0 then the build create a 'build-<branchid>-<datestamp>' directory for build and create a soft linkt ot is to keep uniform buildin perocess.
+# if it is not 0, then it uses 'build' directory to build platform, then at the and of the build process it makes a copy of it to 'build-<branchid>-<datestamp>'
+# We nned this because if changes happened in VCPKG stuff then build failed on linked directory.
+NEW_BUILD_DIR_STRUCTURE=1
 
 #
 #----------------------------------------------------
