@@ -70,7 +70,7 @@ WriteLog "PWD: $(pwd)" "${OBT_BUILD_LOG_FILE}"
 cd ${BUILD_DIR}/$RELEASE_TYPE
 
 buildTarget=build-${BRANCH_ID}-${LONG_DATE}
-NEW_BUILD_DIR_STRUCTURE=1
+
 if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
 then
     if [[ -d build ]]
@@ -86,9 +86,10 @@ then
         [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
     fi
     mkdir build
-    [[ -d build ]] && WriteLog " 'build' directory createds" "${OBT_BUILD_LOG_FILE}"
+    [[ -d build ]] && WriteLog " 'build' directory created." "${OBT_BUILD_LOG_FILE}"
 
 else
+   # Use the old linked build directory structure
     WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
     
     res=$( rm  build )
@@ -698,6 +699,7 @@ then
     then
         WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
         cp -r build $buildTarget
+        WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
     fi
  
 else
@@ -705,12 +707,13 @@ else
    WriteLog "BuildResult:FAILED" "${OBT_BUILD_LOG_FILE}"
    cp $TARGET_DIR/build_summary ${OBT_BIN_DIR}
 
-   if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+    if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
     then
         WriteLog "Make copy from 'build' to '$buildTarget'. " "${OBT_BUILD_LOG_FILE}"
         cp -r build $buildTarget
+        WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
     fi
-
+ 
    WriteLog "Send Email notification about build failure" "${OBT_BUILD_LOG_FILE}"
    
    # Email Notify
