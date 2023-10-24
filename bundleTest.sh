@@ -510,8 +510,9 @@ then
     #
     WriteLog "Run ML tests  on platforms pwd:${myPwd}" "${ML_TEST_LOG}"
     
-    WriteLog "ML_TEST_HOME  : ${ML_TEST_HOME}" "${ML_TEST_LOG}"
-    WriteLog "ML_ENGINE_HOME: ${ML_ENGINE_HOME}" "${ML_TEST_LOG}"
+    WriteLog "ML_TEST_HOME          : ${ML_TEST_HOME}" "${ML_TEST_LOG}"
+    WriteLog "ML_ENGINE_HOME        : ${ML_ENGINE_HOME}" "${ML_TEST_LOG}"
+    WriteLog "Bundles to try to test: ${BUNDLES_TO_TEST[*]}" "${ML_TEST_LOG}"
 
     CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test run -t ${TARGET_PLATFORM} --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES} ${ML_EXCLUDE_FILES}"
 
