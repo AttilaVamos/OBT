@@ -77,6 +77,9 @@ else
     fi
 fi    
 
+TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
+TERRAFORM_DIR=~/terraform-azurerm-hpcc
+TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
 CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
@@ -193,9 +196,9 @@ then
 else
     # We need this magic, because somebody can cretate new tag for previous minor or major release
     # and in this case it would be the first in the result of 'git tag --sort=-creatordate' command
-    # Get the last 10 tags, sort them by version in reverse order, and get the first (it will be
+    # Get the last 25 tags, sort them by version in reverse order, and get the first (it will be
     # related to the latest branch)
-    latestBranchTag=$(git tag --sort=-creatordate | egrep 'community_' |  head -n 10 | sort -rV | head -n 1)
+    latestBranchTag=$(git tag --sort=-creatordate | egrep 'community_' |  head -n 25 | sort -rV | head -n 1)
     latestBranch=${latestBranchTag%-*}
     latestBranch=${latestBranch##community_}
     latestMajorMinor=${latestBranch%.*}
@@ -300,7 +303,7 @@ else
 fi
 
 WriteLog "Update obt-admin.tfvars..." "$logFile"
-pushd ~/terraform-azurerm-hpcc-aks > /dev/null
+pushd $TERRAFORM_DIR > /dev/null
 
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
     
