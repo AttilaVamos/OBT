@@ -146,31 +146,31 @@ thor:
   allowedPipePrograms:
    - "*"
 
-storage:
-  planes:
-  - name: dali
-    storageClass: ""
-    storageSize: 2Gi
-    prefix: "/var/lib/HPCCSystems/dalistorage"
-    category: dali
-  - name: sasha
-    storageClass: ""
-    storageSize: 1Gi
-    prefix: "/var/lib/HPCCSystems/sashastorage"
-    category: sasha
-  - name: dll
-    storageClass: ""
-    storageSize: 1Gi
-    prefix: "/var/lib/HPCCSystems/queries"
-    category: dll
-  - name: data
-    storageClass: ""
-    storageSize: 3Gi
-    prefix: "/var/lib/HPCCSystems/hpcc-data"
-    category: data
-  - name: mydropzone
-    storageClass: ""
-    storageSize: 1Gi
-    prefix: "/var/lib/HPCCSystems/mydropzone"
-    category: lz
+#storage:
+#  planes:
+#  - name: dali
+#    storageClass: ""
+#    storageSize: 2Gi
+#    prefix: "/var/lib/HPCCSystems/dalistorage"
+#    category: dali
+#  - name: sasha
+#    storageClass: ""
+#    storageSize: 1Gi
+#    prefix: "/var/lib/HPCCSystems/sashastorage"
+#    category: sasha
+#  - name: dll
+#    storageClass: ""
+#    storageSize: 1Gi
+#    prefix: "/var/lib/HPCCSystems/queries"
+#    category: dll
+#  - name: data
+#    storageClass: ""
+#    storageSize: 3Gi
+#    prefix: "/var/lib/HPCCSystems/hpcc-data"
+#    category: data
+#  - name: mydropzone
+#    storageClass: ""
+#    storageSize: 1Gi
+#    prefix: "/var/lib/HPCCSystems/mydropzone"
+#    category: lz
 
