@@ -231,7 +231,7 @@ else
         else
             WriteLog "  It has not deployable image, step back one tag." "$logFile"
         fi
-    done< <(git tag --sort=-creatordate | egrep 'community_'$latestBranch | head -n 10 )
+    done< <(git tag --sort=-creatordate | egrep 'community_'$latestMajorMinor | head -n 10 )
 fi
 
 if [[ $found -ne 1 ]]
