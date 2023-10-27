@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-5.1.dtd">
+<!-- eric project file for project OBT -->
+<!-- Saved: 2023-10-27, 14:20:59 -->
+<!-- Copyright (C) 2023 ,  -->
+<Project version="5.1">
+  <Language>en_US</Language>
+  <Hash>f274b6863986045b4ecab998a5c85377e17be9f7</Hash>
+  <ProgLanguage mixed="0">Python3</ProgLanguage>
+  <ProjectType>PyQt5</ProjectType>
+  <Version>0.1</Version>
+  <Author></Author>
+  <Email></Email>
+  <Eol index="0"/>
+  <Sources>
+    <Source>BuildNotification.py</Source>
+    <Source>OBT-001/settings.sh</Source>
+    <Source>OBT-002/settings.sh</Source>
+    <Source>OBT-003/settings.sh</Source>
+    <Source>OBT-004/settings.sh</Source>
+    <Source>OBT-005/settings.sh</Source>
+    <Source>OBT-006/settings.sh</Source>
+    <Source>OBT-007/settings.sh</Source>
+    <Source>OBT-008/settings.sh</Source>
+    <Source>OBT-009/settings.sh</Source>
+    <Source>OBT-010/settings.sh</Source>
+    <Source>OBT-117/settings.sh</Source>
+    <Source>OBT-18/settings.sh</Source>
+    <Source>OBT-24/settings.sh</Source>
+    <Source>OBT-AWS01/BuildNotification.ini</Source>
+    <Source>OBT-AWS01/settings.sh</Source>
+    <Source>OBT-AWS02/BuildNotification.ini</Source>
+    <Source>OBT-AWS02/obtSequence.inc</Source>
+    <Source>OBT-AWS02/settings.sh</Source>
+    <Source>QueryStat2.py</Source>
+    <Source>QueryStat2.py3</Source>
+    <Source>QueryStat2Test.py</Source>
+    <Source>ReportPerfTestResult.py</Source>
+    <Source>ReportedTestCasesHistory.py</Source>
+    <Source>ReportedTestCasesHistory.py3</Source>
+    <Source>ReportedTestCasesHistory3.py</Source>
+    <Source>UninstallHPCC.sh</Source>
+    <Source>WatchDog.py</Source>
+    <Source>archiveLogs.sh</Source>
+    <Source>archivePerfStat.sh</Source>
+    <Source>autoGenerateTestSequence.sh</Source>
+    <Source>build.sh</Source>
+    <Source>build_ct.sh</Source>
+    <Source>build_default.sh</Source>
+    <Source>build_perf.sh</Source>
+    <Source>build_pf.sh</Source>
+    <Source>bundleTest.sh</Source>
+    <Source>calcTrend.py</Source>
+    <Source>calcTrend2.py</Source>
+    <Source>calcTrend2.py3</Source>
+    <Source>cassandraStress.sh</Source>
+    <Source>checkCassandra.sh</Source>
+    <Source>checkCoreGen.sh</Source>
+    <Source>checkCouchbase.sh</Source>
+    <Source>checkDependency.sh</Source>
+    <Source>checkDiskSpace.sh</Source>
+    <Source>checkGenjoin2.sh</Source>
+    <Source>checkKafka.sh</Source>
+    <Source>checkLoopft.sh</Source>
+    <Source>checkMemcached.sh</Source>
+    <Source>checkMySQL.sh</Source>
+    <Source>checkNginx.sh</Source>
+    <Source>checkRedis.sh</Source>
+    <Source>clean_builds.sh</Source>
+    <Source>cloneRepo.sh</Source>
+    <Source>collections.py</Source>
+    <Source>coverage.sh</Source>
+    <Source>gitlog.sh</Source>
+    <Source>individualCoverage.sh</Source>
+    <Source>install-cluster.sh</Source>
+    <Source>logCollector.sh</Source>
+    <Source>mltest.sh</Source>
+    <Source>myInfo.sh</Source>
+    <Source>obt-aks-values.yaml</Source>
+    <Source>obt-values.yaml</Source>
+    <Source>obtDigest.sh</Source>
+    <Source>obtMain.sh</Source>
+    <Source>obtSequencer.sh</Source>
+    <Source>oldCommits.sh</Source>
+    <Source>pdfPerfReportGen.py</Source>
+    <Source>perftest.sh</Source>
+    <Source>preabort.sh</Source>
+    <Source>prepareObt.sh</Source>
+    <Source>regress-av.sh</Source>
+    <Source>regress.sh</Source>
+    <Source>regressAks.sh</Source>
+    <Source>regressMinikube.sh</Source>
+    <Source>regress_cassandra.sh</Source>
+    <Source>regressionLogProcessor.py</Source>
+    <Source>remove_hpcc.sh</Source>
+    <Source>runCoverity.sh</Source>
+    <Source>se.py</Source>
+    <Source>sendemail.py</Source>
+    <Source>setUnlimitedCore.sh</Source>
+    <Source>settings.sh</Source>
+    <Source>showProgress.sh</Source>
+    <Source>simple-av.sh</Source>
+    <Source>specPerftest.sh</Source>
+    <Source>stackMonitor.sh</Source>
+    <Source>start.sh</Source>
+    <Source>startObtAws.sh</Source>
+    <Source>startObtAws02.sh</Source>
+    <Source>stop.sh</Source>
+    <Source>testAllCommitsOnADay.sh</Source>
+    <Source>testOldCommits.sh</Source>
+    <Source>thorMonitor.sh</Source>
+    <Source>timestampLogger.sh</Source>
+    <Source>unittest.sh</Source>
+    <Source>uploadCoverity.sh</Source>
+    <Source>uploadObtResultToAws.sh</Source>
+    <Source>utils.sh</Source>
+    <Source>wutoolTest.sh</Source>
+  </Sources>
+  <Others>
+    <Other>.gitignore</Other>
+  </Others>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.e4p" type="OTHERS"/>
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES"/>
+    <FiletypeAssociation pattern="*.inc" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.md" type="OTHERS"/>
+    <FiletypeAssociation pattern="*.proto" type="PROTOCOLS"/>
+    <FiletypeAssociation pattern="*.py" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.py3" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.pyw3" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.qm" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.qrc" type="RESOURCES"/>
+    <FiletypeAssociation pattern="*.rst" type="OTHERS"/>
+    <FiletypeAssociation pattern="*.sh" type="SOURCES"/>
+    <FiletypeAssociation pattern="*.ts" type="TRANSLATIONS"/>
+    <FiletypeAssociation pattern="*.txt" type="OTHERS"/>
+    <FiletypeAssociation pattern="*.ui" type="FORMS"/>
+    <FiletypeAssociation pattern="*.yaml" type="SOURCES"/>
+    <FiletypeAssociation pattern="GNUmakefile" type="OTHERS"/>
+    <FiletypeAssociation pattern="Makefile" type="OTHERS"/>
+    <FiletypeAssociation pattern="README" type="OTHERS"/>
+    <FiletypeAssociation pattern="README.*" type="OTHERS"/>
+    <FiletypeAssociation pattern="makefile" type="OTHERS"/>
+  </FiletypeAssociations>
+</Project>
