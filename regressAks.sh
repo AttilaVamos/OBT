@@ -306,7 +306,8 @@ WriteLog "Update obt-admin.tfvars..." "$logFile"
 pushd $TERRAFORM_DIR > /dev/null
 
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
-    
+WriteLog "$(rm -v terraform.tfstate* 2>&1)" "$logFile"
+
 sed -i -e 's/^\(\s*\)version\s*=\s*\(.*\)/\1version = "'"${base}"'"/g' obt-admin.tfvars
 WriteLog "$(egrep '^\s*version ' obt-admin.tfvars)" "$logFile"
 WriteLog "  Done." "$logFile"
