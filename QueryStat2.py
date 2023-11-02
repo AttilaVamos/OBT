@@ -615,7 +615,7 @@ class WriteStatsToFile(object):
 
                     self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec %s" % (jobName,  clusterTime, compileTimeValue, compileTimeDetailsLog))
                     buff = "%s,%0.3f,%0.3f%s\n" % (jobName, clusterTime, compileTimeValue, compileTimeDetails)
-                    print(buff)
+                    self.myPrint(buff)
                     statFile.write(buff )
                     
             if wuCount == 0:
