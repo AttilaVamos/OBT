@@ -23,7 +23,7 @@ usage()
     WriteLog "  $0 [-i] [-q] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
     WriteLog " -i       - Interactive, stop before unistall with terraform." "/dev/null"
-    WriteLog " -f       - Execute full Regression Suite." "/dev/null"
+    WriteLog " -q       - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
     WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
@@ -44,7 +44,6 @@ then
     QUERY_STAT2_DIR="$OBT_BIN_DIR"
     PERFSTAT_DIR="$HOME/Perfstat-Azure/"
     PKG_DIR=$OBT_BIN_DIR/PkgCache
-    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 else
     WriteLog "Non OBT environment, like local VM/BM" "$logFile"
     SOURCE_DIR="$HOME/HPCC-Platform"
@@ -57,9 +56,7 @@ else
     QUERY_STAT2_DIR="$RTE_DIR"
     [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=$(pwd)
     [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=''
-
     PERFSTAT_DIR="Azure/"
-    EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 
     PKG_DIR="$HOME/HPCC-Platform-build"
     PKG_IS_DEB=$( type "dpkg" 2>&1 | grep -v -c "not found" )
@@ -87,6 +84,7 @@ QUICK_TEST_SET='teststdlib*'
 QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
+EXCLUSIONS='--ef pipefail.ecl -e plugin,3rdparty,embedded,python2,spray'
 
 WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
@@ -107,7 +105,7 @@ WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
 
 #set -x
 INTERACTIVE=0
-FULL_REGRESSION=0
+FULL_REGRESSION=1
 TAG='<latest>'
 VERBOSE=0
 
@@ -121,7 +119,7 @@ do
         I)  INTERACTIVE=1
             ;;
                
-        F)  FULL_REGRESSION=1
+        Q)  FULL_REGRESSION=0
             ;;
             
         T)  shift
