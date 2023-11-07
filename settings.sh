@@ -479,7 +479,7 @@ REGRESSION_PREABORT="--preAbort ./preabort.sh"
 REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
 REGRESSION_PREABORT=""
-REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -maxdept 1 -iname 'preAbort.sh' -type f -print | head -n 1)
+REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -maxdepth 1 -iname 'preAbort.sh' -type f -print | head -n 1)
 [[ -n "$REGRESSION_PREABORT_SCRIPT" ]] && REGRESSION_PREABORT="--preAbort ${REGRESSION_PREABORT_SCRIPT}"
 REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 #

@@ -515,7 +515,7 @@ COVERITY_TEST_DAY=1    # Monday
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
-COVERITY_CLOUD_TEST_DAY=2 #3 # Wednesday
+COVERITY_CLOUD_TEST_DAY=3 # Wednesday
 
 #
 #----------------------------------------------------
