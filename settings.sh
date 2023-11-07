@@ -479,7 +479,7 @@ REGRESSION_PREABORT="--preAbort ./preabort.sh"
 REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
 REGRESSION_PREABORT=""
-REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -iname 'preAbort.sh' -type f -print | head -n 1)
+REGRESSION_PREABORT_SCRIPT=$( find ${HOME}/ -maxdept 1 -iname 'preAbort.sh' -type f -print | head -n 1)
 [[ -n "$REGRESSION_PREABORT_SCRIPT" ]] && REGRESSION_PREABORT="--preAbort ${REGRESSION_PREABORT_SCRIPT}"
 REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 #
@@ -491,9 +491,11 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 # Enable to run Coverity build and upload result
 
 RUN_COVERITY=0
-COVERITY_TEST_DAY=1    # Monday
+COVERITY_TEST_DAY=2 #1    # Monday
 COVERITY_TEST_BRANCH=master
+COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
+COVERITY_CLOUD_TEST_DAY=3 # Wednesday
 #
 #----------------------------------------------------
 #
