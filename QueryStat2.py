@@ -171,7 +171,11 @@ class WriteStatsToFile(object):
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
     compileTimeDetailsDepth=1   #valid values = 0,1,2
-    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
+    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=compile&NestedFilter.Depth=3&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
+    #compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
+    
+    graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
+    
     def __init__(self, options):
         
         self.destPath = options.path
@@ -202,7 +206,8 @@ class WriteStatsToFile(object):
             
         #global compileTimeQuery
         self.compileTimeQuery = WriteStatsToFile.compileTimeQuery.replace('<ESP_IP>',  self.host).replace('<ESP_PORT>',  self.port)
-        
+        self.graphTimeQuery = WriteStatsToFile.graphTimeQuery.replace('<ESP_IP>',  self.host).replace('<ESP_PORT>',  self.port)
+
         if options.jobNameSuffix != "":
             if not options.jobNameSuffix.startswith('-'):
                 if not options.jobNameSuffix.startswith('#'):
@@ -496,7 +501,7 @@ class WriteStatsToFile(object):
                         # Reverse the magic done before split. restore extensions, restore '_' before subsequent cpp file number
                         scopeName = scopeName.replace('-*', '.').replace('>-','>_')
                     
-                    scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0
+                    scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  #ns to sec
                     self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
                     times[scopeName] = scopeTime
                         
@@ -505,6 +510,57 @@ class WriteStatsToFile(object):
             pass
 
         return times
+        
+    def queryGraphTimes(self,  wuid):
+        url = self.graphTimeQuery.replace('<WUID>',  wuid)
+        print(url)
+        times = {}
+        try:
+                response_stream = urllib2.urlopen(url)
+                json_response = response_stream.read()
+                resp = json.loads(json_response)
+                response_stream.close()
+                response_stream = None
+                numOfScopes = len(resp["WUDetailsResponse"]["Scopes"]["Scope"])
+                self.myPrint("\tNumber of scopes: %d" % (numOfScopes))
+                
+                for scope in range(numOfScopes):
+                    # Some magic to make split easier                                                                                    separate subseq. cpp                         separate extensions
+                    scopeName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["ScopeName"].replace('_', ':').replace(' ', '_').replace('.', ':*')
+                    scopeItems = scopeName.split(':')
+                    if len(scopeItems[0]) == 0:
+                        continue
+                    if scopeName.startswith('compile'):
+                        continue
+                        
+                    # Looking for the position of WUID in the scopeItems
+                    w = [i for i in range(len(scopeItems)) if scopeItems[i][0] == "W" ]
+                    if len(w) > 0:
+                        # If found replace real WUID with '<wuid>
+                        # if not found that means the scope name not C++ compiling item)
+                        scopeItems[w[0]] = "<wuid>"
+                        # Check the next item, is it subsequent cpp file name?
+                        if scopeItems[w[0]+1][0] != '*':
+                            # Yes, pading the number with '0' from left 
+                            scopeItems[w[0]+1] = "%03d" % (int(scopeItems[w[0]+1]))
+                        # Assembly the scopeName back
+                        scopeName = '-'.join(scopeItems)
+                        # Reverse the magic done before split. restore extensions, restore '_' before subsequent cpp file number
+                        scopeName = scopeName.replace('-*', '.').replace('>-','>_')
+                    
+                    try:
+                        scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  #ns to sec
+                        self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
+                        times[scopeName] = scopeTime
+                    except:
+                        print(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
+                        pass
+        
+        except Exception as ex:
+            print(ex)
+            pass
+
+        return dict(sorted(times.items()))
         
     def queryStats(self, cluster,  dateStr = ''):
         url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
@@ -611,6 +667,9 @@ class WriteStatsToFile(object):
                         if self.addHeader: 
                             statFile.write( "%s%s\n" % ("jobName,clusterTime,compileTime", compileTimeHeaders ))
                     
+                    graphTimes =self.queryGraphTimes(stat['Wuid'])
+                    print("Graph times")
+                    print(graphTimes)
                     wuCount += 1
 
                     self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec %s" % (jobName,  clusterTime, compileTimeValue, compileTimeDetailsLog))
