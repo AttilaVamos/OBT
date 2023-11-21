@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 #
 # Query and store Perfromance Test suite results by clusters and store them into 
@@ -6,7 +6,7 @@
 #
 
 import json
-import urllib2
+import urllib.request, urllib.error
 import re
 from datetime import datetime,  timedelta
 from optparse import OptionParser
@@ -15,13 +15,13 @@ import sys
 import inspect
 import os
 import traceback
-import ConfigParser
+import configparser
 import time
 
 class HThorPerfResultConfig():
    
     def __init__(self, iniFile = ''):
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.optionxform = str
         self.engine = 'hthor'
        
@@ -37,7 +37,7 @@ class HThorPerfResultConfig():
         try:
             self.config.set( section, key, value )
             
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             self.config.add_section(section)
             self.config.set( section, key, value )
         except:
@@ -171,7 +171,7 @@ class WriteStatsToFile(object):
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
     compileTimeDetailsDepth=1   #valid values = 0,1,2
-    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=compile&NestedFilter.Depth=3&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
+    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=compile&NestedFilter.Depth=<NESTED_DEPTH>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
     #compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     
     graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
@@ -250,6 +250,8 @@ class WriteStatsToFile(object):
         self.timeStamp = options.timeStamp
         self.timeStampStr =  datetime.today().strftime("%H%M%S")  # "HHMMSS"
         
+        self.graphTimings = options.graphTimings
+        
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
         if self.buildBranch == None:
@@ -267,13 +269,14 @@ class WriteStatsToFile(object):
         print("self.verbose                 : '" + str(self.verbose) + "'")
         print("self.addHeader               : '" + str(self.addHeader) + "'")
         print("self.compileTimeDetailsDepth : " + str(self.compileTimeDetailsDepth))
-        print("hpccVersion                  : " + self.hpccVersionStr + "'" )
+        print("self.graphTimings            : '" + str(self.graphTimings) + "'")
+        print("hpccVersion                  : '" + self.hpccVersionStr + "'" )
         pass
         
     def myPrint(self, Msg, *Args):
         if self.verbose:
             format=''.join(['%s']*(len(Args)+1)) 
-            print(format % tuple([Msg]+map(str,Args)) )
+            print(format % tuple([Msg]+list(map(str,Args))) )
             
     def run(self):
         # TODO Add '*' to date string to query all missing datafiles from today backward
@@ -296,9 +299,7 @@ class WriteStatsToFile(object):
                     continue
                 cluster = nameItems[1]
                 date = nameItems[2]
-#                if len(nameItems) > 3:
-#                    version = nameItems[3]
-                    
+
                 if date not in existFiles:
                     existFiles[date] = set()
                 
@@ -307,6 +308,7 @@ class WriteStatsToFile(object):
             dayStr = today.strftime("%y%m%d")
             stepBack = True
             stepBackCounter = 11
+            
             while stepBack and (stepBackCounter > 0):
                 print("Day: " + dayStr)
                 if dayStr not in existFiles:
@@ -325,7 +327,6 @@ class WriteStatsToFile(object):
                                 #add this day and cluster to existFiles
                                 existFiles[dayStr].add(cluster)
                             else:
-#                                break
                                 pass
                     stepBack = True
                 else:
@@ -366,14 +367,14 @@ class WriteStatsToFile(object):
             wuQuery = self.url +"/WUInfo.json?Wuid="+wuid
             resp = None
             try:
-                response_stream = urllib2.urlopen(wuQuery)
+                response_stream = urllib.request.urlopen(wuQuery)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
             except:
                 print("Network error in checkJobname('%s', '%s')" % (wuid, jobname))
                 print("BadStatusLine exception with '%s'" % (wuQuery))
-                # ESP server on the other side is crashed and its need some time to recover.
+                # ESP server on the other side is crashed and it needs some time to recover.
                 time.sleep(20)
                 pass
                 
@@ -385,7 +386,7 @@ class WriteStatsToFile(object):
                     if debugValue['Name'].startswith('eclcc-d'):
                         value = '-'+ debugValue['Name'].replace('eclcc-d', '').split('-')[0]
                         versionsFromDebug.append(value + '('+debugValue['Value']+')')
-                        #versionInfo += value + '('+debugValue['Value']+')'
+
                 if len(versionsFromDebug) > 0: 
                     versionInfo = ''.join(sorted(versionsFromDebug))
                     # Regression test based extra parameter, can cause problem to create diagram. Remove
@@ -434,7 +435,7 @@ class WriteStatsToFile(object):
         url =  self.url + "/WUCheckFeatures.json"
         state = 'OK'
         try:
-            response_stream = urllib2.urlopen(url)
+            response_stream = urllib.request.urlopen(url)
             json_response = response_stream.read()
             resp = json.loads(json_response)
             if 'WUCheckFeaturesResponse' in resp:
@@ -450,11 +451,11 @@ class WriteStatsToFile(object):
             state = "Key error:"+ke.str()
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
-        except urllib2.HTTPError as ex:
+        except urllib.error.HTTPError as ex:
             state = "HTTP Error: "+ str(ex.reason)
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             state = "URL Error: "+ str(ex.reason) + " (perhaps service down on host)."
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
@@ -475,7 +476,7 @@ class WriteStatsToFile(object):
         url = self.compileTimeQuery.replace('<WUID>',  wuid).replace('<NESTED_DEPTH>', str(self.compileTimeDetailsDepth))
         times = {}
         try:
-                response_stream = urllib2.urlopen(url)
+                response_stream = urllib.request.urlopen(url)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
@@ -513,10 +514,10 @@ class WriteStatsToFile(object):
         
     def queryGraphTimes(self,  wuid):
         url = self.graphTimeQuery.replace('<WUID>',  wuid)
-        print(url)
+        print("URL: %s" %(url))
         times = {}
         try:
-                response_stream = urllib2.urlopen(url)
+                response_stream = urllib.request.urlopen(url)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
@@ -549,11 +550,11 @@ class WriteStatsToFile(object):
                         scopeName = scopeName.replace('-*', '.').replace('>-','>_')
                     
                     try:
-                        scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  #ns to sec
+                        scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  # from ns to sec
                         self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
                         times[scopeName] = scopeTime
-                    except:
-                        print(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
+                    except Exception as e:
+                        self.myPrint(repr(e), " in ", resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
                         pass
         
         except Exception as ex:
@@ -588,7 +589,7 @@ class WriteStatsToFile(object):
         else:
             queryJobname = "*-" + dateStr + "-*"
             
-        self.myPrint("queryJobname:" + queryJobname)
+        self.myPrint("queryJobname:",  queryJobname)
         url += "&Jobname=" + queryJobname
         print("query:" + url)
         
@@ -597,7 +598,7 @@ class WriteStatsToFile(object):
         wuCount = 0
         try:
             try:
-                response_stream = urllib2.urlopen(url)
+                response_stream = urllib.request.urlopen(url)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
@@ -656,26 +657,43 @@ class WriteStatsToFile(object):
                         if key == 'compile':
                             #It is already handled
                             continue
-                            
+                        
+                        # TO-DO  Based on the number of item can be different test case -by test case should consider same 
+                        # Approach as with graph times: "<number_of_comiple_times>,<compile_time_item1>=time,<compile_time_item2>=time, ...,<compile_time_itemN>=time"
+                        # And the header should be: ",NumberOfComipleTimes,CompileTimes'
                         compileTimeHeaders += "," + key
                         compileTimeDetails += ",%f" % (compileTimes[key])
                         compileTimeDetailsLog += ", %s:%f" % (key, compileTimes[key])
 
-                    if not headerWritten: 
-                        self.resultConfigClass[cluster].set('Result',  'DataFileHeader', "jobName,clusterTime,compileTime%s" % (compileTimeHeaders))
-                        headerWritten = True
-                        if self.addHeader: 
-                            statFile.write( "%s%s\n" % ("jobName,clusterTime,compileTime", compileTimeHeaders ))
-                    
-                    graphTimes =self.queryGraphTimes(stat['Wuid'])
-                    print("Graph times")
-                    print(graphTimes)
-                    wuCount += 1
+                    buff = "%s,%0.3f,%0.3f%s" % (jobName, clusterTime, compileTimeValue, compileTimeDetails)
 
-                    self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec %s" % (jobName,  clusterTime, compileTimeValue, compileTimeDetailsLog))
-                    buff = "%s,%0.3f,%0.3f%s\n" % (jobName, clusterTime, compileTimeValue, compileTimeDetails)
+                    graphTimeHeaders = ''
+                    graphTimeDetailsLog = ''
+                    if self.graphTimings == True:
+                        graphTimes =self.queryGraphTimes(stat['Wuid'])
+                        self.myPrint("Graph times", graphTimes)
+                        graphTimeHeaders = ',NumberOfGraphTimes,GraphTimes'
+                        graphTimeDetails = ",%d" % (len(graphTimes))
+                        graphTimeDetailsLog = ''
+                        for key in sorted(graphTimes):
+                            graphTimeDetails += ",%s=%f" % (key, graphTimes[key])
+                            graphTimeDetailsLog += ", %s=%f" % (key, graphTimes[key])
+                        buff += graphTimeDetails
+                        
+                    buff += '\n'
+                    
+                    if not headerWritten: 
+                        headerWritten = True
+                        self.resultConfigClass[cluster].set('Result',  'DataFileHeader', "jobName,clusterTime,compileTime%s" % (compileTimeHeaders+graphTimeHeaders))
+                        if self.addHeader: 
+                            statFile.write( "%s%s\n" % ("jobName,clusterTime,compileTime", compileTimeHeaders+graphTimeHeaders ))
+
+
+                    self.myPrint("\tJobname: %s, TotalClusterTime: %0.3f sec, TotalCompileTime: %0.3f sec %s" % (jobName,  clusterTime, compileTimeValue, compileTimeDetailsLog+graphTimeDetailsLog))
                     self.myPrint(buff)
                     statFile.write(buff )
+
+                    wuCount += 1
                     
             if wuCount == 0:
                 print("No matching workunit")
@@ -692,11 +710,11 @@ class WriteStatsToFile(object):
             state = "Key error:"+ke.str()
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
-        except urllib2.HTTPError as ex:
+        except urllib.error.HTTPError as ex:
             state = "HTTP Error: "+ str(ex.reason)
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             state = "URL Error: "+ str(ex.reason) + " (perhaps service down on host)."
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
 
@@ -777,12 +795,16 @@ if __name__ == '__main__':
                         help="Add record header/structure to CSV file.",  metavar="ADDHEADER")
                         
     parser.add_option("--compileTimeDetails",  dest="compileTimeDetailsDepth",  default=0, 
-                        help="Set compile time detals. 0 (def) only compile time, 1 one level deeper, 2more compile details, but it can contains compile time from more than one c++ source, so the file header may only partially valid. It may extend the CSV file headers",  
+                        help="Set compile time detals. 0 (def) only compile time, 1 one level deeper, 2 more compile details, but it can contains compile time from more than one c++ source, so the file header may only partially valid. It may extend the CSV file headers",  
                         metavar="COMPILETIMEDETAILSDEPTH")
 
     parser.add_option("--buildType",  dest="buildType",  default=None,  type="string", 
                         help="Platform build type. Default is None (until I found out how to query it.)",  
                         metavar="BUILDTYPE")
+                        
+    parser.add_option("-g", "--graphTimings",  dest="graphTimings",  default=False,  action="store_true", 
+                        help="Get the grph timings. Default is no",  
+                        metavar="GRAPHTIMINGS")
                         
     (options, args) = parser.parse_args()
 
