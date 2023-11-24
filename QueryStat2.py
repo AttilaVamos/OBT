@@ -18,15 +18,23 @@ import traceback
 import configparser
 import time
 
+verbose = False
+
 class HThorPerfResultConfig():
    
     def __init__(self, iniFile = ''):
+        global verbose
         self.config = configparser.ConfigParser()
         self.config.optionxform = str
         self.engine = 'hthor'
-       
+        self.verbose = verbose
         self.initHThorConfig()
 
+    def myPrint(self, Msg, *Args):
+        if self.verbose:
+            format=''.join(['%s']*(len(Args)+1)) 
+            print(format % tuple([Msg]+list(map(str,Args))) )
+            
     def get( self, section, key ):
         try:
             return self.config.get( section, key )
@@ -45,7 +53,6 @@ class HThorPerfResultConfig():
             pass
 
     def initHThorConfig(self):
-        
         self.config.add_section('OBT')
         self.config.set('OBT', 'ObtSystem', '${OBT_SYSTEM}')
         
@@ -93,13 +100,13 @@ class HThorPerfResultConfig():
             self.config.write(f)
             
     def resolve(self):
-        print("---------------------------------------------")
-        print("%s" % (self.engine))
+        self.myPrint("---------------------------------------------")
+        self.myPrint("%s" % (self.engine))
         for section in self.config.sections():
-            print("\t%s" % (section))
+            self.myPrint("\t%s" % (section))
             for option in self.config.options(section):
                 value = self.config.get(section, option)
-                print("\t\toriginal: %s = %s" % (option, value))
+                self.myPrint("\t\toriginal: %s = %s" % (option, value))
                 # TO-DO
                 # Find all "word" starting with '$' and optionally enclosed with '{' and '}' in the value 
                 SetEnvPattern = re.compile("(\$\{?\w+\}?)")
@@ -125,7 +132,7 @@ class HThorPerfResultConfig():
                         
                 # Set the updated/resolved value back to the config.
                 self.config.set(section, option, value)
-                print("\t\tresolved: %s = %s" % (option, value))
+                self.myPrint("\t\tresolved: %s = %s" % (option, value))
         pass
 
 class ThorPerfResultConfig( HThorPerfResultConfig ):
@@ -177,6 +184,7 @@ class WriteStatsToFile(object):
     graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
     
     def __init__(self, options):
+        global verbose
         
         self.destPath = options.path
         if not os.path.exists(self.destPath):
@@ -193,6 +201,7 @@ class WriteStatsToFile(object):
              
         #self.dateStr = options.dateStrings
         self.verbose = options.verbose
+        verbose = self.verbose
         self.host = options.host
         self.port = options.port
         #self.url = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUQuery.json?PageSize=2500&Sortby=Jobname"  # *-161128-*
@@ -270,7 +279,7 @@ class WriteStatsToFile(object):
         print("self.addHeader               : '" + str(self.addHeader) + "'")
         print("self.compileTimeDetailsDepth : " + str(self.compileTimeDetailsDepth))
         print("self.graphTimings            : '" + str(self.graphTimings) + "'")
-        print("hpccVersion                  : '" + self.hpccVersionStr + "'" )
+        print("hpccVersion                  : '" + self.hpccVersionStr + "'\n" )
         pass
         
     def myPrint(self, Msg, *Args):
@@ -514,7 +523,7 @@ class WriteStatsToFile(object):
         
     def queryGraphTimes(self,  wuid):
         url = self.graphTimeQuery.replace('<WUID>',  wuid)
-        print("URL: %s" %(url))
+        self.myPrint("URL: %s" %(url))
         times = {}
         try:
                 response_stream = urllib.request.urlopen(url)
@@ -564,6 +573,7 @@ class WriteStatsToFile(object):
         return dict(sorted(times.items()))
         
     def queryStats(self, cluster,  dateStr = ''):
+        print("Process %s started." % (cluster))
         url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
         if 'roxie' == cluster:
             url += '*'
@@ -591,7 +601,7 @@ class WriteStatsToFile(object):
             
         self.myPrint("queryJobname:",  queryJobname)
         url += "&Jobname=" + queryJobname
-        print("query:" + url)
+        self.myPrint("query:" + url)
         
         self.resultConfigClass[cluster].set('Result',  'Query',  url)
         state = 'OK'
@@ -624,6 +634,7 @@ class WriteStatsToFile(object):
             
             if'Workunits' not in resp['WUQueryResponse']:
                 state = "Workuint not found."
+                print("%s end.\n" % (cluster))
                 return False
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
@@ -744,7 +755,7 @@ class WriteStatsToFile(object):
         
             self.resultConfigClass[cluster].saveConfig(statFileName.replace('.csv',''))
             
-            print("End.\n\n")
+            print("%s end.\n" % (cluster))
         
         return True
 

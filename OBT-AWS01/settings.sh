@@ -670,6 +670,7 @@ EXECUTE_ML_SUITE=1
 ML_TIMEOUT=360
 ML_PARALLEL_QUERIES=1
 ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl,SVCTest.ecl"
+ML_REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
 #
 #----------------------------------------------------

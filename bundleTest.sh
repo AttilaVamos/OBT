@@ -28,50 +28,20 @@ fi
 #
 #------------------------------
 #
-# Constants
+# Function
 #
 
-LOG_DIR=~/HPCCSystems-regression/log
-
-BIN_HOME=~/
-
-#TEST_ROOT=${BUILD_DIR}/CE/platform
-PLATFORM_HOME=${TEST_ROOT}
-TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
-
-LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
-BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
-
-BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" "LinearRegression" "LogisticRegression" )
-
-if [[ -n "$1" ]]
-then
-    BUNDLES_TO_TEST=( "$1" )
-fi
-
-# For testing purposes
-SKIP_INSTALL_BUNDLES=0
-
-ML_CORE_VERSION="V3_0"
-ML_PBLAS_VERSION="V3_0"
-ML_TEST_ROOT=~/.HPCCSystems/bundles/_versions/PBblas/${ML_PBLAS_VERSION}/PBblas
-
-ML_TEST_HOME=~/.HPCCSystems/bundles/_versions/
-ML_TEST_LOG=${OBT_LOG_DIR}/ML_test-${LONG_DATE}.log
-ML_CORE_REPO=https://github.com/hpcc-systems/ML_Core.git
-ML_PBBLAST_REPO=https://github.com/hpcc-systems/PBblas.git
-
-ML_TEST_RESULT_LOG=${OBT_LOG_DIR}/mltest.${LONG_DATE}.log
-ML_TEST_SUMMARY=${OBT_LOG_DIR}/mltests.summary
-
-
-TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
-TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/MlTimeoutedTests.csv
-TIMEOUT_TAG="//timeout 900"
-
-#
-#----------------------------------------------------
-#
+usage()
+{
+    WriteLog "usage:" "/dev/null"
+    WriteLog "  $0 [-b <bundle1_name>[,<bundle2_name>[,...]] [-noarchive] [-nostats] [-h]" "/dev/null"
+    WriteLog "where:" "/dev/null"
+    WriteLog " -b          - List of bundles to test. If missing all wil be tested." "/dev/null"
+    WriteLog " -noarchive  - Skip archive generation." "/dev/null"
+    WriteLog " -nostats    - Skipp executeing QueryStat2.py." "/dev/null"
+    WriteLog " -h       - This help." "/dev/null"
+    WriteLog " " "/dev/null"
+}
 
 ProcessLog()
 { 
@@ -95,6 +65,72 @@ ProcessLog()
 
 }
 
+#
+#------------------------------
+#
+# Constants
+#
+
+LOG_DIR=~/HPCCSystems-regression/log
+
+BIN_HOME=~/
+
+#TEST_ROOT=${BUILD_DIR}/CE/platform
+PLATFORM_HOME=${TEST_ROOT}
+TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
+
+LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
+BUILD_LOG_FILE=${BIN_HOME}/"ML_build_"${LONG_DATE}".log";
+
+BUNDLES_TO_TEST=( "ML_Core" "PBblas" "GLM" "DBSCAN" "GNN" "LearningTrees" "TextVectors" "KMeans" "SupportVectorMachines" "LinearRegression" "LogisticRegression" )
+MAKE_ARCHIVE=1
+GET_STAT=1
+
+while [ $# -gt 0 ]
+do
+    param=$1
+    param=${param//-/}
+    upperParam=${param^^}
+    WriteLog "Param: ${upperParam}" "/dev/null"
+    case $upperParam in
+        B*) shift
+              BUNDLES_TO_TEST=( "$1" )
+              ;;
+              
+        NOA*) MAKE_ARCHIVE=0
+                ;;
+                
+        NOS*) GET_STAT=0
+                ;;
+    
+        H* | *)
+            WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# For testing purposes
+SKIP_INSTALL_BUNDLES=0
+
+ML_CORE_VERSION="V3_0"
+ML_PBLAS_VERSION="V3_0"
+ML_TEST_ROOT=~/.HPCCSystems/bundles/_versions/PBblas/${ML_PBLAS_VERSION}/PBblas
+
+ML_TEST_HOME=~/.HPCCSystems/bundles/_versions/
+ML_TEST_LOG=${OBT_LOG_DIR}/ML_test-${LONG_DATE}.log
+ML_CORE_REPO=https://github.com/hpcc-systems/ML_Core.git
+ML_PBBLAST_REPO=https://github.com/hpcc-systems/PBblas.git
+
+ML_TEST_RESULT_LOG=${OBT_LOG_DIR}/mltest.${LONG_DATE}.log
+ML_TEST_SUMMARY=${OBT_LOG_DIR}/mltests.summary
+
+
+TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
+TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/MlTimeoutedTests.csv
+TIMEOUT_TAG="//timeout 900"
 
 #
 #----------------------------------------------------
@@ -329,12 +365,8 @@ then
     MEMSIZE=$(( $ML_THOR_MEMSIZE_GB * (2 ** 30) ))
     MEMSIZE_KB=$(( $ML_THOR_MEMSIZE_GB * (2 ** 20) ))
 
-
     # for hthor we should change 'defaultMemoryLimitMB' as well 
-
     MEMSIZE_MB=$(( $ML_THOR_MEMSIZE_GB * (2 ** 10) ))
-
-    
     WriteLog "Patch environment.xml to use ${ML_THOR_MEMSIZE_GB}GB Memory for test on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     WriteLog "Patch environment.xml to use ${ML_THOR_NUMBER_OF_SLAVES} slaves for ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     
@@ -514,7 +546,7 @@ then
     WriteLog "ML_ENGINE_HOME        : ${ML_ENGINE_HOME}" "${ML_TEST_LOG}"
     WriteLog "Bundles to try to test: ${BUNDLES_TO_TEST[*]}" "${ML_TEST_LOG}"
 
-    CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test run -t ${TARGET_PLATFORM} --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} -fthorConnectTimeout=36000 --pq ${ML_PARALLEL_QUERIES} ${ML_EXCLUDE_FILES}"
+    CMD="${REGRESSION_TEST_ENGINE_HOME}/ecl-test run -t ${TARGET_PLATFORM} --config ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json --timeout ${ML_TIMEOUT} $ML_REGRESSION_EXTRA_PARAM --pq ${ML_PARALLEL_QUERIES} ${ML_EXCLUDE_FILES}"
 
     if [ ${EXECUTE_ML_SUITE} -ne 0 ]
     then
@@ -609,21 +641,40 @@ then
     # Archive  logs
     pushd ${OBT_BIN_DIR}
     
-    # Copy test summary to Wiki
-    WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${ML_TEST_LOG}"
+    # Get tests stat
+    if [[ ( $GET_STAT -eq 1 ) && ( -f QueryStat2.py) ]]
+    then
+        WriteLog "Get tests stat..." "${ML_TEST_LOG}"
+        CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d '' -a --timestamp --compileTimeDetails 1 --graphTimings --addHeader"
+        WriteLog "  CMD: '$CMD'" "${ML_TEST_LOG}"
+        ${CMD} >> ${ML_TEST_LOG} 2>&1
+        retCode=$( echo $? )
+        WriteLog "  RetCode: $retCode" "${ML_TEST_LOG}"
+        WriteLog "  Files: $( ls -l perfstat* )" "${ML_TEST_LOG}"
+        WriteLog "Done." "${ML_TEST_LOG}"
+    else
+        WriteLog "$OBT_BIN_DIR/QueryStat2.py not found. Skip perfromance result collection " "${ML_TEST_LOG}"
+    fi
 
-    WriteLog "--->'${LOG_DIR}/ml-*.log'" "${ML_TEST_LOG}"
-    WriteLog "--->$(ls -l ${LOG_DIR}/ml-* )" "${ML_TEST_LOG}"
-    [ !  -d ${TARGET_DIR}/test/ ] && mkdir -p ${TARGET_DIR}/test
-    res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
-    WriteLog "---->res:${res}" "${ML_TEST_LOG}"
+   
+    if [[ $MAKE_ARCHIVE -eq 1 ]]
+    then
+        # Copy test summary to Wiki
+        WriteLog "Copy ML test result files to ${TARGET_DIR}..." "${ML_TEST_LOG}"
 
-    WriteLog "--_>mltests.summary" "${ML_TEST_LOG}"
-    res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
-    WriteLog "---->res:${res}" "${ML_TEST_LOG}"
+        WriteLog "--->'${LOG_DIR}/ml-*.log'" "${ML_TEST_LOG}"
+        WriteLog "--->$(ls -l ${LOG_DIR}/ml-* )" "${ML_TEST_LOG}"
+        [ !  -d ${TARGET_DIR}/test/ ] && mkdir -p ${TARGET_DIR}/test
+        res=$( cp -v ${LOG_DIR}/ml-*.log ${TARGET_DIR}/test/  2>&1 )
+        WriteLog "---->res:${res}" "${ML_TEST_LOG}"
+
+        WriteLog "--_>mltests.summary" "${ML_TEST_LOG}"
+        res=$( cp -v mltests.summary ${TARGET_DIR}/test/mltests.summary 2>&1 )
+        WriteLog "---->res:${res}" "${ML_TEST_LOG}"    
     
-    WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
-    ./archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
+        WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
+        ./archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
+    fi
     
     popd
     #

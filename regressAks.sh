@@ -26,6 +26,8 @@ usage()
     WriteLog " -q       - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
     WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
+    WriteLog " -r       - Start resources: VNet and Storage accounts before deploy HPCC" "/dev/null"
+    WriteLog "            and destroy them at the end." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
@@ -108,6 +110,7 @@ INTERACTIVE=0
 FULL_REGRESSION=1
 TAG='<latest>'
 VERBOSE=0
+START_RESOURCES=0
 
 while [ $# -gt 0 ]
 do
@@ -128,6 +131,9 @@ do
 
         V) VERBOSE=1
            ;;
+           
+        R) START_RESOURCES=1
+            ;;
 
         H* | *)
             WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
@@ -142,6 +148,7 @@ WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
 WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
 WriteLog "TAG            : $TAG" "$logFile"
 WriteLog "VERBOSE        : $VERBOSE" "$logFile"
+WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -331,6 +338,32 @@ WriteLog "account: $account" "$logFile"
 #res=$(helm repo update 2>&1)
 #WriteLog "$res" "$logFile"
 
+if [[ $START_RESOURCES -eq 1 ]]
+then
+    WriteLog "Create VNET ..." "$logFile"
+    pushd modules/virtual_network > /dev/null
+    res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    if [[ $VERBOSE -ne 0 ]]
+    then 
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
+    popd > /dev/null
+     
+    WriteLog "Create storage accounts ..." "$logFile"
+    pushd modules/storage_accounts > /dev/null    
+    res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    if [[ $VERBOSE -ne 0 ]]
+    then 
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
+     popd > /dev/null
+
+fi
+
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 if [[ $VERBOSE -ne 0 ]]
@@ -359,7 +392,36 @@ else
     WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
     res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
     WriteLog "${res}" "$logFile"
-    WriteLog "  Done, exit." "$logFile"
+    WriteLog "  Done." "$logFile"
+    
+    if [[ $START_RESOURCES -eq 1 ]]
+    then
+        WriteLog "Destroy storage accounts ..." "$logFile"
+        pushd modules/storage_accounts > /dev/null    
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then 
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+
+        WriteLog "Destroy VNET ..." "$logFile"
+        pushd modules/virtual_network > /dev/null
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then 
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+    fi
+
+    WriteLog "Exit." "$logFile"
     exit 1
 fi
 
@@ -537,6 +599,35 @@ then
 else
    WriteLog "Something went wrong. Try to destroy AKS manually via https://portal.azure.com ." "$logFile"
 fi
+
+if [[ $START_RESOURCES -eq 1 ]]
+then
+    WriteLog "Destroy storage accounts ..." "$logFile"
+    pushd modules/storage_accounts > /dev/null    
+    res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+    if [[ $VERBOSE -ne 0 ]]
+    then 
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
+    WriteLog "  Done." "$logFile"
+    popd > /dev/null
+
+    WriteLog "Destroy VNET ..." "$logFile"
+    pushd modules/virtual_network > /dev/null
+    res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+    if [[ $VERBOSE -ne 0 ]]
+    then 
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
+    WriteLog "  Done." "$logFile"
+    popd > /dev/null
+     
+fi
+
 
 WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"
