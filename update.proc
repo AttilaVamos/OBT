@@ -52,6 +52,12 @@ else
     echo "Update failed, ~/OBT directory not exists."
 fi
 
+if [[ -f $OBT_DIR/collections.py ]] 
+then
+    echo "Remove outdated collections.py*"    >> ${logFile} 2>&1
+    echo "$(rm -v $OBT_DIR/collections.py*)"   >> ${logFile} 2>&1
+fi
+
 echo "End @ "$( date "+%Y-%m-%d %H:%M:%S" )"."   >> ${logFile} 2>&1
 echo "------------------------------------------" >> ${logFile} 2>&1
 echo ""   >> ${logFile} 2>&1
