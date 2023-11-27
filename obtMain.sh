@@ -240,7 +240,9 @@ WriteLog "Limits:\n${res}" "${OBT_LOG_FILE}"
 #
 
 WriteLog "Enable core generation." "${OBT_LOG_FILE}"
-ulimit -c unlimited
+#ulimit -c unlimited
+WriteLog "Set the core file size to 100 (* 512-byte)." "${OBT_LOG_FILE}"
+ulimit -c 100
 
 res=$( ulimit -a | grep '[c]ore' )
 

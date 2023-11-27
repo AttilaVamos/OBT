@@ -38,7 +38,7 @@ usage()
     WriteLog "where:" "/dev/null"
     WriteLog " -b          - List of bundles to test. If missing all wil be tested." "/dev/null"
     WriteLog " -noarchive  - Skip archive generation." "/dev/null"
-    WriteLog " -nostats    - Skipp executeing QueryStat2.py." "/dev/null"
+    WriteLog " -nostats    - Skipp executing QueryStat2.py." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
