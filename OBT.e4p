@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2023-10-27, 23:06:06 -->
+<!-- Saved: 2023-11-28, 21:05:32 -->
 <!-- Copyright (C) 2023 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -32,6 +32,8 @@
     <Source>OBT-AWS02/BuildNotification.ini</Source>
     <Source>OBT-AWS02/obtSequence.inc</Source>
     <Source>OBT-AWS02/settings.sh</Source>
+    <Source>OBT-AWS03/BuildNotification.ini</Source>
+    <Source>OBT-AWS03/settings.sh</Source>
     <Source>QueryStat2.py</Source>
     <Source>QueryStat2.py3</Source>
     <Source>QueryStat2Test.py</Source>
@@ -68,7 +70,6 @@
     <Source>checkRedis.sh</Source>
     <Source>clean_builds.sh</Source>
     <Source>cloneRepo.sh</Source>
-    <Source>collections.py</Source>
     <Source>coverage.sh</Source>
     <Source>gitlog.sh</Source>
     <Source>individualCoverage.sh</Source>
@@ -111,6 +112,7 @@
     <Source>thorMonitor.sh</Source>
     <Source>timestampLogger.sh</Source>
     <Source>unittest.sh</Source>
+    <Source>update.proc</Source>
     <Source>uploadCoverity.sh</Source>
     <Source>uploadObtResultToAws.sh</Source>
     <Source>utils.sh</Source>
