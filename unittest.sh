@@ -78,6 +78,20 @@ else
     SUDO=sudo
 fi
 
+if [[ ! -f /etc/HPCCSystems/environment.xml ]]
+then
+    WriteLog "Missing environment.xml. Exit." "$UNITTEST_LOG_FILE"
+    exit 1
+fi
+
+# Check the environment.xml size
+if [[ $( ls -l /etc/HPCCSystems/environment.xml | awk '{ print $5}' ) -eq 0 ]]
+then
+    WriteLog "The environment.xml exists, but it seems damaged, only 0 bytes long. Exit." "$UNITTEST_LOG_FILE"
+    exit 1
+fi
+
+
 DALI_STOPPED=$( $SUDO ${HPCC_INIT_PATH}/hpcc-init -c dali status | grep -c '[s]topped' )
 if [[  ${DALI_STOPPED} -eq 1 ]]
 then
