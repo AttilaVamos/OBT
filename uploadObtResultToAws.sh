@@ -13,6 +13,9 @@ else
     SSH_TARGET="10.224.20.54"   #OpenStack Region 8
 fi
 
+# If any of those SSH_* parameter is overridden in settings.sh then use them
+[[ -f ./setting.sh ]] && . ./settings.sh
+
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}/
 

@@ -640,7 +640,7 @@ then
             [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
 
             WriteLog "Clean-up build/vcpkg_* & _CPack_Packages directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-            rm -rf vcpkg_downloads vcpkg_buildtrees vcpkg_packages vcpkg_installed _CPack_Packages
+            rm -rf vcpkg_* _CPack_Packages
 
             popd
         else
@@ -698,8 +698,10 @@ then
     if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
     then
         pushd ${BUILD_DIR}/$RELEASE_TYPE
-        WriteLog "Make copy from 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
-        cp -r build $buildTarget
+        WriteLog "Move 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
+        mv build $buildTarget
+        WriteLog "Create link as 'build'" "${OBT_BUILD_LOG_FILE}"
+        ln -s ${buildTarget} build
         WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
         popd
     fi
@@ -712,9 +714,10 @@ else
     if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
     then
         pushd ${BUILD_DIR}/$RELEASE_TYPE
-        WriteLog "Make copy from 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
-        cp -r build $buildTarget
-        WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
+        WriteLog "Move 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
+        mv build $buildTarget
+        WriteLog "Create link as 'build'" "${OBT_BUILD_LOG_FILE}"
+        ln -s ${buildTarget} build        WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
         popd
     fi
  
