@@ -13,5 +13,7 @@ __pycache__/
 *.DS_Store
 .eric*/
 *oken.dat
+*okenCloud.dat
 *.cpp
+Perfstat/
 
