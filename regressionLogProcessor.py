@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -10,15 +10,9 @@ import traceback
 from datetime import datetime
 
 class RegressionLogProcessor(object):
-    
-    #idIndex = {}
-    #testCases=[]
-    #maxTestNameLen=0
+ 
     report=[]
-    #htmlReport=[]
-    #suite=''
-    
-    
+
     def __init__(self,  curDir = None,  suite = 'Regression'):
         self.faultedTestCase = {}
         self.logDates = []
@@ -55,7 +49,7 @@ class RegressionLogProcessor(object):
     def splitAndStrip(self, text):
         itemsTemp = text.split(':')
         # Strip all elements of a string list
-        return (map(str.strip, itemsTemp))
+        return (list(map(str.strip, itemsTemp)))
         
     def ProcessFile(self, filename):
         self.idIndex = {}
@@ -77,7 +71,7 @@ class RegressionLogProcessor(object):
         self.weekDay=datetime.strptime(self.logDate, "%y-%m-%d").strftime('%A')
         self.logDateDay = '-'+self.weekDay
         self.logDates.append(self.logDate)
-        file = open(filename, 'rb')
+        file = open(filename, 'r')
         lineno = 0
         # Log file segments
         isHeader=True
@@ -137,7 +131,8 @@ class RegressionLogProcessor(object):
                             continue
                     else:
                         continue
-                    if index >len(self.testCases):
+                        
+                    if index > len(self.testCases):
                         self.testCases.append({})
                     if items[1].startswith('Test'):
                         testName = items[2].strip()
@@ -147,82 +142,61 @@ class RegressionLogProcessor(object):
                         if testNameLen > self.maxTestNameLen:
                             self.maxTestNameLen = testNameLen
                         items[1] = items[1].strip()
-                        self.testCases[index-1][items[1]]=testName
+                        prev = index - 1
+                        self.testCases[prev][items[1]]=testName
                         id = hash(testName)
-                        self.testCases[index-1]['id']=id
-                        self.idIndex[id] = index-1
+                        self.testCases[prev]['id']=id
+                        self.idIndex[id] = prev
                     elif ('Pass' in items[1]) or ('Fail' in items[1]):
                         results = items[1].lstrip(' ').replace('No WUID','No_WUID').replace('(', '').replace('sec)', '').replace(' - ', ' ').split(' ')
-                        self.testCases[index-1]['Result']=results[0]
+                        self.testCases[prev]['Result']=results[0]
                         if len(items) <= 2:
                             # Backward compatibility
                             results = items[1].lstrip(' ').replace('ecl - ','').replace('No WUID','No_WUID').replace('(', '').replace('sec)', '').split(' ')
-                            self.testCases[index-1]['Wuid']=results[1]
-                            self.testCases[index-1]['Elapstime']=results[2]
+                            self.testCases[prev]['Wuid']=results[1]
+                            self.testCases[prev]['Elapstime']=results[2]
                             
                         else:
                             if 'version' in items[2]:
                                 results = items[3].lstrip(' ').replace('ecl - ','').replace('No WUID','No_WUID').replace('(', '').replace('sec)', '').replace(')-', ' ').split(' ')
-                                self.testCases[index-1]['Wuid']=results[2]
+                                self.testCases[prev]['Wuid']=results[2]
                                 if len(results) > 3:
-                                    self.testCases[index-1]['Elapstime']=results[3]
+                                    self.testCases[prev]['Elapstime']=results[3]
                                 else:
-                                    self.testCases[index-1]['Elapstime']='0'
+                                    self.testCases[prev]['Elapstime']='0'
                             else:
                                 results = items[2].lstrip(' ').replace('ecl - ','').replace('ecl ','No_WUID').replace('No WUID','No_WUID').replace('(', '').replace('sec)', '').split(' ')
-                                self.testCases[index-1]['Wuid']=results[0]
-                                self.testCases[index-1]['Elapstime']=results[1]
-                                self.testCases[index-1]['ZAPfile'] = 'No_ZAP'
+                                self.testCases[prev]['Wuid']=results[0]
+                                self.testCases[prev]['Elapstime']=results[1]
+                                self.testCases[prev]['ZAPfile'] = 'No_ZAP'
                             if 'Fail' in results[0]:
                                 pass
                     elif 'Zipped' in items[1]:
                         zaps = line.split('/')
                         zapFileName = zaps[len(zaps)-1].split(':')[0] + '.zip'
-                        self.testCases[index-1]['ZAPfile'] = zapFileName
+                        self.testCases[prev]['ZAPfile'] = zapFileName
                         pass
                     elif len(items) >= 3 and 'URL' in items[1]:
                         items = line.split(' ')
-                        self.testCases[index-1][items[1]]=items[2]
+                        self.testCases[prev][items[1]]=items[2]
                     elif len(items) == 2 and 'URL N/A' in items[1]:
                         items = line.split(' ')
-                        self.testCases[index-1][items[1]]=items[2]
-# Dead code
-#                    elif 'version' in items[3]:
-#                        print (index)
-#                        # This is a 'Test:' line of a versioned test
-#                        testName = items[2].strip()+'('+items[4].strip()
-#                        testNameLen = len(testName)
-#                        if testNameLen > self.maxTestNameLen:
-#                            self.maxTestNameLen = testNameLen
-#                        items[1] = items[1].strip()
-#                        self.testCases[index-1][items[1]]=testName
-#                        id = hash(testName)
-#                        self.testCases[index-1]['id']=id
-#                        self.idIndex[id] = index-1
-#                    elif len(items) >= 5 and 'Fail' in items[1]:
-#                        print (index)
-#                        # This can be the 'Fail' line with many items
-#                        results = items[1].lstrip(' ').replace('No WUID','No_WUID').replace('(', '').replace('sec)', '').split(' ')
-#                        self.testCases[index-1]['Result']=results[0]
-#                        self.testCases[index-1]['Wuid']=results[1]
-#                        self.testCases[index-1]['Elapstime']=results[2]
-#                        if 'Fail' in results[0]:
-#                            pass
+                        self.testCases[prev][items[1]]=items[2]
                     elif 'Create Stack Trace' in line:
                         # Perhaps it would be nice to report it somehow
                         pass
                     else:
                         items = line.split(' ')
-                        self.testCases[index-1][items[1]]=items[2]
-                        
+                        self.testCases[prev][items[1]]=items[2]
+                 
                     pass
                 elif isResultList:
                     results = self.splitAndStrip(line)
                     if 'Passing' in results[0]:
-                        numberOfPassed = results[1]
+                        numberOfPassed = int(results[1])
                         continue
                     elif 'Failure' in results[0]:
-                        numberOfFailed = results[1]
+                        numberOfFailed = int(results[1])
                         continue
                     elif line.startswith('Output:'):
                         isResultList = False
@@ -272,7 +246,7 @@ class RegressionLogProcessor(object):
                         error = []
                         continue
                     elif re.match("[0-9]+\. Test",  line):
-#                    elif line.startswith('Output of'):
+
                         if len(output) > 0:
                             output[0] = output[0].replace('.',  ':')
                             items = output[0].split(':')
@@ -293,10 +267,10 @@ class RegressionLogProcessor(object):
                         if len(error) > 0:
                             error[0] = error[0].replace('.',  ':')
                             items = error[0].split(':')
+                            testName = items[2].strip()
+                            
                             if 'version' in error[0]:
-                                testName = items[2].strip() +'('+items[4].strip()
-                            else:
-                                testName = items[2].strip()
+                                testName += '(' + items[4].strip()
                             testNameLen = len(testName)
                             id = hash(testName)
                             index = self.idIndex[id]
@@ -309,7 +283,7 @@ class RegressionLogProcessor(object):
                         continue
                     elif re.match("[0-9]+: Test",  line):
                         pass
-                    #elif line.startswith('--- '):
+
                         if len(error) > 0:
                             error[0] = error[0].replace('.',  ':')
                             items = error[0].split(':')
@@ -326,8 +300,7 @@ class RegressionLogProcessor(object):
                             error = []
                     error.append(line)
                     pass
-                    pass
-                    
+                  
                 elif isEpilog:
                     if line.startswith('------'):
                         isEpilog = False
@@ -376,10 +349,9 @@ class RegressionLogProcessor(object):
                 self.LogException( self.target, filename,  lineno,  msg)
             finally:
                 pass
-                
-        
+                    
         file.close()
-        print "End of process."
+        print("End of process.")
     
     
     def ProcessResults(self,  show=False):
@@ -467,7 +439,7 @@ class RegressionLogProcessor(object):
                     
                     elif isEclccReport:
                         # eclcc reported problem, e.g.: warning
-                        problemId = getProblemId('Eclcc problem', 'Code>1',  "msg>"+eclccMsg,  index)
+                        problemId = getProblemId('Eclcc problem', 'Code>1',  "msg>" + eclccMsg,  index)
                         
                     elif 'Error' in self.testCases[index]:
                         # We have no info about what happened
@@ -476,9 +448,9 @@ class RegressionLogProcessor(object):
             
         def ReportResult():
             if len(Problems) > 0:
-                header= self.targetPrefix + " " + self.target+" failures by category:"
+                header= self.targetPrefix + " " + self.target +" failures by category:"
                 if show:
-                    print header
+                    print(header)
                 self.report.append(header)
                 self.htmlReport.append('<h3>'+header+'</h3>')
                 for problem in Problems:
@@ -487,7 +459,7 @@ class RegressionLogProcessor(object):
                     self.htmlReport.append('<table cellspacing="0" cellpadding="2" border="1" bordercolor="#828282">')
                     self.htmlReport.append('<tr style="background-color:#CEE3F6" align="center" ><th>Test case</th><th>Error message</th><th>WUID (link to ZAP file)</th><th>Age day(s)</th><tr>')
                     if show:
-                        print "\t" + subHeader
+                        print("\t" + subHeader)
                     self.report.append("\t"+subHeader+' ( ' + str(len(Problems[problem]['Result']))+' item(s) )')
                     for res in Problems[problem]['Result']:
                         index = res['Index']
@@ -507,7 +479,7 @@ class RegressionLogProcessor(object):
                             self.timeoutedTests.append(testName) 
                             
                         if show:
-                            print "\t\t" + item
+                            print("\t\t" + item)
                         self.report.append("\t\t"+item)
                         _msg = res['Message'].replace('\n', '<br>\n')
                         
@@ -531,7 +503,7 @@ class RegressionLogProcessor(object):
                     pass
                 self.htmlReport.append('<br>')
 
-        print "Start ProcessResults()..."
+        print("Start ProcessResults()...")
           
         for index in range(0,  len(self.testCases)):
             test = self.testCases[index]
@@ -543,10 +515,10 @@ class RegressionLogProcessor(object):
                 ProcessResult(index,  res)
             pass
 
-        # Read the if we have 
+        # Read the problems if we have them
         self.knownProblems = {}
         try:
-            inFile = open(self.knownProblemFileName, "rb")
+            inFile = open(self.knownProblemFileName, "r")
             lineno = 0
             for line in inFile:
                 lineno += 1
@@ -558,12 +530,11 @@ class RegressionLogProcessor(object):
             inFile.close()
         finally:
             pass
-                
-            
+                         
         ReportResult()
         self.UpdateKnownProblems()
         self.CreateTimeoutedTestList()
-        print "End ProcessResults()."
+        print("End ProcessResults().")
 
     def GetResult(self):
         return self.report
@@ -585,7 +556,7 @@ class RegressionLogProcessor(object):
                 except ValueError:
                     testCases.append([test['Test'], 0])
                     
-                    print("Exception in add elaps time for '%s' (test['Elapstime']='%s') : %s (line: %s)" % (test['Test'], test['Elapstime'], str(sys.exc_info()[0]), str(inspect.stack()[0][2]) ) )
+                    print("Exception in add elaps time for '%s' (test['Elapstime']='%s') : %s (line: %s)" % (test['Test'], test['Elapstime'], str(sys.exc_info()[0]), str(inspect.stack()[0][2])))
                     print("Exception in user code:")
                     print('-'*60)
                     traceback.print_exc(file=sys.stdout)
@@ -649,12 +620,12 @@ class RegressionLogProcessor(object):
                 knownProblems[test] = self.knownProblems[test]
         self.knownProblems = knownProblems
             
-        #self.knownProblems = {}
+
         # Add any new
         for test in self.faultedTestCase:
             if self.logDate in self.faultedTestCase[test]:
                 if not test+'-'+self.faultedTestCase[test][self.logDate]['Target'] in self.knownProblems:
-                    #self.knownProblems[items[0]+'-'+items[4]]={'Test': items[0], 'Date':items[1],  'Problem':items[2],  'Code':items[3],  'Target':items[4]}
+
                     self.knownProblems[test+'-'+self.faultedTestCase[test][self.logDate]['Target']]={'Test': test, 'Date':self.logDate,  'Problem':self.faultedTestCase[test][self.logDate]['Problem'],  'Code':self.faultedTestCase[test][self.logDate]['Code'],  'Target':self.faultedTestCase[test][self.logDate]['Target']}
         
         outFile = open(self.knownProblemFileName,  "w")
@@ -674,7 +645,7 @@ class RegressionLogProcessor(object):
 #-------------------------------------------
 # Main
 if __name__ == '__main__':
-    print "Start..."
+    print("Start...")
 
     suite = 'Regression'
     mode = 8
@@ -709,7 +680,7 @@ if __name__ == '__main__':
         path = '/home/ati/tmount/data2/nightly_builds/HPCC/master/2017-11-22/CentOS_release_6_9/CE/platform/test/'
         files = [
 #            path+'hthor.17-11-22-01-40-39.log',
-            path+'thor.17-11-22-01-45-05.log'
+                    path+'thor.17-11-22-01-45-05.log'
 #            path+'roxie.17-11-22-01-52-49.log'
             ]
     elif mode == 9:
@@ -719,21 +690,20 @@ if __name__ == '__main__':
             path+'roxie.17-11-22-01-52-49.log'
             ]
 
-
     if len(files) == 0:
         files = glob.glob(path+'*.log')
         
     files.sort()
     filenames =[]
     for file in files:
-        if  not'-exclusion' in file:
+        if  not '-exclusion' in file:
             filenames.append(file)
             
     rlp = RegressionLogProcessor(None,  suite)
 
     for filename in filenames:
         fullPath = filename
-        print "Logfile: "+fullPath
+        print("Logfile: "+fullPath)
         rlp.ProcessFile(fullPath)
         rlp.setLogArchivePath(path +  "test/ZAP")
         rlp.ProcessResults(True)
@@ -746,4 +716,4 @@ if __name__ == '__main__':
     result = rlp.GetFaultedTestCases()
     pass
     rlp.SaveFaultedTestCases()
-    print "End."    
+    print("End.")

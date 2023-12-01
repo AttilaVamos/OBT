@@ -7,7 +7,7 @@ import re
 import os
 from datetime import datetime
 from optparse import OptionParser
-import ConfigParser
+import configparser
 import glob
 import socket
 import inspect
@@ -41,7 +41,7 @@ class BuildNotificationConfig( object ):
 
     def __init__(self, options, iniFile = 'BuildNotification.ini'):
         self._buildDate = options.dateString 
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self._buildTime = options.timeString
         global debug
         debug = options.debug
@@ -112,7 +112,7 @@ class BuildNotificationConfig( object ):
     @property
     def reportDirectoryFileSystem( self ):
         return  "{shareBase}/{buildBranch}/{reportDirectory}".format(
-                    shareBase=self.get( 'Build', 'shareBase' ),
+                    shareBase=os.path.expanduser(self.get( 'Build', 'shareBase' )),
                     buildBranch=self.get('Build', 'BuildBranch' ),
                     reportDirectory=self.reportDirectory )
 
@@ -1164,8 +1164,8 @@ if __name__ == "__main__":
         bn.headRender()
         bn.taskRender()
         bn.endRender()
-        bn.send()
         bn.storeLogRecord()
+        bn.send()
     except:
         print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
         print("Exception in user code:")
