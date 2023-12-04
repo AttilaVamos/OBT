@@ -1,18 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-#import os
 import sys
 import subprocess
 import time
 import signal
 import atexit
-from optparse import OptionParser
 import warnings
+from optparse import OptionParser
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=DeprecationWarning)
-    from sets import Set 
-    
+  
 process='myrun*'
 delayInSec=10
 timeoutInSec=40
@@ -21,12 +19,11 @@ verbose = False
 
 def myPrint(str):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    print(timestamp+": "+str)
+    print(timestamp+": " + str)
     
 def myPrintV(str):
     if verbose:
         myPrint(str)
-
 
 #
 #
@@ -52,7 +49,7 @@ def handler(signum, frame=None):
     else:
         msg += ", ?"
 
-    ## If there are some registered process then handle them before exit.
+    # If there are some registered process then handle them before exit.
     handleProcess(2)
 
     if signum != signal.SIGKILL:
@@ -63,11 +60,18 @@ def handler(signum, frame=None):
     exit()
 
 def on_exit(sig=None, func=None):
-    handler(signal.SIGKILL)
+    try:
+        handler(signal.SIGKILL)
+    except SystemExit:
+        pass
+    
+def getResult(myProc):
+    (myStdout,  myStderr) = myProc.communicate()
+    return myStdout.decode('utf-8') + myStderr.decode('utf-8')
 
 def handleProcess(maxLoop):
     i = 1
-    while (i < maxLoop) or ( len(items[process]) > 0):
+    while (i < maxLoop) or (len(items[process]) > 0):
         # Clear the 'updated' flag to see which process is still alive
         for pid in items[process]:
             items[process][pid]['updated'] = False
@@ -75,8 +79,7 @@ def handleProcess(maxLoop):
         # Get the pids of live processes filetered bu the content of process variable
         myProc = subprocess.Popen([psCmd],  shell=True,  bufsize=8192, stdin=subprocess.PIPE, stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
         mypid = myProc.pid
-        (myStdout,  myStderr) = myProc.communicate(input = "Boglarka990405")
-        result = myStdout+ myStderr
+        result = getResult(myProc)
         myPrintV('My pid is: ' + str(mypid))
         myPrintV("Result: ")
         
@@ -103,7 +106,7 @@ def handleProcess(maxLoop):
         
         # Check which process finished or which is runs timeout
         removePids = []
-        killProcess = Set()
+        killProcess = set()
         for pid in items[process]:
             if (not items[process][pid]['updated']):
                 removePids.append(pid)
@@ -122,8 +125,7 @@ def handleProcess(maxLoop):
                 killCmd = 'sudo kill -9 ' + pid
                 myPrintV("Kill cmd:"+killCmd)
                 myProc = subprocess.Popen([killCmd],  shell=True,  bufsize=8192, stdin=subprocess.PIPE, stdout=subprocess.PIPE,  stderr=subprocess.PIPE)
-                (myStdout,  myStderr) = myProc.communicate("Boglarka990405")
-                result = myStdout+ myStderr
+                result = getResult(myProc)
                 myPrint("Still active "+ name + "("+ pid + ") is ran out of time and killed.")
             else:
                 myPrint("Watched process" + name + "("+pid + ") finished and removed from the list.")
@@ -132,14 +134,12 @@ def handleProcess(maxLoop):
         myPrintV("number of items:"+ str(len(items[process])))
         time.sleep(delayInSec)
         i += 1
-
-    
+  
 #
 #
 #----------------------------------------------------------------
 # 
-#
-    
+# 
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
@@ -185,8 +185,9 @@ maxLoop = maxSelfRuntimeInSec/delayInSec
 verbose = options.verbose
 
 myPrint("App name:" + sys.argv[0])
-#selfName = os.path.basename(sys.argv[0])
+
 selfName = sys.argv[0][2:]
+
 myPrint("selfName: " + selfName)
 myPrint("Process: " + str(process))
 myPrint("Wait between two checks is: " + str(delayInSec) + " sec.")
@@ -196,9 +197,8 @@ myPrint("Verbose is :" +str(verbose))
 
 pass
 
-
 items = {}
-items[process]={}
+items[process] = {}
 #psCmd = "sudo ps aux | grep '["+process[0]+"]"+process[2:]+"'"
 #psCmd += " | awk '{print $2 \",\" $12}' "
 

@@ -1,24 +1,30 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-#import os
-#import time
-#import glob
-#import re
+import os
 import sys
-#import inspect
-#import traceback
 import linecache
 from datetime import date, timedelta
-from itertools import izip
+
+def isTestMode():
+    return 'testMode' in os.environ and os.environ['testMode'] == '1'
 
 def PrintException(msg = ''):
-    exc_type, exc_obj, tb = sys.exc_info()
-    f = tb.tb_frame
-    lineno = tb.tb_lineno
-    filename = f.f_code.co_filename
-    linecache.checkcache(filename)
-    line = linecache.getline(filename, lineno, f.f_globals)
-    print ('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
+    if not isTestMode():
+        exc_type, exc_obj, tb = sys.exc_info()
+        f = tb.tb_frame
+        lineno = tb.tb_lineno
+        filename = f.f_code.co_filename
+        linecache.checkcache(filename)
+        line = linecache.getline(filename, lineno, f.f_globals)
+        print('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
+
+def printHistory(rtch):
+    print('---------------------------------------')
+    print(rtch.getHistoryTable())
+    print('---------------------------------------\n')
+    print(rtch.getHistoryHtml())
+    print('---------------------------------------')
+    
 
 class ReportedTestCasesHistory(object):
     
@@ -86,20 +92,18 @@ class ReportedTestCasesHistory(object):
                     partSize = 0
                     if html:
                         wrapTestName += '<br>'
-                        
                     wrapTestName += '\n'
                     
         return wrapTestName.strip(sep)
                     
     def grouped(self, iterable, n):
         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-        return izip(*[iter(iterable)]*n)
+        return zip(*[iter(iterable)]*n)
          
     def readFile(self):
-        #self.stats = { 'Bad': 0,  'Ugly': 0, 'Ugly and Bad': 0, 'Good': 0, 'Known': 0, 'Active': 0 }
         file = None
         try:
-            file = open(self.inFileName, 'rb')
+            file = open(self.inFileName, 'r')
             lineno = 0
             for line in file:
                 lineno += 1
@@ -129,8 +133,8 @@ class ReportedTestCasesHistory(object):
                     id = name + '#' + target
                     if id not in self.testNames:
                         self.testNames.append(id)
-        except:
-            pass
+        except Exception as e:
+            PrintException(repr(e))
         finally:
             if file != None:
                 file.close()
@@ -149,11 +153,11 @@ class ReportedTestCasesHistory(object):
                     self.statsHistory['testNum'] += 1
                     
         self.testNames = sorted(self.testNames)
-        if self.verbose:
+        if not isTestMode():
             print(self.testNames)
             for actDate in sorted(self.history):
                 print (actDate)
-                print (sorted(self.history[actDate]))
+                print(sorted(self.history[actDate]))
             
             print("Oldest day: %s, newest days : %s" % (str(self.oldestDay), str(self.newestDay)) )
         
@@ -165,9 +169,7 @@ class ReportedTestCasesHistory(object):
             
         if imagePath != None and not imagePath.endswith('/'):
             imagePath += '/'
-            
-        
-            
+               
         historyTableHtml = '<TABLE border=\"1\" bordercolor=\"#828282\">\n'
         historyTableHtml += '  <TR style=\"background-color:#CEE3F6\">\n'
         historyTableHtml += '    <TH>No</TH>\n'
@@ -216,11 +218,6 @@ class ReportedTestCasesHistory(object):
                 self.stats[type] += 1
                 state = self.states[self.history[actDate][test][target]['status']]
                 self.stats[state] +=1
-#            except KeyError as e:
-#                # If exception occured that means this test is not reported at the last day
-#                # It becomes neutral
-#                self.stats['Neutral'] += 1
-#                PrintException(repr(e))
             except Exception as e:
                 self.stats['Neutral'] += 1
                 PrintException(repr(e)+" On %s the test: %s did not reported in engine: %s." % (actDate, test, target ))
@@ -252,7 +249,7 @@ class ReportedTestCasesHistory(object):
         self.historyTableHtml += '  <LI>"-/-/-": Not seen before or eliminated problem</LI>\n'
         self.historyTableHtml += '</UL><BR>\n'
         
-        if self.verbose:
+        if not isTestMode():
             print("\n")
             print(self.historyTableHeader)
             print(self.historyTable)
@@ -290,7 +287,7 @@ class ReportedTestCasesHistory(object):
             lastDate = checkDate + timedelta(days = -1)
             
         updated = False
-        #if (checkDate > self.newestDay) or (checkDate > lastDate):
+
         if checkDate > lastDate:
             lines.append(newDate+',' + newRecord)
             updated = True
@@ -313,6 +310,7 @@ class ReportedTestCasesHistory(object):
 #
 #-------------------------------------------
 # Main
+
 if __name__ == '__main__':
     print("Start...")
 
@@ -323,11 +321,7 @@ if __name__ == '__main__':
     rtch = ReportedTestCasesHistory(fileName,  5,  True)
     rtch.readFile()
     rtch.buildHistoryTable('http://10.241.40.12/common/nightly_builds/HPCC/master/2018-07-23/CentOS_Linux_7/CE/platform/test/diagrams')
-    print('---------------------------------------')
-    print(rtch.getHistoryHtml())
-    print('---------------------------------------')
-    print(rtch.getStats())
-    print('---------------------------------------')
+    printHistory(rtch)
     
     # Test with use all days data
 #    rtch = ReportedTestCasesHistory(fileName,  -1)
@@ -341,12 +335,7 @@ if __name__ == '__main__':
     rtch = ReportedTestCasesHistory(fileName)
     rtch.readFile()
     rtch.buildHistoryTable()
-    
-    print('---------------------------------------')
-    print(rtch.getHistoryTable())
-    print('---------------------------------------')
-    print(rtch.getHistoryHtml())
-    print('---------------------------------------')
+    printHistory(rtch)
     
     # Add a new record
 #    newDate= "2018-07-26"

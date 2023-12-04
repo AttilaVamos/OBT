@@ -15,9 +15,17 @@ then
     SYSTEM_ID=$( cat /etc/*-release | head -1 )
 fi
 
+if [[ "$SYSTEM_ID" =~ "Ubuntu" ]]
+then
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print $1$2 }') 
+else
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print$1$3 }'  )
+fi
+
 SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
+
 
 # A day when we build Debug version
 # Use 8 for disable Debug build
@@ -170,7 +178,7 @@ OBT_SYSTEM_ENV=AWSTestFarm
 OBT_SYSTEM_STACKSIZE=81920
 OBT_SYSTEM_NUMBER_OF_PROCESS=524288
 OBT_SYSTEM_NUMBER_OF_FILES=524288
-OBT_SYSTEM_CORE_SIZE=
+OBT_SYSTEM_CORE_SIZE=100
 
 BUILD_SYSTEM=${SYSTEM_ID}
 RELEASE_TYPE=CE/platform

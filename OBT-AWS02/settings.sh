@@ -15,9 +15,17 @@ then
     SYSTEM_ID=$( cat /etc/*-release | head -1 )
 fi
 
+if [[ "$SYSTEM_ID" =~ "Ubuntu" ]]
+then
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print $1$2 }') 
+else
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print$1$3 }'  )
+fi
+
 SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
+
 
 # A day when we build Debug version
 # Use 8 for disable Debug build
@@ -45,48 +53,10 @@ then
     ENABLE_MULTI_CHANNEL_THOR_SLAVES_TEST=1
 fi
 
-
 BRANCH_ID=master
 DAYS_FOR_CHECK_COMMITS=2
 KEEP_VCPKG_CACHE=0
 
-#
-# This part moved to/generated into the obtSequence.inc
-#
-# For obtSequencer.sh
-# BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x'  'master' )
-# BRANCHES_TO_TEST=( 'candidate-8.12.x' 'candidate-9.0.x' 'candidate-9.2.x'  'master' )
-#
-# # For versioning
-# RUN_1=("BRANCH_ID=master")
-# RUN_2=("BRANCH_ID=candidate-9.2.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-# RUN_3=("BRANCH_ID=candidate-9.2.x" "KEEP_VCPKG_CACHE=1")
-# RUN_4=("BRANCH_ID=candidate-9.0.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-# RUN_5=("BRANCH_ID=candidate-9.0.x" "KEEP_VCPKG_CACHE=1")
-# RUN_6=("BRANCH_ID=candidate-8.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-# RUN_7=("BRANCH_ID=candidate-8.12.x" "KEEP_VCPKG_CACHE=1")
-# RUN_8=("BRANCH_ID=candidate-7.12.x" "REGRESSION_NUMBER_OF_THOR_CHANNELS=4")
-#
-# if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
-# then
-#     RUN_ARRAY=(
-#        RUN_1[@]
-#        RUN_2[@]
-#        RUN_3[@]
-#        RUN_4[@]
-#        RUN_5[@]
-#        RUN_6[@]
-# #       RUN_7[@]
-# #       RUN_8[@]
-#    )
-# else
-#     RUN_ARRAY=(
-#        RUN_1[@]
-#        RUN_2[@]
-#        RUN_3[@]
-#        RUN_4[@]
-#     )
-# fi
 
 #
 #----------------------------------------------------
@@ -208,6 +178,7 @@ OBT_SYSTEM_ENV=AWSTestFarm
 OBT_SYSTEM_STACKSIZE=81920
 OBT_SYSTEM_NUMBER_OF_PROCESS=524288
 OBT_SYSTEM_NUMBER_OF_FILES=524288
+OBT_SYSTEM_CORE_SIZE=100
 
 BUILD_SYSTEM=${SYSTEM_ID}
 RELEASE_TYPE=CE/platform
@@ -261,6 +232,11 @@ LOCAL_IP_STR=$( ip -f inet -o addr | egrep -v 'lo ' | sed -n "s/^.*inet[[:space:
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
 QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
+
+
+SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
+SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
+SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
 
 #
 #----------------------------------------------------
@@ -327,51 +303,6 @@ BUILD_DOCS=1
 # Default no suppress anything
 SUPRESS_PLUGINS=' -D MAKE_CASSANDRAEMBED=1 -DSUPPRESS_COUCHBASEEMBED=ON -DUSE_AZURE=OFF -DUSE_AWS=OFF'
 
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]] 
-then
-    # Supresss Azure on CenOS 6
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
-fi
-
-
-REMBED_EXCLUSION_BRANCHES=( "candidate-6.4.x" "candidate-7.4.x" )
-
-if [[ " ${REMBED_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]]
-then
-    # There is an R environmet and Rembed.cpp incompatibility on the candidate-64.34 branch,
-    # so don't build it
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_REMBED=ON"
-fi
-
-SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
-then
-    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
-fi
-
-AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
-then
-    # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-    # (Perhaps it is some bug, but this is areally old branch, so exclude)
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
-fi
-
-BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) || ( "${SYSTEM_ID}" =~ "CentOS_Linux_7" ) ]]
-then
-    if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
-    then
-        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-        # (Perhaps it is some bug, but this is areally old branch, so exclude)
-        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
-    else
-        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
-    fi
-fi
 
 #
 #----------------------------------------------------
@@ -418,13 +349,6 @@ then
     REGRESSION_SETUP_TIMEOUT="--timeout 180"
 fi
 
-# To tackle down the genjoin* timeout issues
-
-if [[ "$BUILD_TYPE" == "RelWithDebInfo" &&  "$BRANCH_ID" == "candidate-7.2.x" ]]
-then
-    REGRESSION_TIMEOUT="--timeout 1800"
-fi
-
 # Individual timeouts 
 #               "testname" "timeout sec"
 TEST_1=( "schedule1.ecl" "90" )
@@ -452,36 +376,13 @@ TIMEOUTS=(
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES=""
-if [[ "$BRANCH_ID" == "candidate-6.4.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*,embedR*,modelingWithR*"
-    REGRESSION_GENERATE_STACK_TRACE=""
-fi
-
-if [[ "$BRANCH_ID" == "candidate-7.0.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
-    REGRESSION_GENERATE_STACK_TRACE=""
-fi
-
-if [[ "$BRANCH_ID" == "candidate-7.2.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef couchbase-simple*"
-fi
-
-if [[ "$BRANCH_ID" == "candidate-7.4.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef pipefail.ecl,embedR*,modelingWithR*"
-fi
 
 REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
-# Exclude spary class from 8.8.x
+# Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
 then
   REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
 fi
-
-
 
 PYTHON_PLUGIN=''
 
@@ -510,12 +411,12 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 # Enable to run Coverity build and upload result
 # DO NOT schedule Coverity and Coverity Cloud build on a same day!!!
 
-RUN_COVERITY=1
-COVERITY_TEST_DAY=1    # Monday
+RUN_COVERITY=0
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
-COVERITY_CLOUD_TEST_DAY=3 # Wednesday
+COVERITY_TEST_DAY=1    # Monday for BM/VM build
+COVERITY_CLOUD_TEST_DAY=3   # Wednesday
 
 #
 #----------------------------------------------------
@@ -552,14 +453,6 @@ then
 fi
 
 UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingTest "
-
-JlibSemTestStress_EXCLUSION_BRANCHES=( "candidate-7.2.x" "candidate-7.4.x" )
-
-if [[ " ${JlibSemTestStress_EXCLUSION_BRANCHES[@]} " =~ "$BRANCH_ID" ]]
-then
-    [[ ! "${UNITTESTS_EXCLUDE[@]}" =~ "JlibSemTestStress" ]] && UNITTESTS_EXCLUDE+="JlibSemTestStress "
-fi
-
 
 #
 #----------------------------------------------------

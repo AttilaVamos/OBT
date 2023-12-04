@@ -54,7 +54,7 @@ fi
 vcpkgZips=$(find ~/ -maxdepth 1 -iname 'vcpkg_downloads-*[rx].zip' -type f )
 if [[ -n "$vcpkgZips" ]]
 then
-    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/vcpkg_downloads*.zip  centos@${SSH_TARGET}:/home/centos/OBT/
+    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/vcpkg_downloads*.zip  centos@${SSH_TARGET}:/home/centos/Vcpkg_downloads/$OS_ID/
 fi
 
 if [[ -f ~/HPCCSystems-log-archive/ml-thor-logs.zip ]]

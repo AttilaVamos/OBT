@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import smtplib
-import ConfigParser
+import configparser
 from datetime import datetime
 import glob
 import socket
@@ -38,7 +38,6 @@ from email.mime.multipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.mime.image import MIMEImage
-#from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 
 msgText = MIMEMultipart('alternative') 
@@ -66,7 +65,7 @@ class BuildNotificationConfig( object ):
                 self._buildTime =  self.today.strftime("%H:%M:%S")
                 self._buildTimeAsPathMemeber = self.today.strftime("%H-%M-%S")
                 
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read( iniFile )
         self._gitBranch = 'master'
         self._gitBranchName = self._gitBranch
@@ -84,9 +83,8 @@ class BuildNotificationConfig( object ):
         return retVal
 
     def __getattr__(self, name):
-        print 'Attempt to acess missing attribute of {0}'.format(name)
+        print('Attempt to acess missing attribute of {0}'.format(name))
         return 'Attribute Error: {0}'.format(name)
-        #raise AttributeError(name)
 
     @property
     def buildDate( self ):
@@ -179,7 +177,7 @@ class BuildNotificationConfig( object ):
                   continue
 
         except IOError:
-               print("IOError in read '" + self.gitLogFileSystem + "'")
+               print(("IOError in read '" + self.gitLogFileSystem + "'"))
                pass
         finally:
             if self._gitBranchName == '':
@@ -298,7 +296,6 @@ class BuildNotification(object):
        self.status = ''
        self.results = []
        self.tasks = [ 'Install', 'Unittests', 'Setup', 'Hthor', 'Thor', 'Roxie', 'Uninstall' ]
-       #self.msg = MIMEMultipart('alternative')  # Doesn't work with some email client
        self.msg = MIMEMultipart('mixed')
        self.msgHTML = ''
        self.msgText = ''
@@ -326,7 +323,6 @@ class BuildNotification(object):
         print("From " + self.msg['From'])
         print("To " + self.msg['To'])
         logFiles=[]
-        #summary = PerformanceSummary(self.config) 
         
         # Begin email HTML body
         msgHTML  = "<!DOCTYPE html>\n"
@@ -376,13 +372,13 @@ class BuildNotification(object):
             queries = ''
             passed = ''
             failed = ''
-            file = test+"-performance-test.log" 
+            file = test + "-performance-test.log" 
             files = glob.glob(  test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
             if files: 
                 sortedFiles = sorted( files, key=str.lower, reverse=True )
                 file = sortedFiles[0] 
-            print "processing file:"+file
+            print("processing file:"+file)
             
             try:
                 temp = open(file).readlines( )
@@ -440,7 +436,7 @@ class BuildNotification(object):
             rlp.setLogArchivePath(self.config.reportDirectoryURL + "/test/ZAP")
             for file in logFiles:
                 try:
-                    print "Process "+file
+                    print("Process " + file)
                     rlp.ProcessFile(file)
                     rlp.ProcessResults()
                     rlp.SaveFaultedTestCases()
@@ -464,11 +460,10 @@ class BuildNotification(object):
             msgHTML += '<H3>Performance Test results trend analysis.</H3>\n'
             msgHTML += '<img src="cid:SummaryGraph" alt="Summary Graph"><br>\n'
      
-            fp = open(summaryGraph[0], 'rb')                                                    
+            fp = open(summaryGraph[0], 'r')                                                    
             img = MIMEImage(fp.read(), 'png')
             fp.close()
             img.add_header('Content-ID', '<{}>'.format('SummaryGraph'))
-            #img.add_header('Content-Disposition', 'attachment', filename='SummaryGraph.png')
             img.add_header('Content-Disposition', 'inline', filename='SummaryGraph.png')
             
             # Dont attach the image yet, store it and attach after the email body generated and attached
@@ -509,15 +504,14 @@ class BuildNotification(object):
                 
                 index = 1
                 for image in sorted(images):
-                    print ("Image:'%s'" % (image))
+                    print("Image:'%s'" % (image))
                     msgHTML += '<img src="cid:image{}" alt="Image-{}"><br>\n'.format(index, index)
          
-                    fp = open(image, 'rb')                                                    
+                    fp = open(image, 'r')                                                    
                     img = MIMEImage(fp.read(), 'png')
                     fp.close()
                     img.add_header('Content-Type', 'image/png',  name='graph{}.png'.format(index))
                     img.add_header('Content-ID', '<{}{}>'.format('image', index))
-                    #img.add_header('Content-Disposition', 'attachment', filename='graph{}.png'.format(index))
                     img.add_header('Content-Disposition', 'inline', filename='graph{}.png'.format(index))
                 
                     # Dont attach the image yet, store it and attach after the email body generated and attached
@@ -579,7 +573,7 @@ class BuildNotification(object):
             files = glob.glob( self.config.obtLogDirectory +"/PerformanceTest*.pdf" )
             if files: 
                 for file in files:
-                    print "processing file:"+file
+                    print("processing file:"+file)
                     try:
                         temp = open(file).readlines( )
                         logFiles.append(file)
@@ -673,5 +667,5 @@ if __name__ == "__main__":
     bn.createMsg()
     bn.send()
     bn.storeLogRecord()
-    print "Report sent. End."
+    print("Report sent. End.")
 
