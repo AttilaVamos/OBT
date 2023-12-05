@@ -584,7 +584,10 @@ ML_BUILD_TYPE=$BUILD_TYPE
 
 # Control the target(s)
 ML_RUN_THOR=1
-ML_THOR_MEMSIZE_GB=4
+# Use a quarter of the Memory rounded (up to the next GB) but max 4 GB
+ML_THOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $ML_THOR_MEMSIZE_GB -gt 4 ]] && ML_THOR_MEMSIZE_GB=4
+
 ML_THOR_NUMBER_OF_SLAVES=6
 
 # Control to Regression Engine

@@ -427,6 +427,12 @@ then
     #
     WriteLog "Check HPCC Systems on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
 
+    if [[ ! -f /etc/HPCCSystems/environment.xml ]]
+    then
+        WriteLog "I can't find the HPCC Platform. Please install it and try again." "${ML_TEST_LOG}"
+        exit -3
+    fi
+    
     NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
     
     if [[ $NUMBER_OF_HPCC_COMPONENTS -eq 0 ]]
