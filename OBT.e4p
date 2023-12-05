@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2023-12-04, 16:47:29 -->
+<!-- Saved: 2023-12-04, 20:58:12 -->
 <!-- Copyright (C) 2023 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -38,13 +38,10 @@
     <Source>OBT-AWS03/obtSequence.inc</Source>
     <Source>OBT-AWS03/settings.sh</Source>
     <Source>QueryStat2.py</Source>
-    <Source>QueryStat2.py3</Source>
     <Source>QueryStat2Test.py</Source>
     <Source>ReportPerfTestResult.ini</Source>
     <Source>ReportPerfTestResult.py</Source>
     <Source>ReportedTestCasesHistory.py</Source>
-    <Source>ReportedTestCasesHistory.py3</Source>
-    <Source>ReportedTestCasesHistory3.py</Source>
     <Source>UninstallHPCC.sh</Source>
     <Source>WatchDog.py</Source>
     <Source>archiveLogs.sh</Source>
