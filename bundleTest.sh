@@ -427,7 +427,7 @@ then
     #
     WriteLog "Check HPCC Systems on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
 
-    if [[ ! -f /etc/HPCCSystems/environment.xml ]]
+    if [[ ! -f /opt/HPCCSystems/sbin/configgen ]]
     then
         WriteLog "I can't find the HPCC Platform. Please install it and try again." "${ML_TEST_LOG}"
         exit -3
