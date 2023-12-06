@@ -512,7 +512,7 @@ then
                     continue
                 else
                     WriteLog "Install $BUNDLE_NAME bundle was failed after ${tryCountMax} attempts. Result is: '${cRes}'" "${ML_TEST_LOG}"
-                    
+                    break;
                     # Don't give up, try the next bundle
                     #WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
                     #${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
