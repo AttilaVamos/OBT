@@ -490,7 +490,7 @@ then
         WriteLog "Bundle: $BUNDLE_NAME" "${ML_TEST_LOG}"
         BUNDLE_REPO="https://github.com/hpcc-systems/${BUNDLES_TO_TEST[i]}.git"
         WriteLog "Repo: $BUNDLE_REPO" "${ML_TEST_LOG}"
-        INSTALL_CMD="ecl bundle install --update --force ${BUNDLE_REPO}"
+        INSTALL_CMD="ecl bundle install --update --force $ML_INSTALL_EXTRA ${BUNDLE_REPO}"
         WriteLog "Install cmd: $INSTALL_CMD" "${ML_TEST_LOG}"
      
         tryCountMax=5
@@ -500,9 +500,11 @@ then
         while true
         do
             cRes=$( ${INSTALL_CMD} 2>&1 )
-            if [[ 0 -ne  $? ]]
+            retCode=$?
+            if [[ 0 -ne  $retCode ]]
             then
-                WriteLog "cRes: '$cRes'" "${ML_TEST_LOG}"
+                WriteLog "retCode: $retCode" "${ML_TEST_LOG}"
+                WriteLog "cRes   : '$cRes'" "${ML_TEST_LOG}"
                 tryCount=$(( $tryCount-1 ))
 
                 if [[ $tryCount -ne 0 ]]
