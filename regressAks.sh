@@ -364,13 +364,55 @@ then
 
 fi
 
-WriteLog "Deploy HPCC ..." "$logFile"
-res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
-if [[ $VERBOSE -ne 0 ]]
-then 
-    WriteLog "res:$res" "$logFile"
+DEPLOY_TIMEOUT="20.0m"
+WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
+res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve )
+retCode=$?
+if [[ $retCode -eq 0 ]]
+then
+    if [[ $VERBOSE -ne 0 ]]
+    then 
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
 else
+    WriteLog "Error in deploy hpcc. Ret code is: $retCode." "$logFile"
     WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
+    res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
+    WriteLog "${res}" "$logFile"
+    WriteLog "  Done." "$logFile"
+    
+    if [[ $START_RESOURCES -eq 1 ]]
+    then
+        WriteLog "Destroy storage accounts ..." "$logFile"
+        pushd modules/storage_accounts > /dev/null    
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then 
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+
+        WriteLog "Destroy VNET ..." "$logFile"
+        pushd modules/virtual_network > /dev/null
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then 
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+    fi
+
+    WriteLog "Exit." "$logFile"
+    exit 1
 fi
 
 cred=$( echo "$res" | egrep 'get-credentials ' | tr -d "'" | cut -d '=' -f 2 | tr -d '"[]' )
