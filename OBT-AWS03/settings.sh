@@ -373,7 +373,7 @@ TIMEOUTS=(
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
-REGRESSION_EXCLUDE_FILES="-ef wasmembed"
+REGRESSION_EXCLUDE_FILES="--excludeFile wasmembed"
 
 REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 # Exclude spray class from 8.8.x
