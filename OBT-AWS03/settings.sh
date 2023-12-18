@@ -373,7 +373,7 @@ TIMEOUTS=(
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
-REGRESSION_EXCLUDE_FILES="--excludeFile wasmembed"
+REGRESSION_EXCLUDE_FILES="--ef wasmembed"
 
 REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 # Exclude spray class from 8.8.x
@@ -489,10 +489,12 @@ PERF_NUM_OF_NODES=1
 PERF_IP_OF_NODES=( '127.0.0.1' )
 
 # totalMemoryLimit for Hthor
-PERF_HTHOR_MEMSIZE_GB=4
+PERF_HTHOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_HTHOR_MEMSIZE_GB -gt 4 ]] && PERF_HTHOR_MEMSIZE_GB=4
 
 # totalMemoryLimit for Thor
-PERF_THOR_MEMSIZE_GB=4
+PERF_THOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_THOR_MEMSIZE_GB -gt 4 ]] && PERF_THOR_MEMSIZE_GB=4
 
 PERF_THOR_NUMBER_OF_SLAVES=4
 #if not already defined (by the sequencer) then define it
@@ -501,7 +503,8 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=100
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=4
+PERF_ROXIE_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_ROXIE_MEMSIZE_GB -gt 4 ]] && PERF_ROXIE_MEMSIZE_GB=4
 
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)

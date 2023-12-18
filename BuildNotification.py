@@ -574,7 +574,13 @@ class TestTask( Task ):
         #p3 = re.compile('.*otal:([0-9]+)\s*passed:([0-9]+)\s*failed:([0-9]+)\s*errors:([0-9]+)\s*timeout:([0-9]+).*$')
         p3b = re.compile('.*otal:([0-9]+)\s*passed:([0-9]+)\s*failed:([0-9]+)\s*errors:([0-9]+)\s*timeout:([0-9]+)\s*elaps:(.*)$')
 
-        lines = open( self.summaryFile ).readlines()
+        try:
+            lines = open( self.summaryFile ).readlines()
+        except:
+            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print("Summary file is '%s', task is '$s'" % (self.summaryFile, self.name))
+            return
+
         if 'Setup' == self._name:
             line = lines[0]
             lines = line.split(',')

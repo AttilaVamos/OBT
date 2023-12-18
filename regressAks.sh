@@ -135,7 +135,11 @@ do
         R) START_RESOURCES=1
             ;;
 
-        H* | *)
+        H) usage
+             exit 0
+             ;;
+
+        *)
             WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
             usage
             exit 1

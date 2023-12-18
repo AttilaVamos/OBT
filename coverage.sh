@@ -31,7 +31,7 @@ TEST_HOME=${TEST_ROOT}/HPCC-Platform/testing/regress
 BUILD_HOME=~/build/CE/platform/build
 BUILD_LOG=${COVERAGE_ROOT}/build_log
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
-COVERAGE_LOG_FILE=${BUILD_HOME}/coverage-${LONG_DATE}.log
+COVERAGE_LOG_FILE=${OBT_LOG_DIR}/coverage-${LONG_DATE}.log
 LOGDIR=~/HPCCSystems-regression/log
 
 BUILD_ONLY=1
