@@ -578,7 +578,7 @@ class TestTask( Task ):
             lines = open( self.summaryFile ).readlines()
         except:
             print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
-            print("Summary file is '%s', task is '$s'" % (self.summaryFile, self.name))
+            print("Summary file is '%s', task is '%s'" % (self.summaryFile, self.name))
             return
 
         if 'Setup' == self._name:

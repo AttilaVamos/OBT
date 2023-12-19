@@ -710,7 +710,10 @@ then
 
     WriteLog "Copy unittest result files to ${TARGET_DIR}..." "${OBT_LOG_FILE}"
     cp ${OBT_LOG_DIR}/unittest*.log   ${TARGET_DIR}/test/
-    cp ${OBT_LOG_DIR}/unittests.summary   ${TARGET_DIR}/test/
+
+    # To prevent any non ASCII character can cause problem with BuildNotification.py
+    #cp ${OBT_LOG_DIR}/unittests.summary   ${TARGET_DIR}/test/
+    iconv -f utf-8 -t ascii -c -o ${TARGET_DIR}/test/unittests.summary ${OBT_LOG_DIR}/unittests.summary
     
     # Archive build an unit tests logs
     cd ${OBT_BIN_DIR}

@@ -32,6 +32,27 @@ usage()
     WriteLog " " "/dev/null"
 }
 
+collectAllLogs()
+{
+    logFile=$1
+    WriteLog "Collect logs" "$logFile"
+    dirName="$HOME/shared/Azure/test-$(date +%Y-%m-%d_%H-%M-%S)";
+    [[ ! -d $dirName ]] && mkdir -p $dirName;
+    while read p;
+    do
+        [[ "$p" =~ "mydali" ]] && param="mydali" || param="";
+        WriteLog "pod:$p - $param" "$logFile";
+        kubectl describe pod $p > $dirName/$p.desc;
+        kubectl logs $p $param > $dirName/$p.log;
+    done< <(kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' )
+
+    kubectl get pods > $dirName/pods.log;
+    kubectl get services > $dirName/services.log;
+    kubectl describe nodes > $dirName/nodes.desc;
+    #minikube logs >  $dirName/all.log 2>&1
+    WriteLog "  Done." "$logFile"
+}
+
 #set -x;
 logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
@@ -136,8 +157,8 @@ do
             ;;
 
         H) usage
-             exit 0
-             ;;
+           exit 0
+           ;;
 
         *)
             WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
@@ -368,9 +389,11 @@ then
 
 fi
 
-DEPLOY_TIMEOUT="20.0m"
+DEPLOY_TIMEOUT="30.0m"
 WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
 res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve )
+#res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
+#res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
 if [[ $retCode -eq 0 ]]
 then
@@ -383,6 +406,9 @@ then
 else
     WriteLog "Error in deploy hpcc. Ret code is: $retCode." "$logFile"
     WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+
+    collectAllLogs "$logFile"
+
     WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
     res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
     WriteLog "${res}" "$logFile"
@@ -598,8 +624,7 @@ fi
 # Get all logs:
 if [[ ${getLogs} -ne 0 ]]
 then
-    WriteLog "Collect logs" "$logFile"
-    dirName="$HOME/shared/Azure/test-$(date +%Y-%m-%d_%H-%M-%S)"; [[ ! -d $dirName ]] && mkdir -p $dirName; kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' | while read p; do [[ "$p" =~ "mydali" ]] && param="mydali" || param=""; echo "pod:$p - $param"; kubectl describe pod $p > $dirName/$p.desc;  kubectl logs $p $param > $dirName/$p.log; done; kubectl get pods > $dirName/pods.log;  kubectl get services > $dirName/services.log;  kubectl describe nodes > $dirName/nodes.desc; minikube logs >  $dirName/all.log 2>&1
+    collectAllLogs "$logFile"
 else
     WriteLog "Skip log collection" "$logFile"
 fi    
