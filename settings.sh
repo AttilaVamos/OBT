@@ -15,13 +15,33 @@ then
     SYSTEM_ID=$( cat /etc/*-release | head -1 )
 fi
 
+if [[ "$SYSTEM_ID" =~ "Ubuntu" ]]
+then
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print $1$2 }') 
+else
+    OS_ID=$(echo $SYSTEM_ID | awk '{ print$1$3 }'  )
+fi
+
 SYSTEM_ID=${SYSTEM_ID// (*)/}
 SYSTEM_ID=${SYSTEM_ID// /_}
 SYSTEM_ID=${SYSTEM_ID//./_}
 
+
+# A day when we build Debug version
+# Use 8 for disable Debug build
+DEBUG_BUILD_DAY=0  # Sunday
+BUILD_TYPE=RelWithDebInfo
+
+WEEK_DAY=$(date "+%w")
+
+if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
+then
+    BUILD_TYPE=Debug
+fi
+
 #
 #----------------------------------------------------
-#
+# To control the sequence  generation
 
 BRANCH_ID=master
 DAYS_FOR_CHECK_COMMITS=2
@@ -87,7 +107,7 @@ NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | 
 SPEED_OF_CPUS=$( grep 'cpu MHz' /proc/cpuinfo | awk '{print $4}' | sort -nru | head -1 | cut -d. -f1 )
 SPEED_OF_CPUS_UNIT='MHz'
 
-BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 )
+BOGO_MIPS_OF_CPUS=$( grep 'bogomips' /proc/cpuinfo | awk '{printf "%5.0f\n", $3}' | sort -nru | head -1 | tr -d ' ' )
 
 MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 
@@ -213,16 +233,6 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~
 
-#actually we have other system (OBT-007) for continuous debug build, so it is not necessary now
-DEBUG_BUILD_DAY=8   # Invalid day number to avoid Debug build
-BUILD_TYPE=RelWithDebInfo
-
-WEEK_DAY=$(date "+%w")
-
-if [[ $WEEK_DAY -eq $DEBUG_BUILD_DAY ]]
-then
-    BUILD_TYPE=Debug
-fi
 
 TEST_PLUGINS=1
 USE_CPPUNIT=1
@@ -249,7 +259,12 @@ LOCAL_IP_STR=$( ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:s
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
-QUICK_SESSION=0  # If non zero then execute standard unittests, else use default settings
+QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
+
+
+SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
+SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
+SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
 
 #
 #----------------------------------------------------
@@ -266,13 +281,17 @@ SOURCE_DIR_MAX_NUMBER=7 # Not implemented yet
 BUILD_DIR_EXPIRE=1   # days
 BUILD_DIR_MAX_NUMBER=7   # Not implemented yet
 
-
 # Local log archive
 LOG_ARCHIEVE_DIR_EXPIRE=30 # days
 
 # Remote, WEB log archive
 WEB_LOG_ARCHIEVE_DIR_EXPIRE=45 # days
 
+# How to create and use build dir.
+# If it is 0 then the build create a 'build-<branchid>-<datestamp>' directory for build and create a soft linkt ot is to keep uniform buildin perocess.
+# if it is not 0, then it uses 'build' directory to build platform, then at the and of the build process it makes a copy of it to 'build-<branchid>-<datestamp>'
+# We nned this because if changes happened in VCPKG stuff then build failed on linked directory.
+NEW_BUILD_DIR_STRUCTURE=1
 
 #
 #----------------------------------------------------
@@ -310,53 +329,8 @@ BUILD_DOCS=1
 #
 
 # Default no suppress anything
-SUPRESS_PLUGINS=''
+SUPRESS_PLUGINS=' -D MAKE_CASSANDRAEMBED=1 -DSUPPRESS_COUCHBASEEMBED=ON -DUSE_AZURE=OFF -DUSE_AWS=OFF'
 
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) ]] 
-then
-    # Supresss Azure on CenOS 6
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AZURE=OFF"
-fi
-
-
-REMBED_EXCLUSION_BRANCHES=( "candidate-6.4.x" "candidate-7.4.x" )
-
-if [[ " ${REMBED_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]]
-then
-    # There is an R environmet and Rembed.cpp incompatibility on the candidate-64.34 branch,
-    # so don't build it
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_REMBED=ON"
-fi
-
-SQS_EXCLUSION_BRANCHES=( "candidate-7.6.x" "master" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${SQS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
-then
-    # Old libcurl on Centos 6.x so exclude this from 7.6.x and perhaps later versions
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DSUPPRESS_SQS=ON"
-fi
-
-AWS_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) && (  " ${AWS_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ) ]] 
-then
-    # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-    # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-    # (Perhaps it is some bug, but this is areally old branch, so exclude)
-    SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DUSE_AWS=OFF"
-fi
-
-BOOST_EXCLUSION_BRANCHES=( "candidate-7.4.x" )
-if [[ ( "${SYSTEM_ID}" =~ "CentOS_release_6" ) || ( "${SYSTEM_ID}" =~ "CentOS_Linux_7" ) ]]
-then
-    if [[ " ${BOOST_EXCLUSION_BRANCHES[@]} " =~ " ${BRANCH_ID} " ]] 
-    then
-        # Old libcurl on Centos 6.x so exclude this from master and perhaps later versions
-        # Buld problem with CentOS 6 and Devtoolset-7 it found Devtoolset-2 
-        # (Perhaps it is some bug, but this is areally old branch, so exclude)
-        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
-    else
-        SUPRESS_PLUGINS="$SUPRESS_PLUGINS -DCENTOS_6_BOOST=ON"
-    fi
-fi
 
 #
 #----------------------------------------------------
@@ -374,7 +348,17 @@ REGRESSION_WIPE_OFF_HPCC=1
 EXECUTE_REGRESSION_SUITE=1
 
 REGRESSION_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
-REGRESSION_PARALLEL_QUERIES=$TEST_PARALLEL_QUERIES
+if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
+then
+    REGRESSION_PARALLEL_QUERIES=$TEST_PARALLEL_QUERIES
+else
+    # In Debug build sometimes roxie queries are failed with 
+    # "Pool memory exhausted" caused by system running out from memory
+    # based on a lots of quick queries but slow memory pool reclaim.
+    # It will slow down a bit the regression testing, but doesn't impact the cluster times.
+    # It happenes in 9.2.x and beyond
+    REGRESSION_PARALLEL_QUERIES=$(( $TEST_PARALLEL_QUERIES  * 3 / 4 )) 
+fi
 
 REGRESSION_NUMBER_OF_THOR_SLAVES=4
 
@@ -431,36 +415,13 @@ TIMEOUTS=(
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES=""
-if [[ "$BRANCH_ID" == "candidate-6.4.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*,embedR*,modelingWithR*"
-    REGRESSION_GENERATE_STACK_TRACE=""
-fi
 
-if [[ "$BRANCH_ID" == "candidate-7.0.x" ]]
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
+# Exclude spray class from 8.8.x
+if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
 then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
-    REGRESSION_GENERATE_STACK_TRACE=""
+  REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
 fi
-
-if [[ "$BRANCH_ID" == "candidate-7.2.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="couchbase-simple*"
-fi
-
-if [[ "$BRANCH_ID" == "candidate-7.4.x" ]]
-then
-    REGRESSION_EXCLUDE_FILES="pipefail.ecl,embedR*,modelingWithR*"
-fi
-
-if [[  -z "$REGRESSION_EXCLUDE_FILES" ]]
-then
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl"
-else
-    REGRESSION_EXCLUDE_FILES="--ef cassandra-simple.ecl,kafkatest.ecl,couchbase-simple.ecl,${REGRESSION_EXCLUDE_FILES}"
-fi
-
-REGRESSION_EXCLUDE_CLASS=""
 
 PYTHON_PLUGIN=''
 
@@ -472,6 +433,7 @@ PYTHON_PLUGIN=''
 COUCHBASE_SERVER=10.240.62.177
 COUCHBASE_USER=centos
 
+REGRESSION_REPORT_SENDER="\"${OBT_ID,,}\"$USER"
 REGRESSION_REPORT_RECEIVERS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 REGRESSION_REPORT_RECEIVERS_WHEN_NEW_COMMIT="richard.chapman@lexisnexisrisk.com,attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com"
 
@@ -491,11 +453,12 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 # Enable to run Coverity build and upload result
 
 RUN_COVERITY=0
-COVERITY_TEST_DAY=2 #1    # Monday
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
-COVERITY_CLOUD_TEST_DAY=3 # Wednesday
+COVERITY_TEST_DAY=1    # Monday for BM/VM build
+COVERITY_CLOUD_TEST_DAY=3   # Wednesday
+
 #
 #----------------------------------------------------
 #
@@ -531,14 +494,6 @@ then
 fi
 
 UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingTest "
-
-JlibSemTestStress_EXCLUSION_BRANCHES=( "candidate-7.2.x" "candidate-7.4.x" )
-
-if [[ " ${JlibSemTestStress_EXCLUSION_BRANCHES[@]} " =~ "$BRANCH_ID" ]]
-then
-    [[ ! "${UNITTESTS_EXCLUDE[@]}" =~ "JlibSemTestStress" ]] && UNITTESTS_EXCLUDE+="JlibSemTestStress "
-fi
-
 
 #
 #----------------------------------------------------
@@ -670,7 +625,9 @@ ML_BUILD_TYPE=$BUILD_TYPE
 
 # Control the target(s)
 ML_RUN_THOR=1
-ML_THOR_MEMSIZE_GB=4
+# Use a quarter of the Memory rounded (up to the next GB) but max 4 GB
+ML_THOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $ML_THOR_MEMSIZE_GB -gt 4 ]] && ML_THOR_MEMSIZE_GB=4
 
 if [[ $NUMBER_OF_CPUS -ge 20 ]]
 then
@@ -689,6 +646,7 @@ EXECUTE_ML_SUITE=1
 # timeout in seconds (>0) in Regression Engine
 ML_TIMEOUT=3600
 ML_PARALLEL_QUERIES=1
+ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl,SVCTest.ecl"
 ML_REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 
 #

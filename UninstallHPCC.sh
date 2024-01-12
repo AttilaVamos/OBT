@@ -98,16 +98,15 @@ UninstallHPCC()
 
         fi
         
-
-        ( ${PKG_QRY_CMD} hpccsystems-platform ) | grep hpcc | grep -v grep |
-        while read hpcc_package
-        do
-          WriteLog "HPCC package:"${hpcc_package} "$logFile"
-
-          sudo ${PKG_REM_CMD} $hpcc_package  >> "$logFile" 2>&1
-
-          [ $? -ne 0 ] && uninstallFailed=TRUE
-        done
+#        ( ${PKG_QRY_CMD} hpccsystems-platform ) | grep hpcc | grep -v grep |
+#        while read hpcc_package
+#        do
+#          WriteLog "HPCC package:"${hpcc_package} "$logFile"
+#
+#          sudo ${PKG_REM_CMD} $hpcc_package  >> "$logFile" 2>&1
+#
+#          [ $? -ne 0 ] && uninstallFailed=TRUE
+#        done
     
         ( ${PKG_QRY_CMD}  hpccsystems-platform ) | grep hpcc > /dev/null 2>&1
         if [ $? -eq 0 ]

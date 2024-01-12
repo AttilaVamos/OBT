@@ -36,10 +36,10 @@ usage()
     WriteLog "usage:" "/dev/null"
     WriteLog "  $0 [-b <bundle1_name>[,<bundle2_name>[,...]] [-noarchive] [-nostats] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
-    WriteLog " -b          - List of bundles to test. If missing all wil be tested." "/dev/null"
+    WriteLog " -b          - List of bundles to test. If missing all will be tested." "/dev/null"
     WriteLog " -noarchive  - Skip archive generation." "/dev/null"
     WriteLog " -nostats    - Skipp executing QueryStat2.py." "/dev/null"
-    WriteLog " -h       - This help." "/dev/null"
+    WriteLog " -h          - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
 
