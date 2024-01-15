@@ -576,7 +576,8 @@ class WriteStatsToFile(object):
             print(ex)
             pass
 
-        return dict(sorted(times.items()))
+        #return dict(sorted(times.items()))
+        return times
         
     def queryStats(self, cluster,  dateStr = ''):
         print("Process %s started." % (cluster))
@@ -692,7 +693,8 @@ class WriteStatsToFile(object):
                         graphTimeHeaders = ',NumberOfGraphTimes,GraphTimes'
                         graphTimeDetails = ",%d" % (len(graphTimes))
                         graphTimeDetailsLog = ''
-                        for key in sorted(graphTimes):
+                        #for key in sorted(graphTimes):
+                        for key in graphTimes:
                             graphTimeDetails += ",%s=%f" % (key, graphTimes[key])
                             graphTimeDetailsLog += ", %s=%f" % (key, graphTimes[key])
                         buff += graphTimeDetails
