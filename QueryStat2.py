@@ -260,6 +260,7 @@ class WriteStatsToFile(object):
         self.timeStampStr =  datetime.today().strftime("%H%M%S")  # "HHMMSS"
         
         self.graphTimings = options.graphTimings
+        self.allGraphItems = options.allGraphItems
         
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
@@ -279,6 +280,7 @@ class WriteStatsToFile(object):
         print("self.addHeader               : '" + str(self.addHeader) + "'")
         print("self.compileTimeDetailsDepth : " + str(self.compileTimeDetailsDepth))
         print("self.graphTimings            : '" + str(self.graphTimings) + "'")
+        print("self.allGraphItems            : '" + str(self.allGraphItems) + "'")
         print("hpccVersion                  : '" + self.hpccVersionStr + "'\n" )
         pass
         
@@ -563,7 +565,11 @@ class WriteStatsToFile(object):
                         self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
                         times[scopeName] = scopeTime
                     except Exception as e:
-                        self.myPrint(repr(e), " in ", resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
+                        if self.allGraphItems:
+                            times[scopeName] = 0.0
+                            self.myPrint("\t\tScope name: %s, time: '%s'" % (scopeName, 'NoValue'))
+                        else:
+                            self.myPrint(repr(e), " in ", resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
                         pass
         
         except Exception as ex:
@@ -813,10 +819,14 @@ if __name__ == '__main__':
                         help="Platform build type. Default is None (until I found out how to query it.)",  
                         metavar="BUILDTYPE")
                         
-    parser.add_option("-g", "--graphTimings",  dest="graphTimings",  default=False,  action="store_true", 
-                        help="Get the grph timings. Default is no",  
+    parser.add_option("-g", "--graphTimings",  dest="graphTimings",  default=False,  action="store_true",
+                        help="Get the graph timings. Default is no",
                         metavar="GRAPHTIMINGS")
                         
+    parser.add_option( "--allGraphItems",  dest="allGraphItems",  default=False,  action="store_true",
+                        help="Include graph items without time value. Working only together with '-graphTimings' parameter. Default is no",
+                        metavar="ALLGRAPHITEMS")
+
     (options, args) = parser.parse_args()
 
     if options.path == None:

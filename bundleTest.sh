@@ -653,7 +653,7 @@ then
     if [[ ( $GET_STAT -eq 1 ) && ( -f QueryStat2.py) ]]
     then
         WriteLog "Get tests stat..." "${ML_TEST_LOG}"
-        CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d '' -a --timestamp --compileTimeDetails 1 --graphTimings --addHeader"
+        CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d '' -a --timestamp --compileTimeDetails 1 --graphTimings --allGraphItems --addHeader"
         WriteLog "  CMD: '$CMD'" "${ML_TEST_LOG}"
         ${CMD} >> ${ML_TEST_LOG} 2>&1
         retCode=$( echo $? )
