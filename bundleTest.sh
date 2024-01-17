@@ -606,6 +606,23 @@ then
                 WriteLog "                                      " "${ML_TEST_LOG}"        
     fi
 
+    # Generate ZAP file if specified in settings.sh
+    if [  ${#ML_GENERATE_ZAP_FOR[@]} -ne 0 ]
+    then
+        for test in ${ML_GENERATE_ZAP_FOR[*]}
+        do 
+            WriteLog "Generate ZAP file for '$test'"  "${ML_TEST_LOG}"
+            wuid=$(ecl getwuid -n 'SVTest2*' --limit 1)
+            WriteLog "  WUID: '$wuid'"  "${ML_TEST_LOG}"
+            res=$(ecl zapgen $wuid  --path ${ZAP_DIR}/  --inc-thor-slave-logs)
+            retCode=$?
+            WriteLog "retCode: $retCode"  "${ML_TEST_LOG}"
+            WriteLog "res    : $res"  "${ML_TEST_LOG}"
+        done
+    fi
+    
+    
+    
     NUM_OF_ML_ZAPS=( $(sudo find ${ZAP_DIR}/ -iname 'ZAPReport*' -type f -exec printf "%s\n" '{}' \; ) )
     if [ ${#NUM_OF_ML_ZAPS[@]} -ne 0 ]
     then
