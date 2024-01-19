@@ -612,15 +612,19 @@ then
         for test in ${ML_GENERATE_ZAP_FOR[*]}
         do 
             WriteLog "Generate ZAP file for '$test'"  "${ML_TEST_LOG}"
-            wuid=$(ecl getwuid -n 'SVTest2*' --limit 1)
-            WriteLog "  WUID: '$wuid'"  "${ML_TEST_LOG}"
-            res=$(ecl zapgen $wuid  --path ${ZAP_DIR}/  --inc-thor-slave-logs)
-            retCode=$?
-            WriteLog "retCode: $retCode"  "${ML_TEST_LOG}"
-            WriteLog "res    : $res"  "${ML_TEST_LOG}"
+            wuid=$(ecl getwuid -n $test --limit 1)
+            if [ -n $wuid ]
+            then
+                WriteLog "  WUID: '$wuid'"  "${ML_TEST_LOG}"
+                res=$(ecl zapgen $wuid  --path ${ZAP_DIR}/  --inc-thor-slave-logs)
+                retCode=$?
+                WriteLog "retCode: $retCode"  "${ML_TEST_LOG}"
+                WriteLog "res    : $res"  "${ML_TEST_LOG}"
+            else
+                WriteLog "Workunit not found."  "${ML_TEST_LOG}"
+            fi
         done
     fi
-    
     
     
     NUM_OF_ML_ZAPS=( $(sudo find ${ZAP_DIR}/ -iname 'ZAPReport*' -type f -exec printf "%s\n" '{}' \; ) )

@@ -181,7 +181,7 @@ class WriteStatsToFile(object):
     compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=compile&NestedFilter.Depth=<NESTED_DEPTH>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
     #compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     
-    graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
+    graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed%0D%0ATimeAvgLocalExecute&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
     
     def __init__(self, options):
         global verbose
@@ -484,6 +484,7 @@ class WriteStatsToFile(object):
         def getTime(json_object, name):
             return [obj for obj in json_object if obj['name']==name][0]['rawValue']
             
+        self.myPrint("queryCompileTime(%s)" % (wuid))
         url = self.compileTimeQuery.replace('<WUID>',  wuid).replace('<NESTED_DEPTH>', str(self.compileTimeDetailsDepth))
         times = {}
         try:
@@ -524,6 +525,7 @@ class WriteStatsToFile(object):
         return times
         
     def queryGraphTimes(self,  wuid):
+        self.myPrint("queryGraphTimes(%s)" %(wuid))
         url = self.graphTimeQuery.replace('<WUID>',  wuid)
         self.myPrint("URL: %s" %(url))
         times = {}
@@ -541,8 +543,14 @@ class WriteStatsToFile(object):
                     scopeName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["ScopeName"].replace('_', ':').replace(' ', '_').replace('.', ':*')
                     scopeItems = scopeName.split(':')
                     if len(scopeItems[0]) == 0:
+                        self.myPrint("\t\t%3d:: Scope name: %s -> skipped, empty " % (scope, scopeName))
                         continue
+
                     if scopeName.startswith('compile'):
+                        self.myPrint("\t\t%3d:: Scope name: %s -> skipped" % (scope, scopeName))
+                        continue
+
+                    if "Properties" not in  resp["WUDetailsResponse"]["Scopes"]["Scope"][scope] and not self.allGraphItems:
                         continue
                         
                     # Looking for the position of WUID in the scopeItems
@@ -559,21 +567,23 @@ class WriteStatsToFile(object):
                         scopeName = '-'.join(scopeItems)
                         # Reverse the magic done before split. restore extensions, restore '_' before subsequent cpp file number
                         scopeName = scopeName.replace('-*', '.').replace('>-','>_')
-                    
+
                     try:
+                        propertyName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["Name"]
                         scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  # from ns to sec
-                        self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
+                        self.myPrint("\t\t%3d:: Scope name: %s, property name: %s, time: %f sec" % (scope, scopeName, propertyName,  scopeTime))
                         times[scopeName] = scopeTime
                     except Exception as e:
                         if self.allGraphItems:
                             times[scopeName] = 0.0
-                            self.myPrint("\t\tScope name: %s, time: '%s'" % (scopeName, 'NoValue'))
+                            self.myPrint("\t\t%3d:: Scope name: %s, time: '%s'" % (scope, scopeName, 'NoValue'))
                         else:
                             self.myPrint(repr(e), " in ", resp["WUDetailsResponse"]["Scopes"]["Scope"][scope])
                         pass
         
         except Exception as ex:
             print(ex)
+            print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
             pass
 
         #return dict(sorted(times.items()))
