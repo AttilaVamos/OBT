@@ -404,8 +404,8 @@ then
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
 else
-    WriteLog "Error in deploy hpcc. Ret code is: $retCode." "$logFile"
-    WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    WriteLog "Error in deploy hpcc. \nRet code is: $retCode." "$logFile"
+    WriteLog "res:$res" "$logFile"
 
     collectAllLogs "$logFile"
 
