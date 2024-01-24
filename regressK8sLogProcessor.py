@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import time
 import glob
-import re
-import inspect
-import traceback
-from datetime import datetime
 
 def readLogFileNames(path=''):
     fileNames = []
@@ -47,7 +41,8 @@ def readSystemLog(systemName):
         items = splitAndStrip(line)
         # The first item is the timestamp, that will be the key and
         # use the rest as a related list.'
-        systemLogs[items[0]] = list(items[1:])
+        systemLogs[items[0]] = { 'testItems' :  [],  'errors' : {}}
+        systemLogs[items[0]]['testItems'] = list(items[1:])
     return systemLogs
 
 def writeSystemLog(systemName,  systemLog):
@@ -58,7 +53,7 @@ def writeSystemLog(systemName,  systemLog):
             outFile.write(timestamp + ',')
             # Create a string, a coma separated values from the list associated
             # to the timestamp
-            outFile.write(','.join(systemLog[timestamp]))
+            outFile.write(','.join(systemLog[timestamp]['testItems']))
             outFile.write('\n')
         outFile.close()
     except IOError:
@@ -67,7 +62,7 @@ def writeSystemLog(systemName,  systemLog):
 
 def getLogFileTimestamp(logFileName):
     # Split into only 2 parts by '-', get the second one and remove extension from it.
-    timestamp = logFileName.split('-', 1)[1].replace('.log','')
+    timestamp = logFileName.split('-', 1)[1].replace('.log','').replace('-d','')
     return timestamp
 
 def processLogFile(logFileName,  timestamp,  sysLogs):
@@ -76,33 +71,43 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         # Pocessing this kinfd of line:
         #  0         1  2      3  4                 5                  6          7                8           9               10
         #  'HEAD is now at bbff691a52 Community Edition 9.4.16-rc1 Release Candidate 1'
-        sysLogs[timestamp].append(items[7])
+        sysLogs[timestamp]['testItems'].append(items[7])
 
     def processSuite(items,  timestamp,  sysLogs):
+        global suite
+        suite = ''
         if len(items) == 2:
             # Process this kind of line:
             #   0        1
             #  'Suite: thor'
-           sysLogs[timestamp].append(items[1])
+            suite = items[1]
         else:
             # Or this one:
             #   0        1      2
             #  'Suite: thor (setup)'
-            sysLogs[timestamp].append(items[1] + ' ' + items[2])
+            suite = items[1] + ' ' + items[2]
+            
+        sysLogs[timestamp]['testItems'].append(suite)
+        
+    def processQueries(items,   timestamp,  sysLogs):
+        # Process this kind of line:
+        #  0            1
+        # 'Queries: 999'
+        sysLogs[timestamp]['testItems'].append(items[1])        
            
     def processResult(items,  timestamp,  sysLogs):
         # Process this kind of lines:
         #        0            1
         #  '     Passing: 9'
         #  '     Failure: 0'
-        sysLogs[timestamp].append(items[1])
+        sysLogs[timestamp]['testItems'].append(items[1])
 
     def processElapsed(items, timestamp,  sysLogs):
         # Process this kind of line:
         #        0           1        2   3     4
         #  '     Elapsed time: 88 sec  (00:01:28)'
-        sysLogs[timestamp].append(items[2])
-        sysLogs[timestamp].append(items[4])
+        sysLogs[timestamp]['testItems'].append(items[2])
+        sysLogs[timestamp]['testItems'].append(items[4])
        
     def processFatalError(items, timestamp,  sysLogs):
         # Process any line started with 'fatal', like:
@@ -112,26 +117,42 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         #  'fatal: Could not read from remote repository.'
         if items[1] not in ["'upstream'", "Could"]:
             # Make a string from all items
-            sysLogs[timestamp].append(' '.join(items))
+            sysLogs[timestamp]['testItems'].append(' '.join(items))
         
     def processPrevious(items, timestamp,  sysLogs):
         # Ignore this kind of line:
         #  'Previous HEAD position was 697bca2e9e Community Edition <tag> Release Candidate <RC>'
         pass
+    
+    def processFailure(items, timestamp,  sysLogs):
+        global suite
+        error = items[3]
+        if 'version:' in items:
+            error += ' '.join( items[4:items.index(')')+1])
         
+        if suite not in sysLogs[timestamp]['errors']:
+            sysLogs[timestamp]['errors'] [suite] = []
+
+        sysLogs[timestamp]['errors'][suite].append(error)
+        print("\t%s error:'%s'" % (suite, error))
+        pass
+    
     # Keywords function directory
     funcDict = {
          # Keyword   related line processing fuction
         'HEAD'          : processHead, 
         'Suite:'      : processSuite, 
-        'Queries:'  : processSuite, 
+        'Queries:'  : processQueries, 
         'Passing:'  : processResult, 
         'Failure:'  : processResult, 
         'Elapsed'    : processElapsed, 
         'fatal:'      : processFatalError, 
         'Previous'  : processPrevious, 
+        '[Failure]' : processFailure, 
         }
-        
+    
+    suite = ''
+    
     try:
         temp = open(logFileName, "r").readlines( )
     except IOError:
@@ -167,13 +188,15 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
 
 print("Start...")
 logFilePath = '/home/ati/shared/AWS-Minikube'
-logFilePath = '/home/ati/shared/Azure'
+#logFilePath = '/home/ati/shared/Azure'
 logFileNames = readLogFileNames(logFilePath)
 if len(logFileNames) == 0:
-    exit
+    print("In %s not found any log file, exit." % (logFilePath) )
+    exit(0)
     
 systemName = getSystemName(logFileNames[0])
 systemLogs = readSystemLog(systemName)
+print("In %s %d log files found." % (logFilePath,  len(systemLogs)))
 
 # Process all log files
 for logFileName in logFileNames:
@@ -182,10 +205,12 @@ for logFileName in logFileNames:
     
     # This log file is already processed
     if timestamp in systemLogs:
+        print("The '%s' is already processed, skip it." %(logFileName))
         continue
         
+    print("Processing: '%s'" %(logFileName))
     # Initialise the dictionary item
-    systemLogs[timestamp] = []
+    systemLogs[timestamp] = { 'testItems' :  [],  'errors' : {}}
     processLogFile(logFilePath + '/' + logFileName,  timestamp,  systemLogs)
     
 writeSystemLog(systemName,  systemLogs)
