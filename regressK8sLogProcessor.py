@@ -59,6 +59,24 @@ def writeSystemLog(systemName,  systemLog):
     except IOError:
         print("IOError in read '%s'" % (systemLogFileName))
         
+    systemErrorsLogFileName = systemName+'-errors.csv'
+    try:
+        outFile = open(systemErrorsLogFileName, "w")
+        for timestamp in systemLogs:
+            if len(systemLog[timestamp]['errors']) == 0:
+                # No error registered, skip this item
+                continue
+                
+            for engine in systemLog[timestamp]['errors']:
+                numOfErrors = len(systemLog[timestamp]['errors'][engine])
+                outFile.write( "%s,%s,%s," % (timestamp, engine, numOfErrors))
+                # Create a string, a coma separated values from the list associated
+                # to the timestamp
+                outFile.write(','.join(systemLog[timestamp]['errors'][engine]))
+                outFile.write('\n')
+        outFile.close()
+    except IOError:
+        print("IOError in read '%s'" % (systemErrorsLogFileName))
 
 def getLogFileTimestamp(logFileName):
     # Split into only 2 parts by '-', get the second one and remove extension from it.
@@ -128,7 +146,7 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         global suite
         error = items[3]
         if 'version:' in items:
-            error += ' '.join( items[4:items.index(')')+1])
+            error += ''.join( items[4:items.index(')')+1])
         
         if suite not in sysLogs[timestamp]['errors']:
             sysLogs[timestamp]['errors'] [suite] = []
