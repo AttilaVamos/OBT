@@ -2,6 +2,7 @@
 
 import os
 import glob
+from optparse import OptionParser
 
 def readLogFileNames(path=''):
     fileNames = []
@@ -29,20 +30,48 @@ def splitAndStrip(text,  delimiter = ','):
 def readSystemLog(systemName):
     systemLogs = {}
     systemLogFileName = systemName+'.csv'
-    temp = []
+    lines = []
     try:
-        temp = open(systemLogFileName, "r").readlines( )
+        lines = open(systemLogFileName, "r").readlines( )
     except IOError:
         print("IOError in read '%s'" % (systemLogFileName))
     except FileNotFoundError:
         print("File not found:'%s'" % (systemLogFileName))
         
-    for line in temp:
+    for line in lines:
         items = splitAndStrip(line)
         # The first item is the timestamp, that will be the key and
         # use the rest as a related list.'
         systemLogs[items[0]] = { 'testItems' :  [],  'errors' : {}}
         systemLogs[items[0]]['testItems'] = list(items[1:])
+
+    systemErrorsLogFileName = systemName+'-errors.csv'
+    try:
+        lines = open(systemErrorsLogFileName, "r").readlines( )
+    except IOError:
+        print("IOError in read '%s'" % (systemErrorsLogFileName))
+    except FileNotFoundError:
+        print("File not found:'%s'" % (systemErrorsLogFileName))
+
+    for line in lines:
+        items = splitAndStrip(line)
+        # The first item (items[0]) is the timestamp, in this point it should exists and that will be the primarey key,
+        # the second item (items[1]) is the engine, if it is not exist should add
+        # and the third (items[2]) is the number of errors
+        # and use the rest as a list of failed test cases
+        key = items[0]
+        engine = items[1]
+
+        if key not in systemLogs:
+            print("%s is missing from systemLogs" % (key))
+            continue
+
+        if engine not in systemLogs[key]['errors']:
+                systemLogs[key]['errors'][engine] = []
+
+        for error in items[3:]:
+            systemLogs[key]['errors'][engine].append(error)
+
     return systemLogs
 
 def writeSystemLog(systemName,  systemLog):
@@ -205,8 +234,23 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
 #
 
 print("Start...")
-logFilePath = '/home/ati/shared/AWS-Minikube'
+# For dev testing
+#logFilePath = '/home/ati/shared/AWS-Minikube'
 #logFilePath = '/home/ati/shared/Azure'
+
+usage = "usage: %prog [options]"
+parser = OptionParser(usage=usage)
+parser.add_option("-p", "--path", dest="logFilePath",  default = '.',  type="string",
+                      help="Path where the log files stored. Default is '.'", metavar="LOG_FILES_PATH")
+
+(options, args) = parser.parse_args()
+
+if options.logFilePath == '.':
+    parser.print_help()
+    exit()
+
+logFilePath = options.logFilePath
+
 logFileNames = readLogFileNames(logFilePath)
 if len(logFileNames) == 0:
     print("In %s not found any log file, exit." % (logFilePath) )
@@ -214,7 +258,7 @@ if len(logFileNames) == 0:
     
 systemName = getSystemName(logFileNames[0])
 systemLogs = readSystemLog(systemName)
-print("In %s %d log files found." % (logFilePath,  len(systemLogs)))
+print("%d log files found in %s." % (logFilePath,  len(systemLogs)))
 
 # Process all log files
 for logFileName in logFileNames:
