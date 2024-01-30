@@ -521,5 +521,20 @@ WriteLog "System is down" "$logFile"
 res=$(minikube stop 2>&1)
 WriteLog "${res}" "$logFile"
 
+if [[ -n "$QUERY_STAT2_DIR" ]]
+then
+    pushd $QUERY_STAT2_DIR > /dev/null
+    if [ -f regressK8sLogProcessor.py ]
+    then
+        res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
+        WriteLog "${res}" "$logFile"
+    else
+        WriteLog "regressK8sLogProcessor.py not found." "$logFile"
+    fi
+    popd > /dev/null
+else
+    WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
+fi
+
 WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"
