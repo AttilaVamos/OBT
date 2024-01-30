@@ -258,7 +258,7 @@ if len(logFileNames) == 0:
     
 systemName = getSystemName(logFileNames[0])
 systemLogs = readSystemLog(systemName)
-print("%d log files found in %s." % (logFilePath,  len(systemLogs)))
+print("%d log files found in %s." % (len(systemLogs), logFilePath))
 
 # Process all log files
 for logFileName in logFileNames:
