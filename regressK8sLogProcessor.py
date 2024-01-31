@@ -258,7 +258,9 @@ if len(logFileNames) == 0:
     
 systemName = getSystemName(logFileNames[0])
 systemLogs = readSystemLog(systemName)
-print("%d log files found in %s." % (len(systemLogs), logFilePath))
+print("%d log entries found in %s." % (len(systemLogs), systemName+'.csv'))
+
+print("%d log files  found in %s." % (len(logFileNames), logFilePath))
 
 # Process all log files
 for logFileName in logFileNames:
@@ -267,7 +269,7 @@ for logFileName in logFileNames:
     
     # This log file is already processed
     if timestamp in systemLogs:
-        print("The '%s' is already processed, skip it." %(logFileName))
+        print("The '%s' file is already processed, skip it." %(logFileName))
         continue
         
     print("Processing: '%s'" %(logFileName))
