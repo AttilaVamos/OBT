@@ -699,6 +699,22 @@ then
      
 fi
 
+if [[ -n "$QUERY_STAT2_DIR" ]]
+then
+    WriteLog "Start log processor..." "$logFile"
+    pushd $QUERY_STAT2_DIR > /dev/null
+    if [ -f regressK8sLogProcessor.py ]
+    then
+        res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
+        WriteLog "${res}" "$logFile"
+        WriteLog "  End." "$logFile"
+    else
+        WriteLog "regressK8sLogProcessor.py not found." "$logFile"
+    fi
+    popd > /dev/null
+else
+    WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
+fi
 
 WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"
