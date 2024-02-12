@@ -3,6 +3,7 @@
 import os
 import glob
 from optparse import OptionParser
+import errno
 
 def readLogFileNames(path=''):
     fileNames = []
@@ -10,7 +11,7 @@ def readLogFileNames(path=''):
     os.chdir( path )
     fileNames = glob.glob('regress*.log')
     os.chdir( curDir )
-    fileNames.sort()
+    fileNames.sort() 
     return fileNames
 
 def getSystemName(logFileName):
@@ -35,9 +36,12 @@ def readSystemLog(systemName):
         lines = open(systemLogFileName, "r").readlines( )
     except IOError:
         print("IOError in read '%s'" % (systemLogFileName))
-    except FileNotFoundError:
-        print("File not found:'%s'" % (systemLogFileName))
-        
+    except EnvironmentError as err:  #The 'FileNotFoundError'
+        if err.errno == errno.ENOENT:   # ENOENT -> "no entity" -> "file not found"
+            print("File not found:'%s'" % (systemLogFileName))
+        else:
+            print("%s happened when '%s' file iso." % (str(err), systemLogFileName))
+            
     for line in lines:
         items = splitAndStrip(line)
         # The first item is the timestamp, that will be the key and
@@ -50,8 +54,9 @@ def readSystemLog(systemName):
         lines = open(systemErrorsLogFileName, "r").readlines( )
     except IOError:
         print("IOError in read '%s'" % (systemErrorsLogFileName))
-    except FileNotFoundError:
-        print("File not found:'%s'" % (systemErrorsLogFileName))
+    except EnvironmentError as err:
+        if err.errno == errno.ENOENT:   # ENOENT -> "no entity" -> "file not found"
+            print("File not found:'%s'" % (systemErrorsLogFileName))
 
     for line in lines:
         items = splitAndStrip(line)
