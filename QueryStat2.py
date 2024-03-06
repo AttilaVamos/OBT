@@ -630,6 +630,11 @@ class WriteStatsToFile(object):
                 resp = json.loads(json_response)
                 response_stream.close()
                 response_stream = None
+                # exapmle how to create pretty formated JSON file from the result
+                #jsonFile = open( self.destPath +"workunits-" + cluster + ".json",  "w")
+                #jsonFile.write(json.dumps(resp, indent=1))
+                #jsonFile.close()
+
             except Exception as ex:
                 state = "HTTP Error: "+ str(ex.reason)
                 print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
