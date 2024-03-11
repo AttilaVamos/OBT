@@ -26,7 +26,7 @@ echo "----------------------------"
 pushd ~/HPCC-Platform > /dev/null
 
 branches=( "'master' " )
-maxAutoBranch=4
+maxAutoBranch=5
 
 runs=()
 runArray=()
