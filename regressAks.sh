@@ -389,7 +389,7 @@ then
 
 fi
 
-DEPLOY_TIMEOUT="30.0m"
+DEPLOY_TIMEOUT="40.0m"
 WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
 res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve 2>&1 )
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
