@@ -53,6 +53,52 @@ collectAllLogs()
     WriteLog "  Done." "$logFile"
 }
 
+destroyResoures()
+{
+    logFile=$1
+    msg=$2
+
+    WriteLog "$msg" "$logFile"
+
+    res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
+    if [[ $VERBOSE -ne 0 ]]
+    then
+        WriteLog "res:$res" "$logFile"
+    else
+        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+    fi
+    WriteLog "  Done." "$logFile"
+
+    if [[ $START_RESOURCES -eq 1 ]]
+    then
+        WriteLog "Destroy storage accounts ..." "$logFile"
+        pushd modules/storage_accounts > /dev/null
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+
+        WriteLog "Destroy VNET ..." "$logFile"
+        pushd modules/virtual_network > /dev/null
+        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        if [[ $VERBOSE -ne 0 ]]
+        then
+            WriteLog "res:$res" "$logFile"
+        else
+            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
+        fi
+        WriteLog "  Done." "$logFile"
+        popd > /dev/null
+    fi
+
+}
+
+
 #set -x;
 logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
@@ -409,38 +455,9 @@ else
 
     collectAllLogs "$logFile"
 
-    WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
-    res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
-    WriteLog "${res}" "$logFile"
-    WriteLog "  Done." "$logFile"
+    VERBOSE=1
+    destroyResoures "$logFile" "Destroy AKS to remove leftovers ..."
     
-    if [[ $START_RESOURCES -eq 1 ]]
-    then
-        WriteLog "Destroy storage accounts ..." "$logFile"
-        pushd modules/storage_accounts > /dev/null    
-        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
-        then 
-            WriteLog "res:$res" "$logFile"
-        else
-            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-        fi
-        WriteLog "  Done." "$logFile"
-        popd > /dev/null
-
-        WriteLog "Destroy VNET ..." "$logFile"
-        pushd modules/virtual_network > /dev/null
-        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
-        then 
-            WriteLog "res:$res" "$logFile"
-        else
-            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-        fi
-        WriteLog "  Done." "$logFile"
-        popd > /dev/null
-    fi
-
     WriteLog "Exit." "$logFile"
     exit 1
 fi
@@ -461,37 +478,8 @@ then
     fi
 else
     WriteLog "Error in deploy hpcc." "$logFile"
-    WriteLog "Destroy AKS to remove leftovers ..." "$logFile"
-    res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
-    WriteLog "${res}" "$logFile"
-    WriteLog "  Done." "$logFile"
-    
-    if [[ $START_RESOURCES -eq 1 ]]
-    then
-        WriteLog "Destroy storage accounts ..." "$logFile"
-        pushd modules/storage_accounts > /dev/null    
-        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
-        then 
-            WriteLog "res:$res" "$logFile"
-        else
-            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-        fi
-        WriteLog "  Done." "$logFile"
-        popd > /dev/null
-
-        WriteLog "Destroy VNET ..." "$logFile"
-        pushd modules/virtual_network > /dev/null
-        res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
-        then 
-            WriteLog "res:$res" "$logFile"
-        else
-            WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-        fi
-        WriteLog "  Done." "$logFile"
-        popd > /dev/null
-    fi
+    VERBOSE=1
+    destroyResoures "$logFile" "Destroy AKS to remove leftovers ..."
 
     WriteLog "Exit." "$logFile"
     exit 1
@@ -636,14 +624,7 @@ then
     read -t 60
 fi
 
-WriteLog "To destroy AKS is started ..." "$logFile"
-res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
-if [[ $VERBOSE -ne 0 ]]
-then 
-    WriteLog "res:$res" "$logFile"
-else
-    WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-fi
+destroyResoures "$logFile" "To destroy AKS is started ..."
 
 # Wait until everyting is down
 tryCount=30  # To avoid infinite loop if something went wrong (connection, AKS, Azure, M$)
@@ -672,33 +653,6 @@ else
    WriteLog "Something went wrong. Try to destroy AKS manually via https://portal.azure.com ." "$logFile"
 fi
 
-if [[ $START_RESOURCES -eq 1 ]]
-then
-    WriteLog "Destroy storage accounts ..." "$logFile"
-    pushd modules/storage_accounts > /dev/null    
-    res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-    if [[ $VERBOSE -ne 0 ]]
-    then 
-        WriteLog "res:$res" "$logFile"
-    else
-        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-    fi
-    WriteLog "  Done." "$logFile"
-    popd > /dev/null
-
-    WriteLog "Destroy VNET ..." "$logFile"
-    pushd modules/virtual_network > /dev/null
-    res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-    if [[ $VERBOSE -ne 0 ]]
-    then 
-        WriteLog "res:$res" "$logFile"
-    else
-        WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
-    fi
-    WriteLog "  Done." "$logFile"
-    popd > /dev/null
-     
-fi
 
 if [[ -n "$QUERY_STAT2_DIR" ]]
 then
