@@ -53,7 +53,7 @@ collectAllLogs()
     WriteLog "  Done." "$logFile"
 }
 
-destroyResoures()
+destroyResources()
 {
     logFile=$1
     msg=$2
@@ -456,7 +456,7 @@ else
     collectAllLogs "$logFile"
 
     VERBOSE=1
-    destroyResoures "$logFile" "Destroy AKS to remove leftovers ..."
+    destroyResources "$logFile" "Destroy AKS to remove leftovers ..."
     
     WriteLog "Exit." "$logFile"
     exit 1
@@ -479,7 +479,7 @@ then
 else
     WriteLog "Error in deploy hpcc." "$logFile"
     VERBOSE=1
-    destroyResoures "$logFile" "Destroy AKS to remove leftovers ..."
+    destroyResources "$logFile" "Destroy AKS to remove leftovers ..."
 
     WriteLog "Exit." "$logFile"
     exit 1
@@ -624,7 +624,7 @@ then
     read -t 60
 fi
 
-destroyResoures "$logFile" "To destroy AKS is started ..."
+destroyResources "$logFile" "To destroy AKS is started ..."
 
 # Wait until everyting is down
 tryCount=30  # To avoid infinite loop if something went wrong (connection, AKS, Azure, M$)
