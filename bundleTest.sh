@@ -560,16 +560,26 @@ then
     then
         while read bundle
         do
-            bundleRunPath=${bundle%/ecl}
-            bundlePath=${bundleRunPath%/OBTTests}; 
-            bundleName=${bundlePath%/test}
-            bundleName=$(basename $bundleName )
+            bundleRunPath=${bundle%/ecl}                         # remove '/ecl' from the end of the $bundle
+            bundlePath=${bundleRunPath%/OBTTests};       # remove '/OBTTests' from the end of the $bundleRunPath if exists
+            bundleName=${bundlePath%/test}                    # remove '/test' from the end of the $bundlePath if exists
+            bundleName=$(basename $bundleName )         # remove path from $bundleName
             
-            # Until it is fully implemented, skip the log running LearningTrees bundle test
-            if [[ "$bundle" =~ "LearningTreess" ]]
+            if [[ "$bundle" =~ "LearningTrees" ]]
             then
-                WriteLog "Bundle with Regression Test: $bundleName is skipped." "${ML_TEST_LOG}"
-                continue
+                # add a warning supression parameter in the file
+                file=RegressionTestModified.ecl
+                if [[ $( egrep -c '#ONWARNING\(30004' $bundle/$file ) -eq 0 ]]
+                then
+                    WriteLog "Patch the RegressionTestModified.ecl to avoid execution time skew warning in $bundleName bundle." "${ML_TEST_LOG}"
+                    pushd $bundle 
+                    cp -fv $file $file-back
+                    sed -i '/#ONWARNING/i \\n// Patched by the bundleTest on '"$( date '+%Y.%m.%d %H:%M:%S')"' \n#ONWARNING(30004, ignore); // Do not report execute time skew warning/' $file
+                    WriteLog "Check the result:\n$( egrep '#ONWARNING\(' $file )\n" "${ML_TEST_LOG}"
+                    popd
+                else
+                    WriteLog "The RegressionTestModified.ecl is already fixed in $bundleName bundle." "${ML_TEST_LOG}"
+                fi
             fi
             
             if [[ ! "${BUNDLES_TO_TEST[*]}" =~ "$bundleName"  ]]

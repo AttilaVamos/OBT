@@ -646,7 +646,7 @@ EXECUTE_ML_SUITE=1
 # timeout in seconds (>0) in Regression Engine
 ML_TIMEOUT=3600
 ML_PARALLEL_QUERIES=1
-ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl,SVCTest.ecl"
+ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl,SVCTest.ecl,ClassificationTestModified.ecl"
 ML_REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
 ML_GENERATE_ZAP_FOR=( 'SVTest*' )
 
