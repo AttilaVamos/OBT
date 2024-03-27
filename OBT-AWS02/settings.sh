@@ -359,6 +359,8 @@ TEST_5=( "stepping7d.ecl" "30" )
 TEST_6=( "stepping7e.ecl" "30" )
 TEST_7=( "stepping7f.ecl" "30" )
 TEST_8=( "supercopy.ecl" "200" )
+TEST_9=( "genjoin2.ecl" "1800" )
+TEST_10=( "genjoin3.ecl" "1800" )
 
 TIMEOUTS=( 
     TEST_1[@]
@@ -369,13 +371,16 @@ TIMEOUTS=(
     TEST_6[@]
     TEST_7[@]
     TEST_8[@]
+    TEST_9[@]
+    TEST_10[@]
     )
 
 
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
-REGRESSION_EXCLUDE_FILES="--excludeFile genjoin2.ecl,genjoin3.ecl"
+REGRESSION_EXCLUDE_FILES=""
+#REGRESSION_EXCLUDE_FILES="--excludeFile genjoin2.ecl,genjoin3.ecl"
 
 REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
 # Exclude spray class from 8.8.x
