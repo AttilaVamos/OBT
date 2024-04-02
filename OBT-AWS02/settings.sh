@@ -362,6 +362,7 @@ TEST_8=( "supercopy.ecl" "200" )
 TEST_9=( "genjoin2.ecl" "1800" )
 TEST_10=( "genjoin3.ecl" "1800" )
 TEST_11=( "genjoin.ecl" "1800" )
+TEST_12=( "key.ecl" "1800" )
 
 TIMEOUTS=( 
     TEST_1[@]
@@ -375,6 +376,7 @@ TIMEOUTS=(
     TEST_9[@]
     TEST_10[@]
     TEST_11[@]
+    TEST_12[@]
     )
 
 
