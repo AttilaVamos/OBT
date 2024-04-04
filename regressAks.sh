@@ -528,6 +528,7 @@ then
     WriteLog "ip: $ip" "$logFile"
     port=8010
     WriteLog "port: $port" "$logFile"
+    WriteLog "URL: http://$ip:$port" "$logFile"
     #echo "Press <Enter> to continue"
     #read
 
