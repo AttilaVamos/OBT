@@ -300,7 +300,25 @@ fi
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
 if [[ $isMinikubeUp -ne 4 ]]
 then
-    WriteLog "Minikube is down, start it up." "$logFile"
+    WriteLog "Minikube is down." "$logFile"
+    # Let's do some Minikube cahce maintenance
+    if [[ -f $OBT_BIN_DIR/platformTag.txt ]]
+    then 
+        oldTag=$( cat $OBT_BIN_DIR/platformTag.txt)
+        if [[ "$oldTag" != "$base" ]]
+        then
+            echo "$base" > $OBT_BIN_DIR/platformTag.txt
+            WriteLog "There is a new tag, remove all older cached images to save disk space." "$logFile"
+            WriteLog "Before:\n\t$(df -h .)" "$logFile"
+            # Remove all cached images
+            res=$( minikube delete 2>&1 ) 
+            [[ $VERBOSE == 1 ]] && WriteLog "Minikube delete res:\n$res" "$logFile"
+            WriteLog "After:\n\t$(df -h .)" "$logFile"
+        fi
+    else
+        echo "$base" > $OBT_BIN_DIR/platformTag.txt
+    fi
+    WriteLog "Start Minikube." "$logFile"
     res=$(minikube start 2>&1)
     WriteLog "$res" "$logFile"
     
