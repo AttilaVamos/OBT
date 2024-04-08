@@ -52,6 +52,7 @@ else
     [[ ! -d $RTE_DIR ]] && RTE_DIR="$HOME/RTE"
     [[ ! -d $RTE_DIR ]] && RTE_DIR=$SUITEDIR
     PKG_DIR="$HOME/HPCC-Platform-build/"
+    OBT_BIN_DIR=$(pwd)
 
     QUERY_STAT2_DIR="$RTE_DIR"
     [[ ! -f $QUERY_STAT2_DIR/QueryStat2.py ]] && QUERY_STAT2_DIR=$(pwd)
@@ -87,6 +88,7 @@ WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
 WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
 WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
+WriteLog "OBT BIN DIR    : $OBT_BIN_DIR" "$logFile"
 WriteLog "QUERY_STAT2_DIR: $QUERY_STAT2_DIR" "$logFile"
 WriteLog "PERFSTAT_DIR   : $PERFSTAT_DIR" "$logFile"
 WriteLog "QUICK_TEST_SET : $QUICK_TEST_SET" "$logFile"
