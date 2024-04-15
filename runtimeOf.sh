@@ -3,16 +3,32 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 #set -x
 
 testCase="genjoin"
+engine="thor"
+
+usage()
+{
+    echo "Tool to list execution time statistic of a test or a group (?*) of tests "
+    echo "Usage:"
+    echo ""
+    echo "  $0 <testname> [-e <engine>] [-v] [-h]"
+    echo "where:" 
+    echo " -e <engine> - Engine where the test executed: Hthor, Thor or Roxie."
+    echo "               (Default: Thor)."
+    echo " -v          - Show more logs (about PODs deploy and destroy)."
+    echo " -h          - This help."
+    echo " "
+}
+
 
 contains() {
     item="$1"
     shift
     list=("$@")
     local retVal=0
-    local e
-    for e in "${list[@]}"
+    local element
+    for element in "${list[@]}"
     do
-        if [[ "$e" == "$item" ]]
+        if [[ "$element" == "$item" ]]
         then
             retVal=1
             break
@@ -20,6 +36,46 @@ contains() {
     done
     echo $retVal
 }
+
+if [[ -z $1 ]]
+then
+    printf "Missing test case name.\n\n"
+    usage
+    exit 1
+else
+    if [[ "$1" != "-h" ]]
+    then
+        testCase=$1
+        shift
+    fi
+    while [ $# -gt 0 ]
+    do
+        param=$1
+        param=${param//-/}
+        upperParam=${param^^}
+        #WriteLog "Param: ${upperParam}" "/dev/null"
+        case $upperParam in
+            V) VERBOSE=1
+               ;;
+
+            E) shift
+                engine=$1
+                ;;
+                
+            H)
+                usage
+                exit 1
+                ;;
+                
+            *)
+                echo "Unknown parameter: ${upperParam}"
+                usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
+fi
 
 pushd ~/common/nightly_builds/HPCC/
 
@@ -58,14 +114,14 @@ do
         [[ min[$item] -gt $rt ]] && min[$item]=$rt
         
     done< <(echo "$line" |  sed -n 's/^\(.*\)[ls] \(.*\)\.ecl\s\-\sW[0-9\-]*\s*(\(.*\) sec)*$/\2 \3/p')
-done< <(find . -iname 'thor.2*.log' -type f -print)
+done< <(find . -iname $engine'.2*.log' -type f -print)
 
-printf "%-20s:\t%s\t%s\t%s\t%s\n" "Test" "count" "min(s)" "max(s)" "avg(s)"
-echo "------------------------------------------------------"
+printf "%-30s:\t%s\t%s\t%s\t%s\n" "Test" "count" "min(s)" "max(s)" "avg(s)"
+echo "----------------------------------------------------------------"
 for item in "${items[@]}"
 do
     avg[$item]=$(( sum[$item] / count[$item] ))
-    printf "%-20s:\t%3d\t%5d\t%5d\t%5d\n" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
+    printf "%-30s:\t%3d\t%5d\t%5d\t%5d\n" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
 done
 
 popd
