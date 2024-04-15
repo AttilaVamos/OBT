@@ -2,6 +2,8 @@
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 #set -x
 
+testCase="genjoin"
+
 contains() {
     item="$1"
     shift
@@ -21,17 +23,21 @@ contains() {
 
 pushd ~/common/nightly_builds/HPCC/
 
+echo "testCase: $testCase"
 declare -A count  min  max sum avg
 declare items=()
 while read fn
-do 
-    line=$(egrep "(Pass |Fail )genj" ${fn})
-    #printf "%s\n%s\n" "$fn" "$line"
+do
+    branchName=${fn#*/}
+    branchName=${branchName%%/*}
+    
+    line=$(egrep "(Pass |Fail )$testCase" ${fn})
+    printf "%s\n%s\n" "$fn" "$line"
     while read tn rt
     do 
         # printf "\nline:\t%s\t%s\n" "$tn" "$rt"
         #echo "tn:$tn"
-        item=$tn
+        item="$tn-$branchName"
         #echo "item: $item"        
         
         retCode=$(contains "$item" "${items[@]}" )
