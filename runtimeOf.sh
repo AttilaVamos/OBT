@@ -88,6 +88,7 @@ pushd ~/common/nightly_builds/HPCC/ > /dev/null
 [[ $VERBOSE == 1 ]] &&  echo "testCase: $testCase"
 [[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
 
+maxTestNameLen=0
 declare -A count  min  max sum avg
 declare items=()
 while read fn
@@ -110,6 +111,8 @@ do
         item="$tn-$branchName"
         #echo "item: $item"        
         
+        [[ ${#item} -gt $maxTestNameLen ]] && maxTestNameLen=${#item}
+        
         retCode=$(contains "$item" "${items[@]}" )
         #echo "retCode:$retCode"
         if [[ $retCode -eq 0 ]]
@@ -130,12 +133,14 @@ do
     done< <(echo "$line" |  sed -n 's/^\(.*\)[ls] \(.*\)\.ecl\s\-\sW[0-9\-]*\s*(\(.*\) sec)*$/\2 \3/p')
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
-printf "%-30s:\t%s\t%s\t%s\t%s\n" "Test" "count" "min(s)" "max(s)" "avg(s)"
-echo "----------------------------------------------------------------"
+echo "maxTestNameLen: $maxTestNameLen"
+
+printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
+printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "----------------------------------------------------------------"
 for item in  $( printf "%s\n" "${items[@]}" | sort )
 do
     avg[$item]=$(( sum[$item] / count[$item] ))
-    printf "%-30s:\t%3d\t%5d\t%5d\t%5d\n" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
+    printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
 done
 
 popd > /dev/null
