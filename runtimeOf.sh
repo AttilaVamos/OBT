@@ -5,6 +5,7 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 testCase="genjoin"
 engine="thor"
 VERBOSE=0
+ALL_TESTS_RESULTS=0
 
 usage()
 {
@@ -15,7 +16,8 @@ usage()
     echo "where:" 
     echo " -e <engine> - Engine where the test executed: Hthor, Thor or Roxie."
     echo "               (Default: Thor)."
-    echo " -v          - Show more logs (about PODs deploy and destroy)."
+    echo " -all        - Use all test results Pass/Fail. Default: Pass only)."
+    echo " -v          - Show more logs."
     echo " -h          - This help."
     echo " "
 }
@@ -56,8 +58,11 @@ else
         upperParam=${param^^}
         #WriteLog "Param: ${upperParam}" "/dev/null"
         case $upperParam in
+            ALL) ALL_TESTS_RESULTS=1
+                ;;
+                
             V) VERBOSE=1
-               ;;
+                ;;
 
             E) shift
                 engine=$1
@@ -80,7 +85,9 @@ fi
 
 pushd ~/common/nightly_builds/HPCC/ > /dev/null
 
-echo "testCase: $testCase"
+[[ $VERBOSE == 1 ]] &&  echo "testCase: $testCase"
+[[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
+
 declare -A count  min  max sum avg
 declare items=()
 while read fn
@@ -88,7 +95,13 @@ do
     branchName=${fn#*/}
     branchName=${branchName%%/*}
     
-    line=$(egrep "(Pass |Fail )$testCase" ${fn})
+    if [[ $ALL_TESTS_RESULTS -eq 1 ]]
+    then
+        line=$(egrep "(Pass |Fail )$testCase" ${fn})
+    else
+        line=$(egrep "Pass $testCase" ${fn})
+    fi
+    
     [[ $VERBOSE == 1 ]] && printf "%s\n%s\n" "$fn" "$line"
     while read tn rt
     do 
@@ -119,7 +132,7 @@ done< <(find . -iname $engine'.2*.log' -type f -print)
 
 printf "%-30s:\t%s\t%s\t%s\t%s\n" "Test" "count" "min(s)" "max(s)" "avg(s)"
 echo "----------------------------------------------------------------"
-for item in "${items[@]}"
+for item in  $( printf "%s\n" "${items[@]}" | sort )
 do
     avg[$item]=$(( sum[$item] / count[$item] ))
     printf "%-30s:\t%3d\t%5d\t%5d\t%5d\n" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
