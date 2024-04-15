@@ -4,6 +4,7 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 testCase="genjoin"
 engine="thor"
+VERBOSE=0
 
 usage()
 {
@@ -77,7 +78,7 @@ else
     done
 fi
 
-pushd ~/common/nightly_builds/HPCC/
+pushd ~/common/nightly_builds/HPCC/ > /dev/null
 
 echo "testCase: $testCase"
 declare -A count  min  max sum avg
@@ -88,7 +89,7 @@ do
     branchName=${branchName%%/*}
     
     line=$(egrep "(Pass |Fail )$testCase" ${fn})
-    printf "%s\n%s\n" "$fn" "$line"
+    [[ $VERBOSE == 1 ]] && printf "%s\n%s\n" "$fn" "$line"
     while read tn rt
     do 
         # printf "\nline:\t%s\t%s\n" "$tn" "$rt"
@@ -124,4 +125,4 @@ do
     printf "%-30s:\t%3d\t%5d\t%5d\t%5d\n" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
 done
 
-popd
+popd > /dev/null
