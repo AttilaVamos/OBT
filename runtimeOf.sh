@@ -134,11 +134,17 @@ do
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
 echo "maxTestNameLen: $maxTestNameLen"
-
+testName=${items[0]%%-*}
+echo "testName: $testName"
 printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
-printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "----------------------------------------------------------------"
+printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "---------------------------------------------------------------------------------"
 for item in  $( printf "%s\n" "${items[@]}" | sort )
 do
+    if [[ "$testName" != "$item" ]]
+    then
+        printf "\n"
+        testName=$item
+    fi
     avg[$item]=$(( sum[$item] / count[$item] ))
     printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
 done
