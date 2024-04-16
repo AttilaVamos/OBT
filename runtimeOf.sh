@@ -6,6 +6,7 @@ testCase="genjoin"
 engine="thor"
 VERBOSE=0
 ALL_TESTS_RESULTS=0
+SEPARATOR=0
 
 usage()
 {
@@ -15,8 +16,9 @@ usage()
     echo "  $0 <testname> [-e <engine>] [-v] [-h]"
     echo "where:" 
     echo " -e <engine> - Engine where the test executed: Hthor, Thor or Roxie."
-    echo "               (Default: Thor)."
-    echo " -all        - Use all test results Pass/Fail. Default: Pass only)."
+    echo "               Default: Thor."
+    echo " -all        - Use all test results Pass/Fail. Default: Pass only."
+    echo " -addsep     - Add separator line betwent tests. Default: no"
     echo " -v          - Show more logs."
     echo " -h          - This help."
     echo " "
@@ -58,9 +60,14 @@ else
         upperParam=${param^^}
         #WriteLog "Param: ${upperParam}" "/dev/null"
         case $upperParam in
-            ALL) ALL_TESTS_RESULTS=1
+            ALL) 
+                ALL_TESTS_RESULTS=1
                 ;;
-                
+            
+            ADDSEP)
+                SEPARATOR=1
+                ;;
+            
             V) VERBOSE=1
                 ;;
 
@@ -134,13 +141,14 @@ do
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
 echo "maxTestNameLen: $maxTestNameLen"
+items=( $( printf "%s\n" "${items[@]}" | sort ) )
 testName=${items[0]%%-*}
-echo "testName: $testName"
+echo "testName: '$testName'"
 printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
 printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "---------------------------------------------------------------------------------"
-for item in  $( printf "%s\n" "${items[@]}" | sort )
+for item in  ${items[@]}
 do
-    if [[ "$testName" != "$item" ]]
+    if [[ ("$testName" != "${item%%-*}") && ($SEPARATOR -eq 1) ]]
     then
         printf "\n"
         testName=$item
