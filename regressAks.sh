@@ -445,8 +445,13 @@ res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-fi
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
-if [[ $retCode -eq 0 ]]
+ignoreAutomationError=1   # Should control with a CLI parameter
+isAutomationError=$( echo "$res" | egrep 'Error:' | egrep -c 'creating Automation Account')
+WriteLog "retCode: $retCode, ignoreAutomationError: $ignoreAutomationError, isAutomationError: $isAutomationError" "$logFile"
+
+if [[ ($retCode -eq 0) || ( ($ignoreAutomationError -eq 1) && ($isAutomationError -ne 0 )) ]]
 then
+   [[ ( ($ignoreAutomationError -eq 1) && ($isAutomationError -ne 0 )) ]] && WriteLog "Automation error ignored." "$logFile"
     if [[ $VERBOSE -ne 0 ]]
     then 
         WriteLog "res:$res" "$logFile"
