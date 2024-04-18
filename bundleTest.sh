@@ -477,9 +477,7 @@ then
     cd  ${PERF_TEST_ROOT}
     myPwd=$( pwd )
 
-    WriteLog "Pwd: ${myPwd} for $TARGET_PLATFORM" "${ML_TEST_LOG}"
-
-    WriteLog "Install ML_Core bundle from GitHub" "${ML_TEST_LOG}"
+    WriteLog "Pwd: '${myPwd}' for $TARGET_PLATFORM" "${ML_TEST_LOG}"
 
     BUNDLES_COUNT=${#BUNDLES_TO_TEST[@]}
     [[ $SKIP_INSTALL_BUNDLES -eq 1 ]] && BUNDLES_COUNT=0
@@ -568,18 +566,21 @@ then
             if [[ "$bundle" =~ "LearningTrees" ]]
             then
                 # add a warning supression parameter in the file
-                file=RegressionTestModified.ecl
-                if [[ $( egrep -c '#ONWARNING\(30004' $bundle/$file ) -eq 0 ]]
-                then
-                    WriteLog "Patch the RegressionTestModified.ecl to avoid execution time skew warning in $bundleName bundle." "${ML_TEST_LOG}"
-                    pushd $bundle 
-                    cp -fv $file $file-back
-                    sed -i '/#ONWARNING/i \\n// Patched by the bundleTest on '"$( date '+%Y.%m.%d %H:%M:%S')"' \n#ONWARNING(30004, ignore); // Do not report execute time skew warning/' $file
-                    WriteLog "Check the result:\n$( egrep '#ONWARNING\(' $file )\n" "${ML_TEST_LOG}"
-                    popd
-                else
-                    WriteLog "The RegressionTestModified.ecl is already fixed in $bundleName bundle." "${ML_TEST_LOG}"
-                fi
+                for file in "RegressionTestModified.ecl" "ClassificationTestModified.ecl"
+                do
+                    if [[ $( egrep -c '#ONWARNING\(30004' $bundle/$file ) -eq 0 ]]
+                    then
+                        WriteLog "Patch the '$file' to avoid execution time skew warning in $bundleName bundle." "${ML_TEST_LOG}"
+                        pushd $bundle 
+                        cp -fv $file $file-back
+                        # Insert a comment and the "#ONWARNING" after the Copyright header
+                        sed -i '/## \*\//a \\n// Patched by the bundleTest on '"$( date '+%Y.%m.%d %H:%M:%S')"' \n#ONWARNING(30004, ignore); // Do not report execute time skew warning' $file
+                        WriteLog "Check the result:\n$( egrep '#ONWARNING\(' $file )\n" "${ML_TEST_LOG}"
+                        popd
+                    else
+                        WriteLog "The '$file' is already fixed in $bundleName bundle." "${ML_TEST_LOG}"
+                    fi
+                done
             fi
             
             if [[ ! "${BUNDLES_TO_TEST[*]}" =~ "$bundleName"  ]]
@@ -654,8 +655,7 @@ then
     fi
 
     # Check if any core file generated. If yes, create stack trace with gdb
-
-    NUM_OF_ML_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' +mtime -1 -type f -exec printf "%s\n" '{}' \; ) )
+    NUM_OF_ML_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' -mtime -1 -type f -exec printf "%s\n" '{}' \; ) )
     
     if [ ${#NUM_OF_ML_CORES[@]} -ne 0 ]
     then

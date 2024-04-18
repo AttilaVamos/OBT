@@ -57,11 +57,15 @@ destroyResources()
 {
     logFile=$1
     msg=$2
+    VERBOSE_AKS=$VERBOSE
+    [[ -n "$3" ]] && VERBOSE_AKS=$3
+    VERBOSE_RESOURCES=$VERBOSE
+    [[ -n "$4" ]] && VERBOSE_RESOURCES=$4
 
     WriteLog "$msg" "$logFile"
 
     res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
-    if [[ $VERBOSE -ne 0 ]]
+    if [[ $VERBOSE_AKS -ne 0 ]]
     then
         WriteLog "res:$res" "$logFile"
     else
@@ -74,7 +78,7 @@ destroyResources()
         WriteLog "Destroy storage accounts ..." "$logFile"
         pushd modules/storage_accounts > /dev/null
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
+        if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
             WriteLog "res:$res" "$logFile"
         else
@@ -86,7 +90,7 @@ destroyResources()
         WriteLog "Destroy VNET ..." "$logFile"
         pushd modules/virtual_network > /dev/null
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
-        if [[ $VERBOSE -ne 0 ]]
+        if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
             WriteLog "res:$res" "$logFile"
         else
@@ -405,9 +409,9 @@ WriteLog "account: $account" "$logFile"
 
 [[ $( echo $account | awk '{ print $6 }' ) != "True" ]] && (WriteLog "us-hpccplatform-dev is not the default"  "$logFile"; exit 1) 
 
-#WriteLog "Update helm repo..." "$logFile"
-#res=$(helm repo update 2>&1)
-#WriteLog "$res" "$logFile"
+WriteLog "Update helm repo..." "$logFile"
+res=$(helm repo update 2>&1)
+WriteLog "$res" "$logFile"
 
 if [[ $START_RESOURCES -eq 1 ]]
 then
@@ -455,8 +459,7 @@ else
 
     collectAllLogs "$logFile"
 
-    VERBOSE=1
-    destroyResources "$logFile" "Destroy AKS to remove leftovers ..."
+    destroyResources "$logFile" "Destroy AKS to remove leftovers ..." "1" 
     
     WriteLog "Exit." "$logFile"
     exit 1
@@ -479,7 +482,7 @@ then
 else
     WriteLog "Error in deploy hpcc." "$logFile"
     VERBOSE=1
-    destroyResources "$logFile" "Destroy AKS to remove leftovers ..."
+    destroyResources "$logFile" "Destroy AKS to remove leftovers ..." "1"
 
     WriteLog "Exit." "$logFile"
     exit 1

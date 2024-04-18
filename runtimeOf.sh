@@ -2,9 +2,10 @@
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 #set -x
 
-testCase="genjoin"
+testCase=""
 engine="thor"
 VERBOSE=0
+DEBUG=0
 ALL_TESTS_RESULTS=0
 SEPARATOR=0
 
@@ -24,6 +25,7 @@ usage()
     echo " -all        - Use all test results Pass/Fail. Default: Pass only."
     echo " -addsep     - Add separator line betwent tests. Default: no"
     echo " -v          - Show more logs."
+    echo " -d          - Show debug logs."
     echo " -h          - This help."
     echo " "
 }
@@ -74,6 +76,9 @@ else
             
             V) VERBOSE=1
                 ;;
+                
+            D) DEBUG=1
+                ;;
 
             E) shift
                 engine=$1
@@ -94,9 +99,20 @@ else
     done
 fi
 
-pushd ~/common/nightly_builds/HPCC/ > /dev/null
+if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
+then
+    echo "We are in OBT environment"
+    . ./settings.sh
+    LOG_DIR=$STAGING_DIR_ROOT
+else
+    echo "Non OBT environment, like local VM/BM"
+    LOG_DIR="$HOME/common/nightly_builds/HPCC/"
+fi
 
-[[ $VERBOSE == 1 ]] &&  echo "testCase: $testCase"
+pushd $LOG_DIR > /dev/null
+
+printf "Test case    : '$testCase'\n"
+printf "Result filter: "
 [[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
 
 maxTestNameLen=0
@@ -114,13 +130,13 @@ do
         line=$(egrep "Pass $testCase" ${fn})
     fi
     
-    [[ $VERBOSE == 1 ]] && printf "%s\n%s\n" "$fn" "$line"
+    [[ $DEBUG == 1 ]] && printf "%s\n%s\n" "$fn" "$line"
     while read tn rt
     do 
-        # printf "\nline:\t%s\t%s\n" "$tn" "$rt"
+         [[ $DEBUG == 1 ]] && printf "\nline:\t%s\t%s\n" "$tn" "$rt"
         #echo "tn:$tn"
         item="$tn-$branchName"
-        #echo "item: $item"        
+         [[ $DEBUG == 1 ]] && echo "item: $item"        
         
         [[ ${#item} -gt $maxTestNameLen ]] && maxTestNameLen=${#item}
         
@@ -144,10 +160,11 @@ do
     done< <(echo "$line" |  sed -n 's/^\(.*\)[ls] \(.*\)\.ecl\s\-\sW[0-9\-]*\s*(\(.*\) sec)*$/\2 \3/p')
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
-echo "maxTestNameLen: $maxTestNameLen"
+[[ $VERBOSE == 1 ]] && echo "maxTestNameLen: $maxTestNameLen"
 items=( $( printf "%s\n" "${items[@]}" | sort ) )
 prevTestName=${items[0]%%-*}
-echo "testName: '$testName'"
+[[ $VERBOSE == 1 ]] && echo "testName: '$prevTestName'"
+echo ""
 printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
 printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "---------------------------------------------------------------------------------"
 for item in  ${items[@]}
