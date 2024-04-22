@@ -28,6 +28,7 @@ usage()
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
     WriteLog " -r       - Start resources: VNet and Storage accounts before deploy HPCC" "/dev/null"
     WriteLog "            and destroy them at the end." "/dev/null"
+    WriteLog " -d       - Enable debug log." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
@@ -181,7 +182,9 @@ INTERACTIVE=0
 FULL_REGRESSION=1
 TAG='<latest>'
 VERBOSE=0
+DEBUG=0
 START_RESOURCES=0
+IGNORE_AUTOMATION_ERROR=1   # Should control with a CLI parameter
 
 while [ $# -gt 0 ]
 do
@@ -201,7 +204,10 @@ do
             ;;
 
         V) VERBOSE=1
-           ;;
+            ;;
+           
+        D) DEBUG=1
+            ;;
            
         R) START_RESOURCES=1
             ;;
@@ -224,6 +230,8 @@ WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
 WriteLog "TAG            : $TAG" "$logFile"
 WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
+WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[$IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '!!!')" "$logFile"
+
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -445,13 +453,14 @@ res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-fi
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
-ignoreAutomationError=1   # Should control with a CLI parameter
-isAutomationError=$( echo "$res" | egrep 'Error:' | egrep -c 'creating Automation Account')
-WriteLog "retCode: $retCode, ignoreAutomationError: $ignoreAutomationError, isAutomationError: $isAutomationError" "$logFile"
+isError=$$( echo "$res" | egrep 'Error:' )
+# TO-DO What to do if more than the automation error happens?
+isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
+WriteLog "retCode: $retCode, ignoreAutomationError: $IGNORE_AUTOMATION_ERROR, isAutomationError: $isAutomationError" "$logFile"
 
-if [[ ($retCode -eq 0) || ( ($ignoreAutomationError -eq 1) && ($isAutomationError -ne 0 )) ]]
+if [[ ($retCode -eq 0) || ( ($IGNORE_AUTOMATION_ERROR -eq 1) && ($isAutomationError -ne 0 )) ]]
 then
-   [[ ( ($ignoreAutomationError -eq 1) && ($isAutomationError -ne 0 )) ]] && WriteLog "Automation error ignored." "$logFile"
+   [[ ( ($IGNORE_AUTOMATION_ERROR -eq 1) && ($isAutomationError -ne 0 )) ]] && WriteLog "Automation error ignored." "$logFile"
     if [[ $VERBOSE -ne 0 ]]
     then 
         WriteLog "res:$res" "$logFile"

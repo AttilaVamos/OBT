@@ -5,13 +5,17 @@ import glob
 from optparse import OptionParser
 import errno
 
-def readLogFileNames(path=''):
+def readLogFileNames(path='',  opts=None):
     fileNames = []
     curDir = os.getcwd()
     os.chdir( path )
     fileNames = glob.glob('regress*.log')
     os.chdir( curDir )
     fileNames.sort() 
+    if opts.debug:
+        print("Filenames:")
+        for file in fileNames:
+            print( "\t%s" % (file))
     return fileNames
 
 def getSystemName(logFileName):
@@ -26,46 +30,47 @@ def getSystemName(logFileName):
 def splitAndStrip(text,  delimiter = ','):
         itemsTemp = text.split(delimiter)
         # Strip all elements of a list of space stripped strings
+        #                          function on each element
         return (list(map(str.strip, itemsTemp)))
 
 def readSystemLog(systemName):
     systemLogs = {}
     systemLogFileName = systemName+'.csv'
-    lines = []
+    logLines = []
     try:
-        lines = open(systemLogFileName, "r").readlines( )
+        logLines = open(systemLogFileName, "r").readlines( )
     except IOError:
         print("IOError in read '%s'" % (systemLogFileName))
     except EnvironmentError as err:  #The 'FileNotFoundError'
         if err.errno == errno.ENOENT:   # ENOENT -> "no entity" -> "file not found"
             print("File not found:'%s'" % (systemLogFileName))
         else:
-            print("%s happened when '%s' file iso." % (str(err), systemLogFileName))
+            print("%s happened when '%s' file is opened." % (str(err), systemLogFileName))
             
-    for line in lines:
-        items = splitAndStrip(line)
+    for logLine in logLines:
+        logItems = splitAndStrip(logLine)
         # The first item is the timestamp, that will be the key and
         # use the rest as a related list.'
-        systemLogs[items[0]] = { 'testItems' :  [],  'errors' : {}}
-        systemLogs[items[0]]['testItems'] = list(items[1:])
+        systemLogs[logItems[0]] = { 'testItems' :  [],  'errors' : {}}
+        systemLogs[logItems[0]]['testItems'] = list(logItems[1:])
 
     systemErrorsLogFileName = systemName+'-errors.csv'
     try:
-        lines = open(systemErrorsLogFileName, "r").readlines( )
+        errorLines = open(systemErrorsLogFileName, "r").readlines( )
     except IOError:
         print("IOError in read '%s'" % (systemErrorsLogFileName))
     except EnvironmentError as err:
         if err.errno == errno.ENOENT:   # ENOENT -> "no entity" -> "file not found"
             print("File not found:'%s'" % (systemErrorsLogFileName))
 
-    for line in lines:
-        items = splitAndStrip(line)
+    for errorLine in errorLines:
+        errorItems = splitAndStrip(errorLine)
         # The first item (items[0]) is the timestamp, in this point it should exists and that will be the primarey key,
         # the second item (items[1]) is the engine, if it is not exist should add
         # and the third (items[2]) is the number of errors
         # and use the rest as a list of failed test cases
-        key = items[0]
-        engine = items[1]
+        key = errorItems[0]
+        engine = errorItems[1]
 
         if key not in systemLogs:
             print("%s is missing from systemLogs" % (key))
@@ -74,7 +79,7 @@ def readSystemLog(systemName):
         if engine not in systemLogs[key]['errors']:
                 systemLogs[key]['errors'][engine] = []
 
-        for error in items[3:]:
+        for error in errorItems[3:]:
             systemLogs[key]['errors'][engine].append(error)
 
     return systemLogs
@@ -248,6 +253,14 @@ parser = OptionParser(usage=usage)
 parser.add_option("-p", "--path", dest="logFilePath",  default = '.',  type="string",
                       help="Path where the log files stored. Default is '.'", metavar="LOG_FILES_PATH")
 
+parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", 
+                      help="Show more info. Default is False"
+                      , metavar="VERBOSE")
+
+parser.add_option("--debug", dest="debug", default=False, action="store_true", 
+                      help="Show debug info. Default is False"
+                      , metavar="DEBUG")
+
 (options, args) = parser.parse_args()
 
 if options.logFilePath == '.':
@@ -256,7 +269,7 @@ if options.logFilePath == '.':
 
 logFilePath = options.logFilePath
 
-logFileNames = readLogFileNames(logFilePath)
+logFileNames = readLogFileNames(logFilePath,  options)
 if len(logFileNames) == 0:
     print("In %s not found any log file, exit." % (logFilePath) )
     exit(0)
@@ -274,7 +287,8 @@ for logFileName in logFileNames:
     
     # This log file is already processed
     if timestamp in systemLogs:
-        print("The '%s' file is already processed, skip it." %(logFileName))
+        if options.verbose:
+            print("The '%s' file is already processed, skip it." %(logFileName))
         continue
         
     print("Processing: '%s'" %(logFileName))
