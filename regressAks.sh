@@ -230,7 +230,7 @@ WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
 WriteLog "TAG            : $TAG" "$logFile"
 WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
-WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[$IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '!!!')" "$logFile"
+WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[ $IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '(!!!)')" "$logFile"
 
 
 pushd $SOURCE_DIR > /dev/null
@@ -453,7 +453,7 @@ res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-fi
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
-isError=$$( echo "$res" | egrep 'Error:' )
+isError=$( echo "$res" | egrep 'Error:' )
 # TO-DO What to do if more than the automation error happens?
 isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
 WriteLog "retCode: $retCode, ignoreAutomationError: $IGNORE_AUTOMATION_ERROR, isAutomationError: $isAutomationError" "$logFile"
