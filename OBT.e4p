@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-04-15, 12:47:48 -->
+<!-- Saved: 2024-04-25, 21:48:37 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -96,6 +96,7 @@
     <Source>regress_cassandra.sh</Source>
     <Source>regressionLogProcessor.py</Source>
     <Source>remove_hpcc.sh</Source>
+    <Source>resultOf.sh</Source>
     <Source>runCoverity.sh</Source>
     <Source>runtimeOf.sh</Source>
     <Source>se.py</Source>

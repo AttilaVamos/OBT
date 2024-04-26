@@ -178,12 +178,14 @@ do
             verTag=${verTag##version}
             [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
             
+            # Create a unique key
             item="$tName-$verTag-$branchName-$testDate-$testTime"
             [[ $DEBUG == 1 ]] && echo "item: $item"        
             
             testName="$tName-$verTag"
             [[ $DEBUG == 1 ]] && echo "testName: $testName"        
         else
+            # Create a unique key
             item="$tName-$branchName-$testDate-$testTime"
             [[ $DEBUG == 1 ]] && echo "item: $item"        
             
