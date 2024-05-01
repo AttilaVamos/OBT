@@ -45,6 +45,7 @@ collectAllLogs()
         WriteLog "pod:$p - $param" "$logFile";
         kubectl describe pod $p > $dirName/$p.desc;
         kubectl logs $p $param > $dirName/$p.log;
+        kubectl logs -p $p $param > $dirName/$p-prev.log;
     done< <(kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' )
 
     kubectl get pods > $dirName/pods.log;

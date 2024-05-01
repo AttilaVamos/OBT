@@ -520,6 +520,7 @@ do
             WriteLog "pod:$podId - $param"; 
             kubectl describe pod $podId > $dirName/$podId.desc; 
             kubectl logs $podId $param > $dirName/$podId.log; 
+            kubectl logs -p $podId $param > $dirName/$podId-prev.log; 
         done; 
         kubectl get pods > $dirName/pods.log;  
         kubectl get services > $dirName/services.log;  
