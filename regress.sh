@@ -395,6 +395,16 @@ sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"')/
 
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
+if [[ -f  ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp ]]
+then
+    WriteLog "Patch roxie/ccd/ccdmain.cpp with 'unsigned packetAcknowledgeTimeout = 60000;' \nto check if stresstext(multi=true) is fail or not." "${REGRESS_LOG_FILE}"
+    WriteLog "Before: '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${REGRESS_LOG_FILE}"
+    sed -i -e 's/unsigned packetAcknowledgeTimeout = 100;/unsigned packetAcknowledgeTimeout = 60000;/g' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp
+    WriteLog "After : '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${REGRESS_LOG_FILE}"
+    WriteLog "Done." "${REGRESS_LOG_FILE}"
+else
+   WriteLog "The roxie/ccd/ccdmain.cpp not found." "${REGRESS_LOG_FILE}"
+fi
 
 #
 #-----------------------------------------------------
