@@ -14,12 +14,16 @@ usage()
     echo "Tool to list execution time statistic of a test or a group (?*) of tests "
     echo "Usage:"
     echo ""
-    echo "  $0 <testname> [-e <engine>] [-all] [-addsep] [-v] [-h]"
+    echo "  $0 <testname> [-e <engine>] [-all] [-addsep] [-v] [-d] [-h]"
     echo "where:" 
     echo " <testname>  - Name of individual test case or a group of test cases "
     echo "               using '?' and/or '*', but in this case the test name should"
     echo "               be enclosed by the single quote (') character to avoid" 
     echo "               shell expansion. The '*' reports all test cases."
+    echo "               It can use to process only one version of test case. In this"
+    echo "               case the test name should enclose with (') and need to use same"
+    echo "               format as is logged in result file like:"
+    echo "               'stresstext.ecl ( version: multiPart=true )' "
     echo " -e <engine> - Engine where the test executed: Hthor, Thor or Roxie."
     echo "               Default: Thor."
     echo " -all        - Use all test results Pass/Fail. Default: Pass only."
@@ -116,32 +120,57 @@ printf "Result filter: "
 [[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
 
 maxTestNameLen=0
-declare -A count  min  max sum avg
+declare -A count  min  max sum avg testNames
 declare items=()
 while read fn
 do
     branchName=${fn#*/}
+    branchName=${branchName#candidate-}
     branchName=${branchName%%/*}
+    [[ $DEBUG == 1 ]] && printf "Branch: %s\n" "$branchName"
     
+    # Need to escape the '(' to '\(' and ')' to '\)' for grep
+    escapedTestCase=$( echo $testCase | sed -e 's/(/\\(/g' -e 's/)/\\)/g')
     if [[ $ALL_TESTS_RESULTS -eq 1 ]]
     then
-        line=$(egrep "(Pass |Fail )$testCase" ${fn})
+        line=$(egrep "(Pass |Fail )$escapedTestCase" ${fn})
     else
-        line=$(egrep "Pass $testCase" ${fn})
+        line=$(egrep "Pass $escapedTestCase" ${fn})
     fi
     
-    [[ $DEBUG == 1 ]] && printf "%s\n%s\n" "$fn" "$line"
-    while read tn rt
+    versionedTestCase=$( echo "${line}" | egrep -c 'version:')
+    [[ $DEBUG == 1 ]] && echo "versionedTestCase: $versionedTestCase"
+    
+    [[ $DEBUG == 1 ]] && printf "File:%s\nline:%s\n" "$fn" "$line"
+    while read status testName runTime version
     do 
-         [[ $DEBUG == 1 ]] && printf "\nline:\t%s\t%s\n" "$tn" "$rt"
-        #echo "tn:$tn"
-        item="$tn-$branchName"
-         [[ $DEBUG == 1 ]] && echo "item: $item"        
+         [[ $DEBUG == 1 ]] && printf "\nline:test name: '%s',version: '%s', runtime: %s sec, status: '%s'\n" "$testName" "$version" "$runTime" "$status"
+        if [[ $versionedTestCase -gt 0 ]]
+        then
+            verTag="$( echo "$version" | tr -d " []:'" | tr '=,' '-_')"
+            verTag=${verTag##version}
+            [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
+            
+            # Create a unique key
+            item="$testName-$verTag-$branchName"
+            [[ $DEBUG == 1 ]] && echo "item: $item"        
+            
+            testName="$testName-$verTag"
+            [[ $DEBUG == 1 ]] && echo "testName: $testName"        
+        else
+            # Create a unique key
+            item="$testName-$branchName"
+            [[ $DEBUG == 1 ]] && echo "item: $item"        
+            
+            testName="$testName"
+            [[ $DEBUG == 1 ]] && echo "testName: $testName"        
+        fi        
         
         [[ ${#item} -gt $maxTestNameLen ]] && maxTestNameLen=${#item}
         
         retCode=$(contains "$item" "${items[@]}" )
-        #echo "retCode:$retCode"
+        [[ $DEBUG == 1 ]] && echo "contains() returned with $retCode - $( [[ $retCode -eq 0 ]] && echo 'not found' || echo 'found')."
+        
         if [[ $retCode -eq 0 ]]
         then
             #echo "nincs"
@@ -150,32 +179,39 @@ do
             min[$item]=99999
             sum[$item]=0
             items+=( "$item" )
-            #printf "items:%s:\n" "${items[@]}"
         fi
         count[$item]=$(( count[$item] + 1 ))
-        sum[$item]=$(( sum[$item] + $rt ))
-        [[ max[$item] -le $rt ]] && max[$item]=$rt
-        [[ min[$item] -gt $rt ]] && min[$item]=$rt
+        sum[$item]=$(( sum[$item] + $runTime ))
+        [[ max[$item] -le $runTime ]] && max[$item]=$runTime
+        [[ min[$item] -gt $runTime ]] && min[$item]=$runTime
+        testNames[$item]="$testName"
         
-    done< <(echo "$line" |  sed -n 's/^\(.*\)[ls] \(.*\)\.ecl\s\-\sW[0-9\-]*\s*(\(.*\) sec)*$/\2 \3/p')
+    done< <( [[ $versionedTestCase -gt 0  ]] && (echo "$line" | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\(\[.*\]\)\s*.*\[\(.*\) sec\].*$/\1 \2 \4 \3/p')  \
+                                                                        || (echo "$line"  | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1 \2 \3/p') \
+                    )
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
-[[ $VERBOSE == 1 ]] && echo "maxTestNameLen: $maxTestNameLen"
+[[ ($VERBOSE -eq 1) || ($DEBUG == 1) ]] && echo "maxTestNameLen: $maxTestNameLen"
 items=( $( printf "%s\n" "${items[@]}" | sort ) )
-prevTestName=${items[0]%%-*}
-[[ $VERBOSE == 1 ]] && echo "testName: '$prevTestName'"
+prevTestName=${testNames[${items[0]}]}
+[[  ($VERBOSE -eq 1) || ($DEBUG == 1)]] && echo "testName: '$prevTestName'"
 echo ""
 printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
-printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "---------------------------------------------------------------------------------"
+printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "------------------------------------------------------------------------------------------------------------------------------"
 for item in  ${items[@]}
 do
-    testName=${item%%-*}
+    testName=${testNames[$item]}
     if [[ ("$testName" != "$prevTestName") && ($SEPARATOR -eq 1) ]]
     then
         printf "\n"
         prevTestName=$testName
     fi
-    avg[$item]=$(( sum[$item] / count[$item] ))
+    if [[ count[$item] -ne 0 ]]
+    then
+        avg[$item]=$(( sum[$item] / count[$item] ))
+    else
+        avg[$item]=0
+    fi
     printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
 done
 

@@ -163,7 +163,7 @@ do
     line=$(egrep "(Pass |Fail )$escapedTestCase" ${fn})
     
     versionedTestCase=$( echo "${line}" | egrep -c 'version:')
-     [[ $DEBUG == 1 ]] && echo "versionedTestCase: $versionedTestCase"
+    [[ $DEBUG == 1 ]] && echo "versionedTestCase: $versionedTestCase"
     
     [[ $DEBUG == 1 ]] && printf "File: '%s'\n\tLine: %s\n" "$fn" "${line[@]}"
     
@@ -174,7 +174,6 @@ do
         if [[ $versionedTestCase -gt 0 ]]
         then
             verTag="$( echo "$version" | tr -d ' []:' | tr '=,' '-_')"
-            [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
             verTag=${verTag##version}
             [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
             
