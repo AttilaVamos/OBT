@@ -277,13 +277,16 @@ then
     if [[  "$res" =~ "image" ]]
     then
         WriteLog "  It has deployable image, check the helm chart." "$logFile"
-        res=$(helm search repo --devel hpcc/hpcc |  egrep -c $tag )
+        resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+        res=$( echo "$resMsg"  |  egrep -c $tag )
         if [[ $res -ne 0 ]] 
         then
             WriteLog "  The helm chart is ready, use this tag." "$logFile"
             found=1
         else
-            WriteLog "  The helm chart not found, try later or with a different tag." "$logFile"
+            WriteLog "  The helm chart not found." "$logFile"
+            WriteLog "  $resMsg"  "$logFile"
+            WriteLog "  Try later or with a different tag." "$logFile"
         fi
     else
         WriteLog "  It has not deployable image, try a different tag." "$logFile"
@@ -322,14 +325,18 @@ else
         if [[  "$res" =~ "image" ]]
         then
             WriteLog "  It has deployable image, check the helm chart." "$logFile"
-            res=$(helm search repo --devel hpcc/hpcc |  egrep -c $tag )
+            resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+            res=$( echo "$resMsg"  |  egrep -c $tag )
+            
             if [[ $res -ne 0 ]] 
             then
                 WriteLog "  The helm chart is ready, use this tag." "$logFile"
                 found=1
                 break
             else
-                WriteLog "  The helm chart not found, step back one tag." "$logFile"
+                WriteLog "  The helm chart not found." "$logFile"
+                WriteLog "  $resMsg" "$logFile"
+                WriteLog "  Step back one tag." "$logFile"
             fi        
         else
             WriteLog "  It has not deployable image, step back one tag." "$logFile"
