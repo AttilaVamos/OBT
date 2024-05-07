@@ -233,6 +233,9 @@ WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
 WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[ $IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '(!!!)')" "$logFile"
 
+WriteLog "Update helm repo..." "$logFile"
+res=$(helm repo update 2>&1)
+WriteLog "$res" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -438,10 +441,6 @@ account=$( az account list -o table | egrep 'us-hpccplatform-dev' )
 WriteLog "account: $account" "$logFile"
 
 [[ $( echo $account | awk '{ print $6 }' ) != "True" ]] && (WriteLog "us-hpccplatform-dev is not the default"  "$logFile"; exit 1) 
-
-WriteLog "Update helm repo..." "$logFile"
-res=$(helm repo update 2>&1)
-WriteLog "$res" "$logFile"
 
 if [[ $START_RESOURCES -eq 1 ]]
 then
