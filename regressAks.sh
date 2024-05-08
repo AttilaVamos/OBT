@@ -106,7 +106,8 @@ destroyResources()
 
 
 #set -x;
-logFile=$(pwd)/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
+OBT_DIR=$(pwd)
+logFile=$OBT_DIR/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
 
 getLogs=0
 if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
@@ -152,6 +153,7 @@ fi
 TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
 TERRAFORM_DIR=~/terraform-azurerm-hpcc
 TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
+TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
 CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
 TIMEOUT="--timeout 1200"
@@ -281,14 +283,14 @@ then
     then
         WriteLog "  It has deployable image, check the helm chart." "$logFile"
         resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
-        res=$( echo "$resMsg"  |  egrep -c $tag )
-        if [[ $res -ne 0 ]] 
+
+        if [[ -n "$resMsg" ]]
         then
             WriteLog "  The helm chart is ready, use this tag." "$logFile"
             found=1
         else
             WriteLog "  The helm chart not found." "$logFile"
-            WriteLog "  $resMsg"  "$logFile"
+            WriteLog "  resMsg:'$resMsg'"  "$logFile"
             WriteLog "  Try later or with a different tag." "$logFile"
         fi
     else
@@ -329,16 +331,15 @@ else
         then
             WriteLog "  It has deployable image, check the helm chart." "$logFile"
             resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
-            res=$( echo "$resMsg"  |  egrep -c $tag )
             
-            if [[ $res -ne 0 ]] 
+            if [[ -n "$resMsg" ]]
             then
                 WriteLog "  The helm chart is ready, use this tag." "$logFile"
                 found=1
                 break
             else
                 WriteLog "  The helm chart not found." "$logFile"
-                WriteLog "  $resMsg" "$logFile"
+                WriteLog "  resMsg: '$resMsg'" "$logFile"
                 WriteLog "  Step back one tag." "$logFile"
             fi        
         else
@@ -418,6 +419,7 @@ fi
 WriteLog "Update obt-admin.tfvars..." "$logFile"
 pushd $TERRAFORM_DIR > /dev/null
 
+WriteLog "$(cp -vf $OBT_DIR/obt-admin.tfvars . 2>&1)" "$logFile"
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
 WriteLog "$(rm -v terraform.tfstate* 2>&1)" "$logFile"
 

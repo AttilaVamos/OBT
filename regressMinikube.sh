@@ -142,6 +142,10 @@ WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
 WriteLog "TAG            : $TAG" "$logFile"
 WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 
+WriteLog "Update helm repo..." "$logFile"
+res=$(helm repo update 2>&1)
+WriteLog "$res" "$logFile"
+
 pushd $SOURCE_DIR > /dev/null
 
 res=$(git checkout -f master 2>&1)
@@ -185,13 +189,15 @@ then
     if [[  "$res" =~ "image" ]]
     then
         WriteLog "  It has deployable image, check the helm chart." "$logFile"
-        res=$(helm search repo --devel hpcc/hpcc |  egrep -c $tag )
-        if [[ $res -ne 0 ]] 
+        resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+        if [[ -n "$resMsg" ]]
         then
             WriteLog "  The helm chart is ready, use this tag." "$logFile"
             found=1
         else
-            WriteLog "  The helm chart not found, try later or with a different tag." "$logFile"
+            WriteLog "  The helm chart not found." "$logFile"
+            WriteLog "  resMsg: '$resMsg'"  "$logFile"
+            WriteLog "  Try later or with a different tag." "$logFile"
         fi
     else
         WriteLog "  It has not deployable image, try a different tag." "$logFile"
@@ -230,14 +236,16 @@ else
         if [[  "$res" =~ "image" ]]
         then
             WriteLog "  It has deployable image, check the helm chart." "$logFile"
-            res=$(helm search repo --devel hpcc/hpcc |  egrep -c $tag )
-            if [[ $res -ne 0 ]] 
+            resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+            if [[ -n "$resMsg" ]]
             then
                 WriteLog "  The helm chart is ready, use this tag." "$logFile"
                 found=1
                 break
             else
-                WriteLog "  The helm chart not found, step back one tag." "$logFile"
+                WriteLog "  The helm chart not found." "$logFile"
+                WriteLog "  resMsg: '$resMsg'"  "$logFile"
+                WriteLog "  Try later or with a different tag." "$logFile"
             fi        
         else
             WriteLog "  It has not deployable image, step back one tag." "$logFile"
@@ -341,10 +349,6 @@ then
 else
     WriteLog "Minikube is up." "$logFile"
 fi
-
-WriteLog "Update helm repo..." "$logFile"
-res=$(helm repo update 2>&1)
-WriteLog "$res" "$logFile"
 
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( helm install minikube hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-05-01, 21:28:00 -->
+<!-- Saved: 2024-05-08, 15:42:34 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -78,6 +78,7 @@
     <Source>logCollector.sh</Source>
     <Source>mltest.sh</Source>
     <Source>myInfo.sh</Source>
+    <Source>obt-admin.tfvars</Source>
     <Source>obt-aks-values.yaml</Source>
     <Source>obt-values.yaml</Source>
     <Source>obtDigest.sh</Source>
