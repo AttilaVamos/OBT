@@ -175,7 +175,6 @@ WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${OBT_LOG_FILE}"
 WriteLog "GCC: $(gcc --version | head -n 1)" "${OBT_LOG_FILE}"
 WriteLog "CMake: $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
 WriteLog "Python: $(python --version )" "${OBT_LOG_FILE}"
-WriteLog "Python2: $(python2 --version )" "${OBT_LOG_FILE}"
 WriteLog "Python3: $(python3 --version )" "${OBT_LOG_FILE}"
 
 STARTUP_MSG=""

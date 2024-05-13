@@ -150,7 +150,6 @@ WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${ML_TEST_LOG}"
 WriteLog "GCC: $(gcc --version)" "${ML_TEST_LOG}"
 WriteLog "CMake: $( /usr/local/bin/cmake --version | head -n 1 )" "${ML_TEST_LOG}"
 WriteLog "Python: $(python --version  2>&1 )" "${ML_TEST_LOG}"
-WriteLog "Python2: $(python2 --version 2>&1 )" "${ML_TEST_LOG}"
 WriteLog "Python3: $(python3 --version  2>&1 )" "${ML_TEST_LOG}"
 WriteLog "Tensorflow: $(pip3 list | egrep 'tensorflow ')" "${ML_TEST_LOG}"
 

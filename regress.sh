@@ -479,51 +479,6 @@ fi
 #
 #WriteLog "Done." "${REGRESS_LOG_FILE}"
 
-#
-#-----------------------------------------------------
-#
-# Handle Python version
-#
-
-if [ -f $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in ]
-then
-    echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in"
-
-    additionalPlugins=($( cat $SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in | egrep '^additionalPlugins'| cut -d= -f2 ))
-    for plugin in ${additionalPlugins[*]}
-    do
-        upperPlugin=${plugin^^}
-        echo "plugin: $upperPlugin"
-        case $upperPlugin in
-            
-            PYTHON2*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-                        then
-                            REGRESSION_EXCLUDE_CLASS="-e python3"
-                        else
-                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python3"
-                        fi
-                        
-                        PYTHON_PLUGIN="-DSUPPRESS_PY3EMBED=ON -DINCLUDE_PY3EMBED=OFF"
-                        ;;
-                        
-            PYTHON3*)   if [[ -z $REGRESSION_EXCLUDE_CLASS  ]]
-                        then
-                            REGRESSION_EXCLUDE_CLASS="-e python2"
-                        else
-                            REGRESSION_EXCLUDE_CLASS=$REGRESSION_EXCLUDE_CLASS",python2"
-                        fi
-                      
-                        PYTHON_PLUGIN="-DSUPPRESS_PY2EMBED=ON -DINCLUDE_PY2EMBED=OFF"
-                        ;;
-                        
-            *)          # Do nothing yet
-                        ;;
-        esac
-    done
-    echo "Done."
-else
-    echo "$SOURCE_HOME/initfiles/etc/DIR_NAME/environment.conf.in not found."
-fi
 
 # Should check the content(lentgh) of REGRESSION_EXCLUDE_CLASS and REGRESSION_EXCLUDE_FILES
 # to avoid orphan ',' char in "Regression:" line.
