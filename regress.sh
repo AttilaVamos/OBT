@@ -402,6 +402,22 @@ then
     sed -i -e 's/unsigned packetAcknowledgeTimeout = 100;/unsigned packetAcknowledgeTimeout = 60000;/g' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp
     WriteLog "After : '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${REGRESS_LOG_FILE}"
     WriteLog "Done." "${REGRESS_LOG_FILE}"
+
+    # Get the value
+    value=$( ${SUDO} xmlstarlet sel -t -m "//Environment/Software/RoxieCluster" -v '@packetAcknowledgeTimeout' -nl  /etc/HPCCSystems/environment.xml )
+    WriteLog "The current value of 'packetAcknowledgeTimeout' = '$value' from environment.xml." "${REGRESS_LOG_FILE}"
+    if [[ -z "$value" ]]
+    then
+        #if empty add
+        res=$(  ${SUDO} xmlstarlet ed -L -i '//Environment/Software/RoxieCluster' -t attr -n packetAcknowledgeTimeout -v 60000   /etc/HPCCSystems/environment.xml )
+    else
+        # if existst update
+        res=$( ${SUDO} xmlstarlet ed -L -u '//Environment/Software/RoxieCluster/@packetAcknowledgeTimeout' -v 60000   /etc/HPCCSystems/environment.xml )
+    fi
+    WriteLog "Res: '$res'" "${REGRESS_LOG_FILE}"
+    value=$( ${SUDO} xmlstarlet sel -t -m "//Environment/Software/RoxieCluster" -v '@packetAcknowledgeTimeout' -nl  /etc/HPCCSystems/environment.xml )
+    WriteLog "The new value of 'packetAcknowledgeTimeout' = '$value' from environment.xml." "${REGRESS_LOG_FILE}"
+    
 else
    WriteLog "The roxie/ccd/ccdmain.cpp not found." "${REGRESS_LOG_FILE}"
 fi
