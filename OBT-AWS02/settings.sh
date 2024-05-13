@@ -387,7 +387,7 @@ REGRESSION_EXCLUDE_FILES=""
 #REGRESSION_EXCLUDE_FILES="--excludeFile genjoin2.ecl,genjoin3.ecl"
 
 #REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
-REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice"
+REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice,mongodb"
 
 # Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]

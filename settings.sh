@@ -416,7 +416,8 @@ REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES=""
 
-REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
+REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice,mongodb"
+
 # Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
 then
