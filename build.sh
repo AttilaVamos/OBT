@@ -325,6 +325,35 @@ else
     WriteLog "Keep the original py3embed CMakeLists.txt" "${OBT_BUILD_LOG_FILE}"
 fi
 
+if [[ -f  ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp ]]
+then
+    WriteLog "Patch roxie/ccd/ccdmain.cpp with 'unsigned packetAcknowledgeTimeout = 60000;' \nto check if stresstext(multi=true) is fail or not." "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Before: '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
+    sed -i -e 's/unsigned packetAcknowledgeTimeout = 100;/unsigned packetAcknowledgeTimeout = 60000;/g' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp
+    WriteLog "After : '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
+
+    # Try to pull Richard;s PR-18603 top of the master only
+    if [[ $"BRANCH_ID" == "master" ]]
+    then
+        WriteLog "As an experiment pull PR-18603 to check if it fix the stresstext problem." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "  $(pushd $SOURCE_HOME )" "${OBT_BUILD_LOG_FILE}"
+        
+        res=$( git pull -ff --no-edit upstream pull/18603/head  2>&1)
+        WriteLog "Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+        res=$(git diff HEAD^ 2>&1)
+        WriteLog "Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+        
+        WriteLog "  $(popd )" "${OBT_BUILD_LOG_FILE}"
+        WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
+    fi
+    
+else
+   WriteLog "The roxie/ccd/ccdmain.cpp not found." "${OBT_BUILD_LOG_FILE}"
+fi
+
+
+
 if [ -d ~/.cache/vcpkg/archives ]
 then
     if [[ -v KEEP_VCPKG_CACHE ]]
