@@ -387,7 +387,7 @@ REGRESSION_EXCLUDE_FILES=""
 #REGRESSION_EXCLUDE_FILES="--excludeFile genjoin2.ecl,genjoin3.ecl"
 
 #REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
-REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice,mongodb"
+REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice,mongodb,python2"
 
 # Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
@@ -395,7 +395,7 @@ then
   REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
 fi
 
-PYTHON_PLUGIN=''
+PYTHON_PLUGIN="-DSUPPRESS_PY2EMBED=ON -DINCLUDE_PY2EMBED=OFF"
 
 # To use local installation
 #COUCHBASE_SERVER=$LOCAL_IP_STR

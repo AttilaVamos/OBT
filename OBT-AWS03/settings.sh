@@ -375,14 +375,14 @@ REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
 REGRESSION_EXCLUDE_FILES="--ef wasmembed*"
 
-REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty,python2"
 # Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
 then
   REGRESSION_EXCLUDE_CLASS="$REGRESSION_EXCLUDE_CLASS,spray"
 fi
 
-PYTHON_PLUGIN=''
+PYTHON_PLUGIN="-DSUPPRESS_PY2EMBED=ON -DINCLUDE_PY2EMBED=OFF"
 
 # To use local installation
 #COUCHBASE_SERVER=$LOCAL_IP_STR
