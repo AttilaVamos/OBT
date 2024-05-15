@@ -334,7 +334,7 @@ then
     WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
 
     # Try to pull Richard;s PR-18603 top of the master only
-    if [[ $"BRANCH_ID" == "master" ]]
+    if [[ "$BRANCH_ID" == "master" ]]
     then
         WriteLog "As an experiment pull PR-18603 to check if it fix the stresstext problem." "${OBT_BUILD_LOG_FILE}"
         WriteLog "  $(pushd $SOURCE_HOME )" "${OBT_BUILD_LOG_FILE}"
