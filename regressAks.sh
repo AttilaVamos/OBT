@@ -282,7 +282,7 @@ then
     if [[  "$res" =~ "image" ]]
     then
         WriteLog "  It has deployable image, check the helm chart." "$logFile"
-        resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+        resMsg=$(helm search repo --devel  --version=$tag hpcc/hpcc |  egrep $tag )
 
         if [[ -n "$resMsg" ]]
         then
@@ -330,7 +330,7 @@ else
         if [[  "$res" =~ "image" ]]
         then
             WriteLog "  It has deployable image, check the helm chart." "$logFile"
-            resMsg=$(helm search repo --devel hpcc/hpcc |  egrep $tag )
+            resMsg=$(helm search repo --devel --version=$tag hpcc/hpcc |  egrep $tag )
             
             if [[ -n "$resMsg" ]]
             then
