@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-05-08, 15:42:34 -->
+<!-- Saved: 2024-05-31, 00:10:50 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -37,6 +37,9 @@
     <Source>OBT-AWS03/BuildNotification.ini</Source>
     <Source>OBT-AWS03/obtSequence.inc</Source>
     <Source>OBT-AWS03/settings.sh</Source>
+    <Source>OBT-AWS04/BuildNotification.ini</Source>
+    <Source>OBT-AWS04/obtSequence.inc</Source>
+    <Source>OBT-AWS04/settings.sh</Source>
     <Source>QueryStat2.py</Source>
     <Source>QueryStat2Test.py</Source>
     <Source>ReportPerfTestResult.ini</Source>

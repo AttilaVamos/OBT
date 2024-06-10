@@ -1,16 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import smtplib
-import ConfigParser
+import configparser as ConfigParser
 import datetime
-import glob
+#import glob
 
 from email.mime.multipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
-from email.Utils import COMMASPACE, formatdate
-from email import Encoders
+from email.mime.text import MIMEText
+
+#from email.MIMEBase import MIMEBase
+#from email.MIMEText import MIMEText
+#from email.Utils import COMMASPACE, formatdate
+#from email import Encoders
 
 msgText = MIMEMultipart() 
 

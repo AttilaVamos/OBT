@@ -235,7 +235,7 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
 
 SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
-SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
+SSH_TARGET="10.22.252.118"   #AVamos-test instance in AWS US-east-1l
 SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
 
 #
@@ -291,8 +291,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=1
-
+BUILD_DOCS=0    # Until I figured out how to do that on CentOS 8
 
 #
 #----------------------------------------------------
@@ -300,9 +299,8 @@ BUILD_DOCS=1
 # Supress plugin(s) for a specific build
 #
 
-# Default no suppress anything
-SUPRESS_PLUGINS=' -D MAKE_CASSANDRAEMBED=1 -DSUPPRESS_COUCHBASEEMBED=ON -DUSE_AZURE=OFF -DUSE_AWS=OFF'
-
+# Default 
+SUPRESS_PLUGINS=' -D MAKE_CASSANDRAEMBED=1 -DSUPPRESS_COUCHBASEEMBED=ON -DUSE_AZURE=OFF -DUSE_AWS=OFF -DSUPPRESS_WASMEMBED=ON'
 
 #
 #----------------------------------------------------
@@ -359,11 +357,6 @@ TEST_5=( "stepping7d.ecl" "30" )
 TEST_6=( "stepping7e.ecl" "30" )
 TEST_7=( "stepping7f.ecl" "30" )
 TEST_8=( "supercopy.ecl" "200" )
-TEST_9=( "genjoin2.ecl" "2700" )
-TEST_10=( "genjoin3.ecl" "2700" )
-TEST_11=( "genjoin.ecl" "1800" )
-TEST_12=( "key.ecl" "1800" )
-TEST_13=( "joinattr2.ecl" "1800" )
 
 TIMEOUTS=( 
     TEST_1[@]
@@ -374,23 +367,15 @@ TIMEOUTS=(
     TEST_6[@]
     TEST_7[@]
     TEST_8[@]
-    TEST_9[@]
-    TEST_10[@]
-    TEST_11[@]
-    TEST_12[@]
-    TEST_13[@]
     )
 
 
 # Enable stack trace generation
 REGRESSION_GENERATE_STACK_TRACE="--generateStackTrace"
 
-REGRESSION_EXCLUDE_FILES=""
-#REGRESSION_EXCLUDE_FILES="--excludeFile genjoin2.ecl,genjoin3.ecl"
+REGRESSION_EXCLUDE_FILES="--ef wasmembed*"
 
-#REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty"
-REGRESSION_EXCLUDE_CLASS="-e embedded-r,embedded-js,3rdpartyservice,mongodb,python2"
-
+REGRESSION_EXCLUDE_CLASS="-e embedded,3rdparty,python2"
 # Exclude spray class from 8.8.x
 if [[ "$BRANCH_ID" == "candidate-8.8.x" ]]
 then
@@ -424,7 +409,7 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 # Enable to run Coverity build and upload result
 # DO NOT schedule Coverity and Coverity Cloud build on a same day!!!
 
-RUN_COVERITY=0
+RUN_COVERITY=1
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
@@ -465,7 +450,7 @@ then
     UNITTESTS_PARAM=""
 fi
 
-UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingStressTest "
+UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingTest "
 
 #
 #----------------------------------------------------
@@ -504,10 +489,12 @@ PERF_NUM_OF_NODES=1
 PERF_IP_OF_NODES=( '127.0.0.1' )
 
 # totalMemoryLimit for Hthor
-PERF_HTHOR_MEMSIZE_GB=4
+PERF_HTHOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_HTHOR_MEMSIZE_GB -gt 4 ]] && PERF_HTHOR_MEMSIZE_GB=4
 
 # totalMemoryLimit for Thor
-PERF_THOR_MEMSIZE_GB=4
+PERF_THOR_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_THOR_MEMSIZE_GB -gt 4 ]] && PERF_THOR_MEMSIZE_GB=4
 
 PERF_THOR_NUMBER_OF_SLAVES=4
 #if not already defined (by the sequencer) then define it
@@ -516,7 +503,8 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=100
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=4
+PERF_ROXIE_MEMSIZE_GB=$(( $MEMORY / 4 + 1 ))
+[[ $PERF_ROXIE_MEMSIZE_GB -gt 4 ]] && PERF_ROXIE_MEMSIZE_GB=4
 
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
@@ -615,7 +603,8 @@ ML_TIMEOUT=3600
 ML_PARALLEL_QUERIES=1
 ML_EXCLUDE_FILES="--ef ClassicTestModified.ecl,SVCTest.ecl"
 ML_REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=3600"
-ML_GENERATE_ZAP_FOR=( 'SVTest*' 'ClassificationTestModified*' )
+ML_INSTALL_EXTRA="--verbose"
+ML_GENERATE_ZAP_FOR=( 'RegressionTestModified*' )
 
 #
 #----------------------------------------------------
