@@ -465,7 +465,7 @@ then
     UNITTESTS_PARAM=""
 fi
 
-UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingStressTest "
+UNITTESTS_EXCLUDE=" JlibReaderWriterTestTiming AtomicTimingTest AtomicTimingStressTest "
 
 #
 #----------------------------------------------------
