@@ -14,8 +14,8 @@ then
     RUN_1[@]    # master (1 ch/th sl)
     RUN_2[@]    # candidate-9.6.x (1 ch/th sl)
     RUN_3[@]    # candidate-9.4.x (1 ch/th sl)
-#    RUN_4[@]    # candidate-9.2.x (1 ch/th sl)
-#    RUN_5[@]    # candidate-9.0.x (1 ch/th sl)
+    RUN_4[@]    # candidate-9.2.x (1 ch/th sl)
+    RUN_5[@]    # candidate-9.0.x (1 ch/th sl)
     RUN_6[@]    # candidate-8.12.x (1 ch/th sl)
   )
 else
