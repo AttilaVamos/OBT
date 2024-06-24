@@ -175,7 +175,7 @@ TAG='<latest>'
 VERBOSE=0
 DEBUG=0
 START_RESOURCES=0
-IGNORE_AUTOMATION_ERROR=1   # Should control with a CLI parameter
+IGNORE_AUTOMATION_ERROR=0   # Should control with a CLI parameter
 
 while [ $# -gt 0 ]
 do
