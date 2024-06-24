@@ -20,14 +20,18 @@ fi
 usage()
 {
     WriteLog "usage:" "/dev/null"
-    WriteLog "  $0 [-i] [-q] [-h]" "/dev/null"
+    WriteLog "  $0 [-i] [-q] [-t <tag>] [-dt <minute>] [-v] [-r] [-d] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
-    WriteLog " -i       - Interactive, stop before unistall with terraform." "/dev/null"
-    WriteLog " -q       - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
-    WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
+    WriteLog " -i       - Interactive, stop before unistall the Platform." "/dev/null"
+    WriteLog " -q       - Quick test, doesn't execute whole Regression" "/dev/null"
+    WriteLog "            Suite, only a subset of it." "/dev/null"
+    WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7)" "/dev/null"
+    WriteLog "            to be test." "/dev/null"
+    WriteLog " -dt      - AKS deploy timeout. A floating number with" "/dev/null"
+    WriteLog "            'm' suffix for minutes. Default is: $DEPLOY_TIMEOUT." "/dev/null"
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
-    WriteLog " -r       - Start resources: VNet and Storage accounts before deploy HPCC" "/dev/null"
-    WriteLog "            and destroy them at the end." "/dev/null"
+    WriteLog " -r       - Start resources: VNet and Storage accounts" "/dev/null"
+    WriteLog "            before deploy HPCC and destroy them at the end." "/dev/null"
     WriteLog " -d       - Enable debug log." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
@@ -156,29 +160,13 @@ TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
 TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
 CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
-TIMEOUT="--timeout 1200"
+RTE_TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
 QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
-
-WriteLog "Start          : $0 $*" "$logFile"
-WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
-WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
-WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
-WriteLog "QUERY_STAT2_DIR: $QUERY_STAT2_DIR" "$logFile"
-WriteLog "PERFSTAT_DIR   : $PERFSTAT_DIR" "$logFile"
-WriteLog "QUICK_TEST_SET : $QUICK_TEST_SET" "$logFile"
-WriteLog "EXCLUSIONS     : $EXCLUSIONS" "$logFile"
-WriteLog "PKG_DIR        : $PKG_DIR" "$logFile"
-WriteLog "PKG_EXT        : $PKG_EXT" "$logFile"
-WriteLog "PKG_INST_CMD   : $PKG_INST_CMD" "$logFile"
-WriteLog "PKG_QRY_CMD    : $PKG_QRY_CMD" "$logFile"
-WriteLog "PKG_REM_CMD    : $PKG_REM_CMD" "$logFile"
-WriteLog "CONFIG         : $CONFIG" "$logFile"
-WriteLog "PQ             : $PQ" "$logFile"
-WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
+DEPLOY_TIMEOUT="30.0m"
 
 #set -x
 INTERACTIVE=0
@@ -200,6 +188,10 @@ do
             ;;
                
         Q)  FULL_REGRESSION=0
+            ;;
+            
+        DT) shift
+            DEPLOY_TIMEOUT=$1
             ;;
             
         T)  shift
@@ -228,6 +220,24 @@ do
     shift
 done
 
+WriteLog "Start          : $0 $*" "$logFile"
+WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
+WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
+WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
+WriteLog "QUERY_STAT2_DIR: $QUERY_STAT2_DIR" "$logFile"
+WriteLog "PERFSTAT_DIR   : $PERFSTAT_DIR" "$logFile"
+WriteLog "TERRAFORM_DIR  : $TERRAFORM_DIR" "$logFile"
+WriteLog "QUICK_TEST_SET : $QUICK_TEST_SET" "$logFile"
+WriteLog "EXCLUSIONS     : $EXCLUSIONS" "$logFile"
+WriteLog "PKG_DIR        : $PKG_DIR" "$logFile"
+WriteLog "PKG_EXT        : $PKG_EXT" "$logFile"
+WriteLog "PKG_INST_CMD   : $PKG_INST_CMD" "$logFile"
+WriteLog "PKG_QRY_CMD    : $PKG_QRY_CMD" "$logFile"
+WriteLog "PKG_REM_CMD    : $PKG_REM_CMD" "$logFile"
+WriteLog "CONFIG         : $CONFIG" "$logFile"
+WriteLog "PQ             : $PQ" "$logFile"
+WriteLog "RTE_TIMEOUT    : $RTE_TIMEOUT" "$logFile"
+WriteLog "DEPLOY_TIMEOUT : $DEPLOY_TIMEOUT" "$logFile"
 WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
 WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
 WriteLog "TAG            : $TAG" "$logFile"
@@ -470,7 +480,7 @@ then
 
 fi
 
-DEPLOY_TIMEOUT="40.0m"
+
 WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
 res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve 2>&1 )
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
@@ -614,11 +624,11 @@ then
         then
             WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
-            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
+            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info 2>&1 )
         else
             WriteLog "Run regression quick sanity chceck with ($QUICK_TEST_SET)" "$logFile"
             # For sanity testing on all engines
-            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
         fi
 
         retCode=$?
