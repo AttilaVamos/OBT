@@ -108,7 +108,15 @@ destroyResources()
 
 }
 
+handler()
+{
+    echo "*************************"
+    echo "*  Ne vicelj ma' Bela.  *"
+    echo "*************************"
+}
 
+
+trap handler 2; 
 #set -x;
 OBT_DIR=$(pwd)
 logFile=$OBT_DIR/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
@@ -721,6 +729,8 @@ then
 else
     WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
 fi
+
+trap 2
 
 WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"
