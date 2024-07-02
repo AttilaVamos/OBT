@@ -110,9 +110,11 @@ destroyResources()
 
 handler()
 {
+    echo ""
     echo "*************************"
     echo "*  Ne vicelj ma' Bela.  *"
     echo "*************************"
+    echo ""
 }
 
 
