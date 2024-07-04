@@ -409,7 +409,7 @@ REGRESSION_EXTRA_PARAM="-fthorConnectTimeout=36000"
 # Enable to run Coverity build and upload result
 # DO NOT schedule Coverity and Coverity Cloud build on a same day!!!
 
-RUN_COVERITY=1
+RUN_COVERITY=0
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
