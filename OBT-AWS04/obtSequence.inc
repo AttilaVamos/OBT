@@ -4,8 +4,8 @@ BRANCHES_TO_TEST=( 'master' 'candidate-9.8.x' 'candidate-9.6.x' 'candidate-9.4.x
 RUN_1=("BRANCH_ID=master")
 RUN_2=("BRANCH_ID=candidate-9.8.x")
 RUN_3=("BRANCH_ID=candidate-9.6.x")
-RUN_3=("BRANCH_ID=candidate-9.4.x")
-RUN_3=("BRANCH_ID=candidate-9.2.x")
+RUN_4=("BRANCH_ID=candidate-9.4.x")
+RUN_5=("BRANCH_ID=candidate-9.2.x")
  
 if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
 then
