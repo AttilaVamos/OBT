@@ -675,8 +675,8 @@ then
             fi
             [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
 
-            WriteLog "Clean-up build/vcpkg_* & _CPack_Packages directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-            rm -rf vcpkg_* _CPack_Packages
+            WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
+            rm -rf vcpkg_* _CPack_Packages esp
 
             popd
         else
