@@ -234,10 +234,10 @@ ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
 
-SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
-SSH_TARGET="10.22.252.118"   #AVamos-test instance in AWS US-east-1l
+SSH_KEYFILE="~/hpcc_keypair.pem"
+SSH_TARGET="10.224.20.53"   #AVamos-test instance in AWS US-east-1l
 SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
-
+SSH_USER="rocky"
 #
 #----------------------------------------------------
 #
