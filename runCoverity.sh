@@ -125,6 +125,8 @@ then
                 echo "Upload finished."
                 echo "Result: ${res}"
 
+                echo "Clean-up, remove the generated cov-int directory"
+                rm -rf cov-int
                 popd
             fi
        fi
