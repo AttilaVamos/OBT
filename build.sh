@@ -676,7 +676,15 @@ then
             [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
 
             WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-            rm -rf vcpkg_* _CPack_Packages esp
+            echo "Before: $(df -h . | egrep -v 'Files')" "${OBT_BUILD_LOG_FILE}"
+            for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp
+            do
+                echo "rm -rf $d" "${OBT_BUILD_LOG_FILE}"
+                rm -rf $d
+                echo "Res: $?" "${OBT_BUILD_LOG_FILE}"
+            done
+            echo echo "After: $(df -h . | egrep -v 'Files')"
+            echo "  Done." "${OBT_BUILD_LOG_FILE}"
 
             popd
         else
