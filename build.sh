@@ -675,16 +675,16 @@ then
             fi
             [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
 
-            WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-            echo "Before: $(df -h . | egrep -v 'Files')" "${OBT_BUILD_LOG_FILE}"
-            for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp
+            WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "Before: $(df -h . | egrep -v 'Files')" "${OBT_BUILD_LOG_FILE}"
+            for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp $RELEASE_TYPE
             do
-                echo "rm -rf $d" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "rm -rf $d" "${OBT_BUILD_LOG_FILE}"
                 rm -rf $d
-                echo "Res: $?" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Res: $?" "${OBT_BUILD_LOG_FILE}"
             done
-            echo echo "After: $(df -h . | egrep -v 'Files')"
-            echo "  Done." "${OBT_BUILD_LOG_FILE}"
+            WriteLog echo "After: $(df -h . | egrep -v 'Files')"
+            WriteLog "  Done." "${OBT_BUILD_LOG_FILE}"
 
             popd
         else
