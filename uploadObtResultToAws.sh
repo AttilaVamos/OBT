@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+echo "Start $0"
+
 if [[ "$OBT_ID" =~ "OBT-AWS" ]]
 then
     SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
