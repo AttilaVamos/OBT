@@ -160,7 +160,7 @@ do
 
         ml*)        WriteLog "mode:ML (files move into archive)" "${ARCHIVE_LOG_DIR}"
                     ARCHIVE_NAME=$param
-                    MOVE_TO_ZIP_FLAG=-m
+                    #MOVE_TO_ZIP_FLAG=-m
                     ;;
 
 

@@ -257,6 +257,52 @@ then
     ${SUDO} sed -e 's/localThorPortInc="20"/localThorPortInc="'${REGRESSION_THOR_LOCAL_THOR_PORT_INC}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 fi    
 
+envFile="/etc/HPCCSystems/environment.xml"
+
+if [[ $ENABLE_NEWSPLITTER -eq 1 ]]
+then
+    # Check 'newsplitter'
+    value=$( ${SUDO} xmlstarlet sel -t -m "//Environment/Software/ThorCluster/Debug" -v '@newsplitter' -nl  $envFile )
+    WriteLog "'newsplitter' value: '$value'" "${REGRESS_LOG_FILE}"
+    if [[ -n "$value" ]]
+    then
+        if [[ "$value" = "true" ]]
+        then
+            WriteLog "The 'newsplitter is aleady enabled." "${REGRESS_LOG_FILE}"
+        else
+            WriteLog "Patch environment.xml to enable 'newsplitter'." "${REGRESS_LOG_FILE}"
+            res=$(${SUDO} xmlstarlet ed -L -u '//Environment/Software/ThorCluster/Debug/@newsplitter' -v "true" $envFile )
+            WriteLog "res: $res" "${REGRESS_LOG_FILE}"
+        fi
+    else
+        WriteLog "Add 'newsplitter' to environment.xml." "${REGRESS_LOG_FILE}"
+        res=$(${SUDO} xmlstarlet ed -L -i '//Environment/Software/ThorCluster/Debug' -t attr -n newsplitter -v "true" $envFile )
+        WriteLog "res: $res" "${REGRESS_LOG_FILE}"
+    fi
+
+    # Check 'newlookahead'
+    value=$( ${SUDO} xmlstarlet sel -t -m "//Environment/Software/ThorCluster/Debug" -v '@newlookahead' -nl  $envFile )
+    WriteLog "'newlookahead' value: '$value'" "${REGRESS_LOG_FILE}"
+    if [[ -n "$value" ]]
+    then
+        if [[ "$value" = "true" ]]
+        then
+            WriteLog "The 'newlookahead is aleady enabled." "${REGRESS_LOG_FILE}"
+        else
+            WriteLog "Patch environment.xml to enable 'newlookahead'." "${REGRESS_LOG_FILE}"
+            res=$( ${SUDO} xmlstarlet ed -L -u '//Environment/Software/ThorCluster/Debug/@newlookahead' -v "true" $envFile )
+            WriteLog "res: $res" "${REGRESS_LOG_FILE}"
+        fi
+    else
+        WriteLog "Add 'newlookahead' to environment.xml." "${REGRESS_LOG_FILE}"
+        res=$( ${SUDO} xmlstarlet ed -L -i '//Environment/Software/ThorCluster/Debug' -t attr -n newlookahead -v "true" $envFile )
+        WriteLog "res: $res" "${REGRESS_LOG_FILE}"
+    fi
+    WriteLog "$(egrep '<Debug' $envFile)" "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Keep the environment as is." "${REGRESS_LOG_FILE}"
+    WriteLog "$(egrep '<Debug' $envFile)" "${REGRESS_LOG_FILE}"
+fi
 
 cp /etc/HPCCSystems/environment.xml ${OBT_BIN_DIR}/environment-sl${REGRESSION_NUMBER_OF_THOR_SLAVES}-ch${REGRESSION_NUMBER_OF_THOR_CHANNELS}.xml
 

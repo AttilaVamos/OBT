@@ -265,6 +265,8 @@ WEB_LOG_ARCHIEVE_DIR_EXPIRE=20 # days
 # We nned this because if changes happened in VCPKG stuff then build failed on linked directory.
 NEW_BUILD_DIR_STRUCTURE=1
 
+
+ENABLE_NEWSPLITTER=1
 #
 #----------------------------------------------------
 #

@@ -164,10 +164,11 @@ else
     fi
 fi    
 
-TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
+#TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
+#TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
+#TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
 TERRAFORM_DIR=~/terraform-azurerm-hpcc
-TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
-TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
+
 CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
 RTE_TIMEOUT="--timeout 1200"
@@ -445,6 +446,10 @@ WriteLog "$(rm -v terraform.tfstate* 2>&1)" "$logFile"
 
 sed -i -e 's/^\(\s*\)version\s*=\s*\(.*\)/\1version = "'"${base}"'"/g' -e 's/^\(\s*\)image_version\s*=\s*\(.*\)/\1image_version = "'"${base}"'"/g' obt-admin.tfvars
 WriteLog "$(egrep '^\s*version ' obt-admin.tfvars)" "$logFile"
+WriteLog "  Done." "$logFile"
+
+WriteLog "Upgrade terraform..." "$logFile"
+WriteLog "$(terraform init -upgrade 2>&1)" "$logFile"
 WriteLog "  Done." "$logFile"
 
 # Check login status
