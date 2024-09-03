@@ -178,7 +178,7 @@ class WriteStatsToFile(object):
     #url = "http://" + host + ":" + port + "/WsWorkunits/WUQuery.json?PageSize=25000&Sortby=Jobname"  # *-161128-*    
     url = "http://" + host + ":" + port + "/WsWorkunits"
     compileTimeDetailsDepth=1   #valid values = 0,1,2
-    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=compile&NestedFilter.Depth=<NESTED_DEPTH>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
+    compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.Scopes=>compile&NestedFilter.Depth=<NESTED_DEPTH>&PropertiesToReturn.Properties=TimeElapsed&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
     #compileTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&ScopeFilter.MaxDepth=1&ScopeFilter.Scopes=compile&ScopeFilter.PropertyFilters.WUPropertyFilter.itemcount=0&NestedFilter.Depth=<NESTED_DEPTH>&NestedFilter.ScopeTypes=&PropertiesToReturn.Properties=TimeElapsed&PropertiesToReturn.ExtraProperties.WUExtraProperties.itemcount=0&PropertyOptions.IncludeName=on&PropertyOptions.IncludeName=1&PropertyOptions.IncludeRawValue=on"
     
     graphTimeQuery="http://<ESP_IP>:<ESP_PORT>/WsWorkunits/WUDetails.json?WUID=<WUID>&PropertiesToReturn.Properties=TimeElapsed%0D%0ATimeAvgLocalExecute&PropertyOptions.IncludeName=on&PropertyOptions.IncludeRawValue=on"
@@ -268,6 +268,11 @@ class WriteStatsToFile(object):
             self.queryHpccVersion()
         else:
             self.hpccVersionStr = self.buildBranch
+            hpccVer = self.buildBranch.split('-')[0]
+            hpccVerItems = hpccVer.split('.')
+            self.hpccMajor = int(hpccVerItems[0])
+            self.hpccMinor = int(hpccVerItems[1])
+            self.hpccPoint = int(hpccVerItems[2])
         
         print("self.destPath                : '" + self.destPath + "'")
         print("self.host                    : '" + self.host + "'")
@@ -489,8 +494,8 @@ class WriteStatsToFile(object):
             
         self.myPrint("queryCompileTime(%s)" % (wuid))
         url = self.compileTimeQuery.replace('<WUID>',  wuid).replace('<NESTED_DEPTH>', str(self.compileTimeDetailsDepth))
-        if not(self.hpccMajor <= 9 and self.hpccMinor <= 6 and self.hpccPoint <= 10):
-          url = url.replace('compile', '>compile')
+        #if not(self.hpccMajor <= 9 and self.hpccMinor <= 6 and self.hpccPoint <= 10):
+        #  url = url.replace('compile', '>compile')
         self.myPrint("URL: '%s'" % (url))
         times = {}
         try:
