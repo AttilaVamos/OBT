@@ -354,6 +354,7 @@ class WriteStatsToFile(object):
                 self.queryStats(cluster, dateStr)
         
     def checkJobname(self, wuid, jobname):
+        self.myPrint("Wuid:'%s', Jobname: '%s'" % (wuid, jobname))
         jobname = jobname.lower()
         shortJobname = ''
         # Ensure the version parameters always alphabetically ordered if exist
@@ -376,15 +377,17 @@ class WriteStatsToFile(object):
             # wuQuery = self.host +'/WsWorkunits/WUInfo.json?Wuid='+wuid
             #wuQuery = "http://" + self.host + ":" + self.port + "/WsWorkunits/WUInfo.json?Wuid="+wuid
             wuQuery = self.url +"/WUInfo.json?Wuid="+wuid
+            self.myPrint("wuQuery:'%s'" % (wuQuery))
             resp = None
             try:
                 response_stream = urllib.request.urlopen(wuQuery)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
-            except:
+            except Exception as ex:
                 print("Network error in checkJobname('%s', '%s')" % (wuid, jobname))
                 print("BadStatusLine exception with '%s'" % (wuQuery))
+                print("Exception: %s" % (str(ex)))
                 # ESP server on the other side is crashed and it needs some time to recover.
                 time.sleep(20)
                 pass
@@ -486,6 +489,9 @@ class WriteStatsToFile(object):
             
         self.myPrint("queryCompileTime(%s)" % (wuid))
         url = self.compileTimeQuery.replace('<WUID>',  wuid).replace('<NESTED_DEPTH>', str(self.compileTimeDetailsDepth))
+        if not(self.hpccMajor <= 9 and self.hpccMinor <= 6 and self.hpccPoint <= 10):
+          url = url.replace('compile', '>compile')
+        self.myPrint("URL: '%s'" % (url))
         times = {}
         try:
                 response_stream = urllib.request.urlopen(url)
@@ -493,11 +499,27 @@ class WriteStatsToFile(object):
                 resp = json.loads(json_response)
                 response_stream.close()
                 response_stream = None
-                numOfScopes = len(resp["WUDetailsResponse"]["Scopes"]["Scope"])
+                #self.myPrint("WUDetailsResponse:", resp["WUDetailsResponse"])  # Only for debug
+                numOfScopes = 0
+                try:
+                    numOfScopes = len(resp["WUDetailsResponse"]["Scopes"]["Scope"])
+                except Exception as ex:
+                    self.myPrint("Exception: '%s'" % (repr(ex)))
+                    self.myPrint("\tTry again with old scope name (without '>' prefix)")
+                    url = url.replace('>compile', 'compile')
+                    response_stream = urllib.request.urlopen(url)
+                    json_response = response_stream.read()
+                    resp = json.loads(json_response)
+                    response_stream.close()
+                    response_stream = None
+                    #self.myPrint("WUDetailsResponse:", resp["WUDetailsResponse"])  # Only for debug
+                    if "Scopes" in resp["WUDetailsResponse"]:
+                        numOfScopes = len(resp["WUDetailsResponse"]["Scopes"]["Scope"])
+                    
                 self.myPrint("\tNumber of scopes: %d" % (numOfScopes))
                 for scope in range(numOfScopes):
                     # Some magic to make split easier                                                                                    separate subseq. cpp                         separate extensions
-                    scopeName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["ScopeName"].replace('_', ':').replace(' ', '_').replace('.', ':*')
+                    scopeName = resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["ScopeName"].replace('_', ':').replace(' ', '_').replace('.', ':*').replace('>', '')
                     scopeItems = scopeName.split(':')
                     # Looking for the position of WUID in the scopeItems
                     w = [i for i in range(len(scopeItems)) if scopeItems[i][0] == "W" ]
@@ -519,9 +541,9 @@ class WriteStatsToFile(object):
                     times[scopeName] = scopeTime
                         
         except Exception as ex:
-            print(ex)
+            print("Exception in queryCompileTime(): '%s'" % (repr(ex)))
             pass
-
+        self.myPrint("times:", times)
         return times
         
     def queryGraphTimes(self,  wuid):
@@ -674,21 +696,34 @@ class WriteStatsToFile(object):
             index = 1
             
             for stat in stats:
+                #print("stat:", stat)
                 if (self.allWorkunits or rex.match(stat['Jobname'])) and (stat['State'] in workunitFilter[self.allWorkunits]):
-                    (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
-
-                    self.myPrint("%5d\%d WUID: %s, job name: %s" % (index, numOfWorkunits, stat['Wuid'],  stat['Jobname']))
+                    #print("......................\nWuid:'%s', Jobname: '%s'" % (stat['Wuid'], stat['Jobname']))
+                    try:
+                        (shortJobName,  jobName) = self.checkJobname(stat['Wuid'], stat['Jobname'])
+                    
+                    except Exception as ex:
+                        print("exception: '%s'" % (str(ex)))
+                        continue
+                        
+                    self.myPrint(".........................\n%5d\%d WUID: %s, job name: %s" % (index, numOfWorkunits, stat['Wuid'],  stat['Jobname']))
                     index += 1
 
                     clusterTime = self.convertTimeStringToSec(stat['TotalClusterTime'])
                     compileTimeHeaders = ''
                     compileTimeDetails = ''
                     compileTimeDetailsLog = ''
-                    compileTimes = self.queryCompileTime(stat['Wuid'])
-                    compileTimeValue = compileTimes['compile']
+                    try:
+                        compileTimes = self.queryCompileTime(stat['Wuid'])
+                    except Exception as ex:
+                        print("exception in call queryCompileTime(): '%s'" % (repr(ex)))
+                        continue
+                            
+                   
                     for key in sorted(compileTimes):
                         if key == 'compile':
                             #It is already handled
+                            compileTimeValue = compileTimes['compile']
                             continue
                         
                         # TO-DO  Based on the number of item can be different test case -by test case should consider same 
