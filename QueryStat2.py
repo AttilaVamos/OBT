@@ -540,14 +540,24 @@ class WriteStatsToFile(object):
                         scopeName = '-'.join(scopeItems)
                         # Reverse the magic done before split. restore extensions, restore '_' before subsequent cpp file number
                         scopeName = scopeName.replace('-*', '.').replace('>-','>_')
-                    
-                    scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  #ns to sec
+
+                    scopeTime = 0.0
+                    if "Properties" in resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]:
+                        scopeTime = float(resp["WUDetailsResponse"]["Scopes"]["Scope"][scope]["Properties"]["Property"][0] ["RawValue"]) / 1000000000.0  #from ns to sec
+                    else:
+                        self.myPrint("\t\t\t'Properties' not found for '%s', use 0.0 value" % (scopeName))
+
                     self.myPrint("\t\tScope name: %s, time: %f sec" % (scopeName, scopeTime))
                     times[scopeName] = scopeTime
-                        
+
         except Exception as ex:
-            print("Exception in queryCompileTime(): '%s'" % (repr(ex)))
+            print("Exception in queryCompileTime(wuid:%s): '%s'" % (wuid, repr(ex)))
+            print("  numOfScopes: %d" % (numOfScopes))
+            print("  scope      : '%s'" % (scope))
+            print("  scopeName  : '%s'" % (scopeName))
+            print("  scopeItems : ",  scopeItems )
             pass
+
         self.myPrint("times:", times)
         return times
         
