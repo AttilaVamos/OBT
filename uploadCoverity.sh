@@ -1,10 +1,22 @@
 #!/bin/bash
 
+# Enable to upload any of the possible hpcc-yyyy-mm-dd.tgz and hpcc-cloud-yyyy-mm-dd.tgz results
+
+
 # Git branch settings
 
 . ./settings.sh
 
-SHORT_DATE=$(date "+%Y-%m-%d")
+# To enable to specify different coverity result file date than the today's date
+# use "yyyy-mm-dd" format
+# TO-DO: do it nicer and enable to specify source path to get the corret commit ID
+#
+if [ "$1." == "." ]
+then
+    SHORT_DATE=$(date "+%Y-%m-%d")
+else
+    SHORT_DATE=$1
+fi
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
 
 WEEK_DAY=$(date "+%w")

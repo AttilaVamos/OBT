@@ -114,6 +114,7 @@ then
                 echo ${branchCrc}
                 popd
 
+                # Need to add error handling and retrying
                 echo "Uploading started"
 
                 curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
