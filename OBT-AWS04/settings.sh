@@ -359,6 +359,7 @@ TEST_5=( "stepping7d.ecl" "30" )
 TEST_6=( "stepping7e.ecl" "30" )
 TEST_7=( "stepping7f.ecl" "30" )
 TEST_8=( "supercopy.ecl" "200" )
+TEST_9=( "loopthor2.ecl" "30" )
 
 TIMEOUTS=( 
     TEST_1[@]
@@ -369,6 +370,7 @@ TIMEOUTS=(
     TEST_6[@]
     TEST_7[@]
     TEST_8[@]
+    TEST_9[@]
     )
 
 
