@@ -623,6 +623,7 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
+        numberOfPublished=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
         while read query
@@ -630,9 +631,10 @@ then
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
+            numberOfPublished=$(( numberOfPublished = 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         popd
-        WriteLog "  Done." "$logFile"
+        WriteLog "  Done ($numberOfPublished queries)." "$logFile"
 
         # Regression stage
         if [[ $FULL_REGRESSION -eq 1 ]]
