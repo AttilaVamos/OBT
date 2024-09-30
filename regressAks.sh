@@ -631,7 +631,7 @@ then
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
-            numberOfPublished=$(( numberOfPublished = 1 ))
+            numberOfPublished=$(( numberOfPublished + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         popd
         WriteLog "  Done ($numberOfPublished queries)." "$logFile"
