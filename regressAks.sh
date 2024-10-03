@@ -257,8 +257,11 @@ WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
 WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[ $IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '(!!!)')" "$logFile"
 
 WriteLog "Update helm repo..." "$logFile"
+TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
+HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
+WriteLog "done ($HELM_UPDATE_TIME sec)" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
