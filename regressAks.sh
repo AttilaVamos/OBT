@@ -43,6 +43,7 @@ collectAllLogs()
     WriteLog "Collect logs" "$logFile"
     dirName="$HOME/shared/Azure/test-$(date +%Y-%m-%d_%H-%M-%S)";
     [[ ! -d $dirName ]] && mkdir -p $dirName;
+    TIME_STAMP=$(date +%s)
     while read p;
     do
         [[ "$p" =~ "mydali" ]] && param="mydali" || param="";
@@ -56,7 +57,8 @@ collectAllLogs()
     kubectl get services > $dirName/services.log;
     kubectl describe nodes > $dirName/nodes.desc;
     #minikube logs >  $dirName/all.log 2>&1
-    WriteLog "  Done." "$logFile"
+    COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    WriteLog "  Done ($COLLECT_LOGS_TIME sec)." "$logFile"
 }
 
 destroyResources()
@@ -69,40 +71,49 @@ destroyResources()
     [[ -n "$4" ]] && VERBOSE_RESOURCES=$4
 
     WriteLog "$msg" "$logFile"
-
+    TIME_STAMP=$(date +%s)
     res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
+    AKS_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
+
     if [[ $VERBOSE_AKS -ne 0 ]]
     then
         WriteLog "res:$res" "$logFile"
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    WriteLog "  Done." "$logFile"
+    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    WriteLog "  Done ($AKS_DESTROY_TIME sec, $numOfResources)." "$logFile"
 
     if [[ $START_RESOURCES -eq 1 ]]
     then
         WriteLog "Destroy storage accounts ..." "$logFile"
         pushd modules/storage_accounts > /dev/null
+        TIME_STAMP=$(date +%s)
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        STORAGE_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
         if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
             WriteLog "res:$res" "$logFile"
         else
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
-        WriteLog "  Done." "$logFile"
+        numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+        WriteLog "  Done ($STORAGE_DESTROY_TIME sec, $numOfResources)." "$logFile"
         popd > /dev/null
 
         WriteLog "Destroy VNET ..." "$logFile"
         pushd modules/virtual_network > /dev/null
+        TIME_STAMP=$(date +%s)
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        VNET_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
         if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
             WriteLog "res:$res" "$logFile"
         else
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
-        WriteLog "  Done." "$logFile"
+        numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+        WriteLog "  Done ($VNET_DESTROY_TIME sec, $numOfResources)." "$logFile"
         popd > /dev/null
     fi
 
@@ -261,7 +272,7 @@ TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
-WriteLog "done ($HELM_UPDATE_TIME sec)" "$logFile"
+WriteLog "  done ($HELM_UPDATE_TIME sec)" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -452,8 +463,10 @@ WriteLog "$(egrep '^\s*version ' obt-admin.tfvars)" "$logFile"
 WriteLog "  Done." "$logFile"
 
 WriteLog "Upgrade terraform..." "$logFile"
+TIME_STAMP=$(date +%s)
 WriteLog "$(terraform init -upgrade 2>&1)" "$logFile"
-WriteLog "  Done." "$logFile"
+TERRAFORM_UPGRADE_TIME=$(( $(date +%s) - $TIME_STAMP ))
+WriteLog "  Done ($TERRAFORM_UPGRADE_TIME sec)." "$logFile"
 
 # Check login status
 loginCheck=$(az ad signed-in-user show)
@@ -476,34 +489,44 @@ if [[ $START_RESOURCES -eq 1 ]]
 then
     WriteLog "Create VNET ..." "$logFile"
     pushd modules/virtual_network > /dev/null
+    TIME_STAMP=$(date +%s)
     res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    VNET_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
         WriteLog "res:$res" "$logFile"
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
+    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    WriteLog "  Done ($VNET_START_TIME sec, $numOfResources)." "$logFile"
     popd > /dev/null
      
     WriteLog "Create storage accounts ..." "$logFile"
-    pushd modules/storage_accounts > /dev/null    
+    pushd modules/storage_accounts > /dev/null
+    TIME_STAMP=$(date +%s)
     res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    STORAGE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
         WriteLog "res:$res" "$logFile"
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-     popd > /dev/null
+    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    WriteLog "  Done ($STORAGE_START_TIME sec, $numOfResources)." "$logFile"
+    popd > /dev/null
 
 fi
 
 
 WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
+TIME_STAMP=$(date +%s)
 res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve 2>&1 )
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
+AKS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
 isError=$( echo "$res" | egrep 'Error:' )
 # TO-DO What to do if more than the automation error happens?
 isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
@@ -518,9 +541,12 @@ then
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
+    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    WriteLog "  Done ($AKS_START_TIME sec, $numOfResources)." "$logFile"
 else
     WriteLog "Error in deploy hpcc. \nRet code is: $retCode." "$logFile"
     WriteLog "res:$res" "$logFile"
+    WriteLog "  Failed ($AKS_START_TIME sec $( echo $res | egrep ' Resources: ' | awk '{ print $4" "$5 }'  | tr -d ',.'))." "$logFile"
 
     collectAllLogs "$logFile"
 
@@ -587,6 +613,7 @@ then
     WriteLog "cwd: $(pwd)" "$logFile"
 
     WriteLog "Start ECLWatch." "$logFile"
+    TIME_STAMP=$(date +%s)
     res=$(kubectl annotate service eclwatch --overwrite service.beta.kubernetes.io/azure-load-balancer-internal="false")
     WriteLog "res:$res" "$logFile"
 
@@ -629,6 +656,7 @@ then
         numberOfPublished=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
+        TIME_STAMP=$(date +%s)
         while read query
         do
             WriteLog "Query: $query" "$logFile"
@@ -636,8 +664,9 @@ then
             WriteLog "$res" "$logFile"
             numberOfPublished=$(( numberOfPublished + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
+        QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        WriteLog "  Done ($numberOfPublished queries)." "$logFile"
+        WriteLog "  Done ($numberOfPublished queries in $QUERIES_PUBLISH_TIME sec)." "$logFile"
 
         # Regression stage
         if [[ $FULL_REGRESSION -eq 1 ]]
@@ -668,8 +697,11 @@ then
     then
         WriteLog "Run QueryStat2.py ..." "$logFile"
         pushd $QUERY_STAT2_DIR > /dev/null
+        TIME_STAMP=$(date +%s)
         res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
+        QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
+        WriteLog "  Done ($QUERY_STAT2_TIME sec)." "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
@@ -731,6 +763,7 @@ then
     pushd $QUERY_STAT2_DIR > /dev/null
     if [ -f regressK8sLogProcessor.py ]
     then
+        TIME_STAMP=$(date +%s)
         res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
         WriteLog "${res}" "$logFile"
         WriteLog "  End." "$logFile"
