@@ -37,6 +37,12 @@ usage()
     WriteLog " " "/dev/null"
 }
 
+secToTimeStr()
+{
+    t=$1
+    echo "($( date -u --date @$t "+%H:%M:%S"))"
+}
+
 collectAllLogs()
 {
     logFile=$1
@@ -82,7 +88,7 @@ destroyResources()
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
     numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    WriteLog "  Done ($AKS_DESTROY_TIME sec, $numOfResources)." "$logFile"
+    WriteLog "  Done in $AKS_DESTROY_TIME sec $(secToTimeStr "$AKS_DESTROY_TIME"), $numOfResources." "$logFile"
 
     if [[ $START_RESOURCES -eq 1 ]]
     then
@@ -98,7 +104,7 @@ destroyResources()
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
         numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-        WriteLog "  Done ($STORAGE_DESTROY_TIME sec, $numOfResources)." "$logFile"
+        WriteLog "  Done in $STORAGE_DESTROY_TIME sec $(secToTimeStr "$STORAGE_DESTROY_TIME"), $numOfResources." "$logFile"
         popd > /dev/null
 
         WriteLog "Destroy VNET ..." "$logFile"
@@ -113,7 +119,7 @@ destroyResources()
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
         numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-        WriteLog "  Done ($VNET_DESTROY_TIME sec, $numOfResources)." "$logFile"
+        WriteLog "  Done in $VNET_DESTROY_TIME sec $(secToTimeStr "$VNET_DESTROY_TIME"), $numOfResources." "$logFile"
         popd > /dev/null
     fi
 
@@ -272,7 +278,7 @@ TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
-WriteLog "  done ($HELM_UPDATE_TIME sec)" "$logFile"
+WriteLog "  Done in $HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -466,7 +472,7 @@ WriteLog "Upgrade terraform..." "$logFile"
 TIME_STAMP=$(date +%s)
 WriteLog "$(terraform init -upgrade 2>&1)" "$logFile"
 TERRAFORM_UPGRADE_TIME=$(( $(date +%s) - $TIME_STAMP ))
-WriteLog "  Done ($TERRAFORM_UPGRADE_TIME sec)." "$logFile"
+WriteLog "  Done in $TERRAFORM_UPGRADE_TIME sec $(secToTimeStr "$TERRAFORM_UPGRADE_TIME")." "$logFile"
 
 # Check login status
 loginCheck=$(az ad signed-in-user show)
@@ -499,7 +505,7 @@ then
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
     numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    WriteLog "  Done ($VNET_START_TIME sec, $numOfResources)." "$logFile"
+    WriteLog "  Done in $VNET_START_TIME sec $(secToTimeStr "$VNET_START_TIME"), $numOfResources." "$logFile"
     popd > /dev/null
      
     WriteLog "Create storage accounts ..." "$logFile"
@@ -514,7 +520,7 @@ then
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
     numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    WriteLog "  Done ($STORAGE_START_TIME sec, $numOfResources)." "$logFile"
+    WriteLog "  Done in $STORAGE_START_TIME sec $(secToTimeStr "$STORAGE_START_TIME"), $numOfResources." "$logFile"
     popd > /dev/null
 
 fi
@@ -531,6 +537,7 @@ isError=$( echo "$res" | egrep 'Error:' )
 # TO-DO What to do if more than the automation error happens?
 isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
 WriteLog "retCode: $retCode, ignoreAutomationError: $IGNORE_AUTOMATION_ERROR, isAutomationError: $isAutomationError" "$logFile"
+numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
 
 if [[ ($retCode -eq 0) || ( ($IGNORE_AUTOMATION_ERROR -eq 1) && ($isAutomationError -ne 0 )) ]]
 then
@@ -541,12 +548,11 @@ then
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    WriteLog "  Done ($AKS_START_TIME sec, $numOfResources)." "$logFile"
+    WriteLog "  Done in $AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME"), $numOfResources." "$logFile"
 else
     WriteLog "Error in deploy hpcc. \nRet code is: $retCode." "$logFile"
     WriteLog "res:$res" "$logFile"
-    WriteLog "  Failed ($AKS_START_TIME sec $( echo $res | egrep ' Resources: ' | awk '{ print $4" "$5 }'  | tr -d ',.'))." "$logFile"
+    WriteLog "  Failed in $AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME"), $numOfResources." "$logFile"
 
     collectAllLogs "$logFile"
 
