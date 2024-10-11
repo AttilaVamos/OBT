@@ -64,7 +64,7 @@ collectAllLogs()
     kubectl describe nodes > $dirName/nodes.desc;
     #minikube logs >  $dirName/all.log 2>&1
     COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    WriteLog "  Done ($COLLECT_LOGS_TIME sec)." "$logFile"
+    WriteLog "  Done in $COLLECT_LOGS_TIME sec." "$logFile"
 }
 
 destroyResources()
@@ -672,7 +672,7 @@ then
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        WriteLog "  Done ($numberOfPublished queries in $QUERIES_PUBLISH_TIME sec)." "$logFile"
+        WriteLog "  Done in $QUERIES_PUBLISH_TIME sec, $numberOfPublished queries published to Roxie." "$logFile"
 
         # Regression stage
         if [[ $FULL_REGRESSION -eq 1 ]]
@@ -707,7 +707,7 @@ then
         res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
-        WriteLog "  Done ($QUERY_STAT2_TIME sec)." "$logFile"
+        WriteLog "  Done in $QUERY_STAT2_TIME sec." "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
