@@ -64,7 +64,7 @@ collectAllLogs()
     kubectl describe nodes > $dirName/nodes.desc;
     #minikube logs >  $dirName/all.log 2>&1
     COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    WriteLog "  Done in $COLLECT_LOGS_TIME sec." "$logFile"
+    WriteLog "  Done in $COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")." "$logFile"
 }
 
 destroyResources()
