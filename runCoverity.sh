@@ -101,7 +101,7 @@ then
             
                 cp ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
                 echo "Send Email to ${RECEIVERS}"
-                echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
+                echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
            
                 # To upload
                 # When you upload the build can you also include the commit SHA in the version (Gavin)

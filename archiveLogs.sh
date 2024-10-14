@@ -169,7 +169,7 @@ do
                     ;;
 
         nopub*)     WriteLog "Do not publish archive." "${ARCHIVE_LOG_DIR}"
-            DO_ARCHIVE=0
+                    DO_ARCHIVE=0
                     ;;
 
         *)          MOVE_LOG_TO_ZIP_FLAG=''
@@ -249,7 +249,7 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "Core-gen-test-*.log"           "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "CloneRepo-*.log"               "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "SubmoduleUpdate-*.log"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "*KnownProblems.csv"            "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "*KnownProblems.csv"            "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "unittest-*"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "unittests*.log"                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "core_unittests*"               "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
@@ -265,7 +265,7 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "regress-*.log"                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "Regression-*.csv"              "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "Regression-*.txt"              "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "git_2days.log"                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "git_2days.log"                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log" 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "GlobalExclusion.log"           "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "setup_*.log"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "*.summary"                     "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
@@ -273,10 +273,10 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "thor*.log"                     "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "roxie*.log"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "environment*"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "BuildNotification.ini"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "settings.*"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "BuildNotification.ini"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "settings.*"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "perfstat-*"                    "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "obtSequence.inc"               "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "obtSequence.inc"               "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "perftest*.summary"             "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "perfreport-*.csv"              "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
@@ -286,13 +286,13 @@ CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "results-thor-6.5.0.csv"        "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "results-roxie-6.5.0.csv"       "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "PerformanceIssues-1*.csv"      "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip " "                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "PerformanceIssues.csv"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip " "                                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "PerformanceIssues.csv"         "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "ML_*.log"                      "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "mltests.summary"               "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 
-CheckAndZip "-m"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "build-*.log"                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
-CheckAndZip "-m"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "install*.log"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip "-m"                                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "build-*.log"                   "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
+CheckAndZip "-m"                                 "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "install*.log"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "myInfo-*.log"                  "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}" "${OBT_LOG_DIR}" "myPortUsage-*.log"             "${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log"
 

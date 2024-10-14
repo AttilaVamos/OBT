@@ -1165,6 +1165,8 @@ WriteLog "End of cleanup." "${OBT_LOG_FILE}"
 
 cd ${OBT_BIN_DIR}
 
+cp obt-*.log ${TARGET_DIR}/
+
 if [ $DRY_RUN -eq 1 ]
 then
     ./archiveLogs.sh obt-exit timestamp=${OBT_TIMESTAMP} nopub
