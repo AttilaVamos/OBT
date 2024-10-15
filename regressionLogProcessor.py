@@ -15,6 +15,7 @@ class RegressionLogProcessor(object):
 
     def __init__(self,  curDir = None,  suite = 'Regression'):
         self.faultedTestCase = {}
+        self.faultedTestCaseSimple = {}
         self.logDates = []
         self.knownProblems = {}
         self.htmlReport=[]
@@ -496,8 +497,11 @@ class RegressionLogProcessor(object):
                         self.htmlReport.append(htmlRow)
 
                         if not testName in self.faultedTestCase:
-                                self.faultedTestCase[testName]={}
-                        self.faultedTestCase[testName][self.logDate]= {'Target':self.target, 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }
+                                self.faultedTestCase[testName] = {}
+                                self.faultedTestCaseSimple[self.target] = {}
+                                
+                        self.faultedTestCase[testName][self.logDate]= {'TestId': testId,  'Target':self.target, 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }
+                        self.faultedTestCaseSimple[self.target][testName] = {'TestId': testId, 'Wuid' : test['Wuid'], 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }
                         
                     self.htmlReport.append('</table></li><br></ul>')
                     pass
@@ -573,6 +577,9 @@ class RegressionLogProcessor(object):
     
     def GetFaultedTestCases(self):
         return self.faultedTestCase
+    
+    def GetFaultedTestCasesSimple(self):
+        return self.faultedTestCaseSimple
     
     def SaveFaultedTestCases(self):
         curTime = time.strftime("%y-%m-%d")

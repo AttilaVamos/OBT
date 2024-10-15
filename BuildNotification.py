@@ -14,6 +14,7 @@ import inspect
 import traceback
 import sys
 
+import json
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -187,6 +188,7 @@ class Task( object ):
         self._timeout = 0
         self._failedSubtask = []
         self._elapsTime = []
+        self._subTask = []
    
     def getLogFileName( self ):
         return "Unimplementated"
@@ -278,6 +280,10 @@ class Task( object ):
     def elapsTime(self):
         return self._elapsTime
         
+    @property
+    def subTask(self):
+        return self._subTask
+        
 class BuildTask( Task ):    
 
     def getLogFileName( self ):
@@ -337,30 +343,43 @@ class BuildTask( Task ):
             m = elaps.match( line )
             if m:
                 self._elapsTime.append("Altogether:" + m.group(1))
+                info = {"Altogether": { "Formatted": m.group(1), "RawSec": ""}}
+                info["Altogether"]["RawSec"] = info["Altogether"]["Formatted"].split(' ')[0]
+                self._subTask.append(info)
                 continue 
                 
             m = cmake.match( line )
             if m:
                 self._elapsTime.append(line)
+                info = {"CMake": { "Formatted":line.replace("CMake:", "").strip('\n'), "RawSec": ""}}
+                info["CMake"]["RawSec"] = info["CMake"]["Formatted"].split(' ')[0]
+                self._subTask.append(info)
                 continue 
                 
             m = build.match( line )
             if m:
                 self._elapsTime.append(line)
+                info = {"Build": { "Formatted":line.replace("Build:", "").strip('\n'), "RawSec": ""}}
+                info["Build"]["RawSec"] = info["Build"]["Formatted"].split(' ')[0]
+                self._subTask.append(info)
                 continue 
                 
             m = package.match( line )
             if m:
                 self._elapsTime.append(line)
+                info = {"Package": { "Formatted":line.replace("Package:", "").strip('\n'), "RawSec": ""}}
+                info["Package"]["RawSec"] = info["Package"]["Formatted"].split(' ')[0]
+                self._subTask.append(info)
                 continue 
           
             i -= 1
             #print( line, end='' )
             if i == 0: break 
             
-        # The build.log processed from back, therefore all ties are
+        # The build.log processed from back, therefore all times are
         # in reverse order, Restore the original sequence
         self._elapsTime.reverse()
+        self._subTask.reverse()
         
         if self._result == 'FAILED':
             errline = re.compile('\s([Ee]rror[:]*|[Ff]ailed|!checking|http[s]?:)\s.*$')
@@ -601,9 +620,12 @@ class TestTask( Task ):
 
                     m2 = p3b.match( res )
                     if m2:
+                        info = {"Elaps": { }}
                         try:
                             res = res.replace("elaps:" + m2.group(6), '')
                             self._elapsTime.append(m2.group(6))
+                            info["Elaps"]["Formatted"] = m2.group(6).strip('\n')
+                            info["Elaps"]["RawSec"] = info["Elaps"]["Formatted"].split(' ')[0]
 
                         except Exception as e:
                             print("Something wrong with wutool elaps: '%s'" % (res) )
@@ -616,13 +638,25 @@ class TestTask( Task ):
                             self._result += "<span style=\"color:red\">" + res + "</span><br>\n"
                             self._status = 'FAILED'
                             self._errorMsg += res + "<br>\n"
-                            self._total   = self._total + int(m2.group(1))
-                            self._passed  = self._passed + int(m2.group(2))
-                            self._failed  = self._failed + int(m2.group(3))
-                            self._error   = self._error  + int(m2.group(4))
-                            self._timeout = self._timeout + int(m2.group(5))
                         else:
                             self._result += "<span style=\"color:green\">" + res + "</span><br>\n"
+
+                        self._total   = self._total + int(m2.group(1))
+                        info["Total"] = int(m2.group(1))
+                        
+                        self._passed  = self._passed + int(m2.group(2))
+                        info["Pass"] = int(m2.group(2))
+                        
+                        self._failed  = self._failed + int(m2.group(3))
+                        info["Fail"] = int(m2.group(3))
+                        
+                        self._error   = self._error  + int(m2.group(4))
+                        info["Error"] = int(m2.group(4))
+                        
+                        self._timeout = self._timeout + int(m2.group(5))
+                        info["Timeout"] = int(m2.group(5))
+                        
+                        self._subTask.append(info)
                         
                 elif 'unittest' in res:
                     res = res.replace('unittest:','')
@@ -631,9 +665,12 @@ class TestTask( Task ):
                     m2 = p3b.match( res )
 
                     if m2:
+                        info = {"Elaps": { }}
                         try:
                             res = res.replace("elaps:" + m2.group(6), '')
                             self._elapsTime.append(m2.group(6))
+                            info["Elaps"]["Formatted"] = m2.group(6).strip('\n')
+                            info["Elaps"]["RawSec"] = info["Elaps"]["Formatted"].split(' ')[0]
 
                         except Exception as e:
                             print("Something wrong with unittest elaps: '%s'" % (res) )
@@ -644,13 +681,25 @@ class TestTask( Task ):
                             self._result = "<span style=\"color:red\">" + res  + "</span><br>\n"
                             self._status = 'FAILED'
                             self._errorMsg += 'Unittests:<br>\n'
-                            self._total   = int(m2.group(1))
-                            self._passed  = int(m2.group(2))
-                            self._failed  = int(m2.group(3))
-                            self._error   = int(m2.group(4))
-                            self._timeout = int(m2.group(5))
                         else:
                             self._result = "<span style=\"color:green\">" + res  + "</span><br>\n"
+                            
+                        self._total   = int(m2.group(1))
+                        info["Total"] = self._total
+                        
+                        self._passed  = int(m2.group(2))
+                        info["Pass"] = self._passed
+                        
+                        self._failed  = int(m2.group(3))
+                        info["Fail"] = self._failed
+                        
+                        self._error   = int(m2.group(4))
+                        info["Error"] = self._error
+                        
+                        self._timeout = int(m2.group(5))
+                        info["Timeout"] = self._timeout
+                        
+                        self._subTask.append(info)
                 
                 elif ('Setup' == self._name) or ('MLtests' == self._name):
                     if self._failed == 0:
@@ -658,9 +707,15 @@ class TestTask( Task ):
                     m2 = p2b.match( res )
                     
                     if m2 :
+                        testName = m2.group(1)
+                        info = { testName: { "Elaps" : {} }}
                         try:
-                          self._elapsTime.append(m2.group(5))
-                          res = res.replace("elapsed:" + m2.group(5), '').replace("elaps:" + m2.group(5), '')
+                            self._elapsTime.append(m2.group(5))
+                            res = res.replace("elapsed:" + m2.group(5), '').replace("elaps:" + m2.group(5), '')
+                            
+                            info[testName]["Elaps"]["Formatted"] = m2.group(5).strip('\n')
+                            info[testName]["Elaps"]["RawSec"] =  info[testName]["Elaps"]["Formatted"].split(' ')[0]
+                
 
                         except Exception as e:
                             print("Something wrong with setup elaps: '%s'" % (res) )
@@ -670,16 +725,26 @@ class TestTask( Task ):
                         if m2.group(2) != m2.group(3):
                             self._result += "<span style=\"color:red\">" + res + "</span><br>\n" 
                             self._status  = 'FAILED'
-                            self._total   = self._total  + int(m2.group(2))
-                            self._passed  = self._passed + int(m2.group(3))
-                            self._failed  = self._failed + int(m2.group(4))
-                            self._failedSubtask.append(m2.group(1))
+                            self._failedSubtask.append(testName)
                         else:
                             self._result += "<span style=\"color:green\">" + res + "</span><br>\n"
+                        
+                        self._total   = self._total  + int(m2.group(2))
+                        info[testName]["Total"] = int(m2.group(2))
+                        
+                        self._passed  = self._passed + int(m2.group(3))
+                        info[testName]["Pass"] = int(m2.group(3))
+                        
+                        self._failed  = self._failed + int(m2.group(4))
+                        info[testName]["Fail"] = int(m2.group(4))
+                        
+                        info[testName]["Status"] =  self._status
 
+                        self._subTask.append(info)
                    
                 else:
                     # It is an Hthor, Thor or Roxie regression result
+                    info = { "Elaps" : {} }
                     self._status = 'PASSED'
                     m2 = p2.match( res )
                     if m2:
@@ -687,18 +752,29 @@ class TestTask( Task ):
                         try:
                             self._elapsTime.append(m2.group(4))
                             res = res.replace( "elapsed:" + m2.group(4), '').replace( "elaps:" + m2.group(4), '')
+                            
+                            info["Elaps"]["Formatted"] = m2.group(4).strip('\n')
+                            info["Elaps"]["RawSec"] =  info["Elaps"]["Formatted"].split(' ')[0]
+                            
                         except:
                             pass
         
                         if m2.group(1) != m2.group(2):
                             self._result += "<span style=\"color:red\">" + res + "</span><br>\n"
                             self._status = 'FAILED'
-                            self._total = int(m2.group(1))
-                            self._passed = int(m2.group(2))
-                            self._failed = int(m2.group(3))
                         else:
                             self._result = "<span style=\"color:green\">" + res  + "</span><br>\n"
-
+                            
+                        self._total = int(m2.group(1))
+                        info["Total"] = self._total
+                        
+                        self._passed = int(m2.group(2))
+                        info["Pass"] = self._passed
+                        
+                        self._failed = int(m2.group(3))
+                        info["Fail"] = self._failed
+                        
+                        self._subTask.append(info)
 
             elif self._status == 'FAILED':
                 self._errorMsg += line +'<br>\n'
@@ -725,6 +801,7 @@ class BuildNotification( object ):
         self.testEngineErrMsg = ''
         self.buildErrorMsg = ''
         self.logReport = {}
+        self.jsonReport = { "OBTResult" : { "Env" : {},  "BuildSet" :{},  "Exclusion": {}, "ThorConfig": {}, "Tasks":{},  "Errors":[] } }
            
 
     def appendWithDelimiter(self, target,  text,  delimiter = ', '):
@@ -794,6 +871,7 @@ class BuildNotification( object ):
         for exclusion in exclusionSequence:
             if exclusion in self.results[self.buildTaskIndex].globalExclusions:
                 self.msgHTML += "<tr><td align=\"right\">" + exclusion + ":</td><td>" + self.results[self.buildTaskIndex].globalExclusions[exclusion] + "</td></tr>\n"
+                self.jsonReport["OBTResult"]["Exclusion"][exclusion] = self.results[self.buildTaskIndex].globalExclusions[exclusion].replace('-D', '').replace('=1', '').replace('=OFF', '').strip(',').strip(' ')
                 
         self.msgHTML += "</table><br>\n"
         
@@ -806,6 +884,18 @@ class BuildNotification( object ):
         self.logReport['buildType'] = self.config.buildType[0:1]
         self.logReport['reportObtSystem'] = self.config.reportObtSystem
         self.logReport['thorConfig'] = 'T: ' +  self.config.thorSlaves + 's/' + self.config.thorChannelsPerSlave + 'c'
+        
+        self.jsonReport["OBTResult"]["Env"]["BuildSystem"] = self.config.get('Build', 'BuildSystem')
+        self.jsonReport["OBTResult"]["Env"]["Hardware"] =  self.config.get('OBT', 'ObtSystemHw').replace('"', '') 
+        self.jsonReport["OBTResult"]["Env"]["IPAddress"] = self.config.hostAddress + " (" + self.config.reportObtSystem + ")"
+        
+        self.jsonReport["OBTResult"]["BuildSet"]["Branch"] =  self.results[self.buildTaskIndex].gitBranchName
+        self.jsonReport["OBTResult"]["BuildSet"]["BranchDate"] =  self.results[self.buildTaskIndex].gitBranchDate
+        self.jsonReport["OBTResult"]["BuildSet"]["BranchSHA"] =  self.results[self.buildTaskIndex].gitBranchCommit
+        self.jsonReport["OBTResult"]["BuildSet"]["BuikdType"] =  self.config.buildType
+        
+        self.jsonReport["OBTResult"]["ThorConfig"]["Slaves"] =  self.config.thorSlaves
+        self.jsonReport["OBTResult"]["ThorConfig"]["Channels"] =  self.config.thorChannelsPerSlave
         
         pass
 
@@ -836,6 +926,10 @@ class BuildNotification( object ):
             if debug:
                 print("Task name:" +task.name)
                 print("\tTask result:" + task.result)
+
+            self.jsonReport["OBTResult"]["Tasks"][task.name] = {}
+            self.jsonReport["OBTResult"]["Tasks"][task.name] ["Result"]= task.status
+            
 
             result = task.result
             p = re.compile('(.*)otal:([0-9]+) passed:([0-9]+) failed:([0-9]+)\s*$')
@@ -960,12 +1054,23 @@ class BuildNotification( object ):
             # For elaps times
             #
             try:
-               if task.name in ['Build', 'Wutooltests', 'Unittests', 'MLtests', 'Setup', 'Hthor', 'Thor', 'Roxie'] and len(task.elapsTime):
-                   self.msgHTML += "<TD align=\"right\">" 
-                   for elaps in task.elapsTime:
-                       self.msgHTML += elaps +"<br>\n"
-               else:
-                   self.msgHTML += "<TD align=\"center\"> No data"
+                if task.name in ['Build', 'Wutooltests', 'Unittests', 'MLtests', 'Setup', 'Hthor', 'Thor', 'Roxie']:
+                    self.msgHTML += "<TD align=\"right\">" 
+                    for elaps in task.elapsTime:
+                           self.msgHTML += elaps +"<br>\n"
+                    self.jsonReport["OBTResult"]["Tasks"][task.name] = {"Result":  task.status}
+                    for subTask in task.subTask:
+                        for key in subTask:
+                            self.jsonReport["OBTResult"]["Tasks"][task.name] [key] =  subTask[key]
+#                elif task.name in [ 'Hthor', 'Thor', 'Roxie'] and len(task.elapsTime):
+#                       self.msgHTML += "<TD align=\"right\">" 
+#                       self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"] = []
+#                       for elaps in task.elapsTime:
+#                           self.msgHTML += elaps +"<br>\n"
+#                           self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"].append(elaps)
+                else:
+                       self.msgHTML += "<TD align=\"center\"> No data"
+                       self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"] = "No data"
 
             except:
                 print("Exception in add elaps times:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
@@ -1043,7 +1148,10 @@ class BuildNotification( object ):
                     rlp.ProcessFile(file)
                     rlp.ProcessResults()
                     self.msgHTML += '\n'.join(rlp.GetHtmlResult())
+                    faultedTestCases = rlp.GetFaultedTestCasesSimple()
                     rlp.SaveResult()
+                    self.jsonReport["OBTResult"]["Errors"].append(faultedTestCases)
+
                 except:
                     pass
                 finally:
@@ -1136,6 +1244,10 @@ class BuildNotification( object ):
         
         finally:
             logRecordFile.close()
+
+    def storeJsonResult(self):
+        with open(self.config.reportObtSystem +'-' + self.results[self.buildTaskIndex].gitBranchName +'-'+self.config.buildDate+'-'+self.config.buildTime.replace(':',  '-')+'.json',  'w') as outfile:
+               json.dump( self.jsonReport, outfile, indent=4)
         
 if __name__ == "__main__":
     
@@ -1171,6 +1283,7 @@ if __name__ == "__main__":
         bn.taskRender()
         bn.endRender()
         bn.storeLogRecord()
+        bn.storeJsonResult()
         bn.send()
     except:
         print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
