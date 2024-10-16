@@ -22,7 +22,7 @@ fi
 [[ -f ./settings.sh ]] && . ./settings.sh
 
 #rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
-rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
+rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt ~/build/bin/OBT-*.json $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 
 date >> ~/diskState.log
 df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
