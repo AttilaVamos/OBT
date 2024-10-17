@@ -672,7 +672,7 @@ then
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        WriteLog "  Done in $QUERIES_PUBLISH_TIME sec, $numberOfPublished queries published to Roxie." "$logFile"
+        WriteLog "  Done in $QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME"), $numberOfPublished queries published to Roxie." "$logFile"
 
         # Regression stage
         if [[ $FULL_REGRESSION -eq 1 ]]
@@ -707,7 +707,7 @@ then
         res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
-        WriteLog "  Done in $QUERY_STAT2_TIME sec." "$logFile"
+        WriteLog "  Done in $QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")." "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
