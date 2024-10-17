@@ -233,10 +233,11 @@ ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
 QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
-
+# Upload to HPCC-AWS-SmoketestScheduler CA
 SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
 SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
 SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
+SSH_USER="centos"
 
 #
 #----------------------------------------------------

@@ -2,33 +2,26 @@
 
 echo "Start $0"
 
-if [[ "$OBT_ID" =~ "OBT-AWS" ]]
-then
-    SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
-    SSH_TARGET="3.99.109.118"   #SmoketestScheduler instance in AWS CA-Central
-    SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
-    SSH_USER="centos"
-else
-    SSH_KEYFILE="~/hpcc_keypair.pem"
-    SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
-    #SSH_TARGET="10.240.62.177"
-    #SSH_TARGET="10.240.62.57"  #OpenStack Region 5
-    SSH_TARGET="10.224.20.54"   #OpenStack Region 8 CentOS 7
-    SSH_TARGET="10.224.20.53"   #OpenStack Region 8 Rocky 8
-    SSH_USER="rocky"
-fi
+# Default upload parameters
+SSH_KEYFILE="~/hpcc_keypair.pem"
+SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
+SSH_TARGET="10.224.20.53"   #OpenStack Region 8 Rocky 8
+SSH_USER="rocky"
 
 # If any of those SSH_* parameter is overridden in settings.sh then use them
 [[ -f ./settings.sh ]] && . ./settings.sh
 
-#rsync -va -e "ssh -i ~/AWSSmoketest.pem"  ~/build/bin/OBT-*.txt ec2-user@ec2-3-133-112-185.us-east-2.compute.amazonaws.com:/home/ec2-user/OBT-009/.
+echo "Final parameters:"
+echo "OBT id: '$OBT_ID'"
+echo "User  : '$SSH_USER'"
+echo "Target: '$SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/'"
+
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt ~/build/bin/OBT-*.json $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 
 date >> ~/diskState.log
 df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
 echo "==============================================" >> ~/diskState.log
 
-#rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem"  ~/diskState.log  centos@ec2-35-183-5-250.ca-central-1.compute.amazonaws.com:/home/ec2-user/OBT-010/.
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 
 

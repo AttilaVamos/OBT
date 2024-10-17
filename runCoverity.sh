@@ -100,9 +100,7 @@ then
                 find . -name *.ccfxprep -delete
             
                 cp ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
-                echo "Send Email to ${RECEIVERS}"
-                echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
-           
+
                 # To upload
                 # When you upload the build can you also include the commit SHA in the version (Gavin)
                 #
@@ -114,10 +112,14 @@ then
                 echo ${branchCrc}
                 popd
 
+                echo "Send Email to ${RECEIVERS}"
+                echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
+
                 # Need to add error handling and retrying
                 echo "Uploading started"
 
                 curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
+                #curlParams='--data "project='$COVERITY_PROJECT_NAME'&token='$COVERITY_TOKEN'&email=attila.vamos@gmail.com&url=localhost/'${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME}'&version="'${BRANCH_ID}-SHA:${branchCrc}'"&description=\"Upload by OBT\"'
                      
                 echo "curl params: ${curlParams}"
 
