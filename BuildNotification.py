@@ -738,7 +738,7 @@ class TestTask( Task ):
                         self._failed  = self._failed + int(m2.group(4))
                         info[testName]["Fail"] = int(m2.group(4))
                         
-                        info[testName]["Status"] =  self._status
+                        info[testName]["Result"] =  self._status
 
                         self._subTask.append(info)
                    
@@ -801,7 +801,7 @@ class BuildNotification( object ):
         self.testEngineErrMsg = ''
         self.buildErrorMsg = ''
         self.logReport = {}
-        self.jsonReport = { "OBTResult" : { "Env" : {},  "BuildSet" :{},  "Exclusion": {}, "ThorConfig": {}, "Tasks":{},  "Errors":[] } }
+        self.jsonReport = { "OBTResult" : { "Env" : {},  "BuildSet" :{},  "Exclusion": {}, "ThorConfig": {}, "Tasks":[],  "Errors":[] } }
            
 
     def appendWithDelimiter(self, target,  text,  delimiter = ', '):
@@ -892,7 +892,8 @@ class BuildNotification( object ):
         self.jsonReport["OBTResult"]["BuildSet"]["Branch"] =  self.results[self.buildTaskIndex].gitBranchName
         self.jsonReport["OBTResult"]["BuildSet"]["BranchDate"] =  self.results[self.buildTaskIndex].gitBranchDate
         self.jsonReport["OBTResult"]["BuildSet"]["BranchSHA"] =  self.results[self.buildTaskIndex].gitBranchCommit
-        self.jsonReport["OBTResult"]["BuildSet"]["BuikdType"] =  self.config.buildType
+        self.jsonReport["OBTResult"]["BuildSet"]["BuildType"] =  self.config.buildType
+        self.jsonReport["OBTResult"]["BuildSet"]["Target"] = "BM/VM"
         
         self.jsonReport["OBTResult"]["ThorConfig"]["Slaves"] =  self.config.thorSlaves
         self.jsonReport["OBTResult"]["ThorConfig"]["Channels"] =  self.config.thorChannelsPerSlave
@@ -921,15 +922,12 @@ class BuildNotification( object ):
         subjectSuffix = ''
         subjectStatus = ''
         subjectError = ''
+        regressIndex = -1
 
         for task in self.results:
             if debug:
                 print("Task name:" +task.name)
                 print("\tTask result:" + task.result)
-
-            self.jsonReport["OBTResult"]["Tasks"][task.name] = {}
-            self.jsonReport["OBTResult"]["Tasks"][task.name] ["Result"]= task.status
-            
 
             result = task.result
             p = re.compile('(.*)otal:([0-9]+) passed:([0-9]+) failed:([0-9]+)\s*$')
@@ -1054,23 +1052,44 @@ class BuildNotification( object ):
             # For elaps times
             #
             try:
-                if task.name in ['Build', 'Wutooltests', 'Unittests', 'MLtests', 'Setup', 'Hthor', 'Thor', 'Roxie']:
+                if task.name in ['Build', 'Wutooltests', 'Unittests', 'MLtests', 'Setup']: #, 'Hthor', 'Thor', 'Roxie']:
                     self.msgHTML += "<TD align=\"right\">" 
                     for elaps in task.elapsTime:
-                           self.msgHTML += elaps +"<br>\n"
-                    self.jsonReport["OBTResult"]["Tasks"][task.name] = {"Result":  task.status}
+                        self.msgHTML += elaps +"<br>\n"
+                           
+                    taskItem = {task.name : {}}
+                    #self.jsonReport["OBTResult"]["Tasks"][task.name] = {"Result":  task.status}
+                    taskItem[task.name] = {"Result":  task.status}
                     for subTask in task.subTask:
                         for key in subTask:
-                            self.jsonReport["OBTResult"]["Tasks"][task.name] [key] =  subTask[key]
-#                elif task.name in [ 'Hthor', 'Thor', 'Roxie'] and len(task.elapsTime):
-#                       self.msgHTML += "<TD align=\"right\">" 
-#                       self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"] = []
-#                       for elaps in task.elapsTime:
-#                           self.msgHTML += elaps +"<br>\n"
-#                           self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"].append(elaps)
+                            #self.jsonReport["OBTResult"]["Tasks"][task.name] [key] =  subTask[key]
+                            taskItem[task.name] [key] =  subTask[key]
+                            
+                    self.jsonReport["OBTResult"]["Tasks"].append(taskItem)
+                    
+                elif task.name in [ 'Hthor', 'Thor', 'Roxie'] and len(task.elapsTime):
+                    self.msgHTML += "<TD align=\"right\">" 
+                    for elaps in task.elapsTime:
+                        self.msgHTML += elaps +"<br>\n"
+                    
+                    if regressIndex == -1:
+                        self.jsonReport["OBTResult"]["Tasks"].append( {"Regress" : {"Result":  "PASSED" }})
+                        regressIndex = len(self.jsonReport["OBTResult"]["Tasks"])-1
+                    
+                    if task.status == "FAILED":
+                        self.jsonReport["OBTResult"]["Tasks"][regressIndex]["Regress"]["Result"] =  task.status
+                        
+                    self.jsonReport["OBTResult"]["Tasks"][regressIndex]["Regress"][task.name] = {"Result":  task.status}
+                    
+                    for subTask in task.subTask:
+                        for key in subTask:
+                            self.jsonReport["OBTResult"]["Tasks"][regressIndex]["Regress"][task.name][key] =  subTask[key]
                 else:
                        self.msgHTML += "<TD align=\"center\"> No data"
-                       self.jsonReport["OBTResult"]["Tasks"][task.name] ["Elaps"] = "No data"
+                       taskItem = {task.name : { "Elaps" : "No data" }} 
+                       #taskItem["Elaps"] = "No data"
+                       self.jsonReport["OBTResult"]["Tasks"].append(taskItem)
+                       
 
             except:
                 print("Exception in add elaps times:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
