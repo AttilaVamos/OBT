@@ -136,7 +136,7 @@ then
                 echo "buildId: $buildId"
 
                 #res=$( curl ${curlParams} https://scan.coverity.com/builds?project=$COVERITY_PROJECT_NAME 2>&1 )
-                res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} $uploadUrl)
+                res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
                 echo "Result: ${res}"
 
                 echo "Trigger the build on Scan."
