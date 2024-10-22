@@ -40,6 +40,7 @@ if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BR
 then
     if [[ $CONTAINERIZED -eq 0 ]]
     then
+        PROJECT_ID=1115
         REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
         if [ -f coverityToken.dat ]
         then
@@ -52,7 +53,8 @@ then
             exit -1
         fi
         COVERITY_PROJECT_NAME=HPCC-Platform
-    else    
+    else
+        PROJECT_ID=29342
         REPORT_FILE_NAME=hpcc-cloud-$SHORT_DATE.tgz
         if [ -f coverityTokenCloud.dat ]
         then
@@ -117,15 +119,30 @@ then
 
                 # Need to add error handling and retrying
                 echo "Uploading started"
-
-                curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
+                echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
+                echo "PROJECT_ID      : '$PROJECT_ID'"
+                #curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
                 #curlParams='--data "project='$COVERITY_PROJECT_NAME'&token='$COVERITY_TOKEN'&email=attila.vamos@gmail.com&url=localhost/'${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME}'&version="'${BRANCH_ID}-SHA:${branchCrc}'"&description=\"Upload by OBT\"'
-                     
-                echo "curl params: ${curlParams}"
 
-                res=$( curl ${curlParams} https://scan.coverity.com/builds?project=$COVERITY_PROJECT_NAME 2>&1 )
-            
-                echo "Upload finished."
+                res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
+                echo "Result: ${res}"
+
+                #uploadUrl=$(jq -r '.url' response)
+                uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
+                echo "uploadUrl: '$uploadUrl'"
+
+                #buildId=$(jq -r '.build_id' response)
+                buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
+                echo "buildId: $buildId"
+
+                #res=$( curl ${curlParams} https://scan.coverity.com/builds?project=$COVERITY_PROJECT_NAME 2>&1 )
+                res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} $uploadUrl)
+                echo "Result: ${res}"
+
+                echo "Trigger the build on Scan."
+                echo "Result: ${res}"
+
+                res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
                 echo "Result: ${res}"
 
                 echo "Clean-up, remove the generated cov-int directory"
