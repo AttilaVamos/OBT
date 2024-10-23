@@ -67,7 +67,7 @@ echo "Start Coverity scan upload."
 # To upload
 # When you upload the build can you also include the commit SHA in the version (Gavin)
 #
-echo "Get ${BRANCH_ID} branch SHA"
+echo "Get ${COVERITY_TEST_BRANCH} branch SHA"
 # Need to use the correct path which is PCC-Platform-master-<timestamp>
 branchDir=$(find ~/build/CE/platform/ -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
 if [[ -d $branchDir ]]
@@ -95,7 +95,7 @@ retCode=$?
 echo -e "Ret code: $retCode\nResult: ${res}"
 # Check the response
 #  If "Your build is already in the queue for analysis...." is there nothing to do
-if [[ "$res" =~ already in the queue" ]]
+if [[ "$res" =~ "already in the queue" ]]
 then
     echo "Skip the rest, result is already uploaded."
 else
