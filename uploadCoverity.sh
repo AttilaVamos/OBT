@@ -68,12 +68,19 @@ echo "Start Coverity scan upload."
 # When you upload the build can you also include the commit SHA in the version (Gavin)
 #
 echo "Get ${BRANCH_ID} branch SHA"
-pushd ~/build/CE/platform/HPCC-Platform/
-
-branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+# Need to use the correct path which is PCC-Platform-master-<timestamp>
+branchDir=$(find ~/build/CE/platform/ -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
+if [[ -d $branchDir ]]
+then
+    pushd $branchDir
+    branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+    popd   
+else
+    echo "$branchDir not found"
+    branchCrc="NotFound"
+fi
 
 echo ${branchCrc}
-popd
 
 echo "Send Email to ${RECEIVERS}"
 echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
@@ -100,9 +107,6 @@ echo "Result: ${res}"
 echo "Trigger the build on Scan."
 res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
 echo "Result: ${res}"
-
-echo "Clean-up, remove the generated cov-int directory"
-rm -rf cov-int
 
 echo "End."
 
