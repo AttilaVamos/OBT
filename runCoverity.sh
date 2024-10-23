@@ -106,13 +106,20 @@ then
                 # To upload
                 # When you upload the build can you also include the commit SHA in the version (Gavin)
                 #
-                echo "Get ${BRANCH_ID} branch SHA"
-                pushd ~/build/CE/platform/HPCC-Platform/
-               
-                branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
-                
+                echo "Get ${COVERITY_TEST_BRANCH} branch SHA"
+               # Need to use the correct path which is PCC-Platform-master-<timestamp>
+                branchDir=$(find ~/build/CE/platform/ -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
+                if [[ -d $branchDir ]]
+                then
+                    pushd $branchDir
+                    branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+                    popd   
+                else
+                    echo "$branchDir not found"
+                    branchCrc="NotFound"
+                fi
+
                 echo ${branchCrc}
-                popd
 
                 echo "Send Email to ${RECEIVERS}"
                 echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
@@ -121,29 +128,37 @@ then
                 echo "Uploading started"
                 echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
                 echo "PROJECT_ID      : '$PROJECT_ID'"
-                #curlParams="--form token=$COVERITY_TOKEN --form email=${ADMIN_EMAIL_ADDRESS} --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --form version=\"${BRANCH_ID}-SHA:${branchCrc}\" --form description=\"Upload by OBT\" "
-                #curlParams='--data "project='$COVERITY_PROJECT_NAME'&token='$COVERITY_TOKEN'&email=attila.vamos@gmail.com&url=localhost/'${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME}'&version="'${BRANCH_ID}-SHA:${branchCrc}'"&description=\"Upload by OBT\"'
 
+                echo "Get upload parameters:"
                 res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
-                echo "Result: ${res}"
+                retCode=$?
+                echo -e "Ret code: $retCode\nResult: ${res}"
 
-                #uploadUrl=$(jq -r '.url' response)
-                uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
-                echo "uploadUrl: '$uploadUrl'"
+                # Check the response
+                # If
+                #     "Your build is already in the queue for analysis...." 
+                # or 
+                #     "The build submission quota for this project has been reached..."
+                # is there then nothing to do
+                #
+                if [[ "$res" =~ "already in the queue" || "$res" =~ "submission quota" ]]
+                then
+                    echo "Skip the rest, result is already uploaded."
+                else
+                    uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
+                    echo "uploadUrl: '$uploadUrl'"
 
-                #buildId=$(jq -r '.build_id' response)
-                buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
-                echo "buildId: $buildId"
+                    buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
+                    echo "buildId: $buildId"
 
-                #res=$( curl ${curlParams} https://scan.coverity.com/builds?project=$COVERITY_PROJECT_NAME 2>&1 )
-                res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
-                echo "Result: ${res}"
+                    echo "Upload  ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} file"
+                    res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
+                    echo "Result: ${res}"
 
-                echo "Trigger the build on Scan."
-                echo "Result: ${res}"
-
-                res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
-                echo "Result: ${res}"
+                    echo "Trigger the build on Scan."
+                    res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
+                    echo "Result: ${res}"
+                fi
 
                 echo "Clean-up, remove the generated cov-int directory"
                 rm -rf cov-int

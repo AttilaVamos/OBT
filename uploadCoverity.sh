@@ -54,12 +54,12 @@ else
                 exit -1
             fi
     else
-        echo "Coverity scan file not found."
+        echo "Coverity scan file for $SHORT_DATE not found."
+        echo "To upload an older (hpcc[-cloud]-*-YYYY-MM-DD.tgz), but not yet analysed result, use $0 <YYYY-MM-DD>."
         exit -1
     fi
 fi
 
-WEEK_DAY=$(date "+%w")
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
 echo "Start Coverity scan upload."
@@ -90,23 +90,29 @@ echo "Uploading started"
 echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
 echo "PROJECT_ID      : '$PROJECT_ID'"
 
+echo "Get upload parameters:"
 res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
 retCode=$?
 echo -e "Ret code: $retCode\nResult: ${res}"
+
 # Check the response
-#  If "Your build is already in the queue for analysis...." is there nothing to do
+# If
+#     "Your build is already in the queue for analysis...." 
+# or 
+#     "The build submission quota for this project has been reached..."
+# is there then nothing to do
+#
 if [[ "$res" =~ "already in the queue" || "$res" =~ "submission quota" ]]
 then
     echo "Skip the rest, result is already uploaded."
 else
-    #uploadUrl=$(jq -r '.url' response)
     uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
     echo "uploadUrl: '$uploadUrl'"
 
-    #buildId=$(jq -r '.build_id' response)
     buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
     echo "buildId: $buildId"
 
+    echo "Upload  ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} file"
     res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
     echo "Result: ${res}"
 
