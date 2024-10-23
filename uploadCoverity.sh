@@ -91,22 +91,29 @@ echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
 echo "PROJECT_ID      : '$PROJECT_ID'"
 
 res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
-echo "Result: ${res}"
+retCode=$?
+echo -e "Ret code: $retCode\nResult: ${res}"
+# Check the response
+#  If "Your build is already in the queue for analysis...." is there nothing to do
+if [[ "$res" =~ already in the queue" ]]
+then
+    echo "Skip the rest, result is already uploaded."
+else
+    #uploadUrl=$(jq -r '.url' response)
+    uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
+    echo "uploadUrl: '$uploadUrl'"
 
-#uploadUrl=$(jq -r '.url' response)
-uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
-echo "uploadUrl: '$uploadUrl'"
+    #buildId=$(jq -r '.build_id' response)
+    buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
+    echo "buildId: $buildId"
 
-#buildId=$(jq -r '.build_id' response)
-buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
-echo "buildId: $buildId"
+    res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
+    echo "Result: ${res}"
 
-res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
-echo "Result: ${res}"
-
-echo "Trigger the build on Scan."
-res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
-echo "Result: ${res}"
+    echo "Trigger the build on Scan."
+    res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
+    echo "Result: ${res}"
+fi
 
 echo "End."
 
