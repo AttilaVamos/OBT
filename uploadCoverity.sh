@@ -95,7 +95,7 @@ retCode=$?
 echo -e "Ret code: $retCode\nResult: ${res}"
 # Check the response
 #  If "Your build is already in the queue for analysis...." is there nothing to do
-if [[ "$res" =~ "already in the queue" ]]
+if [[ "$res" =~ "already in the queue" || "$res" =~ "submission quota" ]]
 then
     echo "Skip the rest, result is already uploaded."
 else
