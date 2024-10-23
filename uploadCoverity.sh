@@ -17,52 +17,92 @@ then
 else
     SHORT_DATE=$1
 fi
+
 REPORT_FILE_NAME=hpcc-$SHORT_DATE.tgz
+CONTAINERIZED=0
+
+if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
+then
+        COVERITY_PROJECT_NAME=HPCC-Platform
+        PROJECT_ID=1115
+        if [ -f coverityToken.dat ]
+        then
+            echo "Get Coverity upload token."
+            COVERITY_TOKEN=$(cat coverityToken.dat)
+            echo "Done."
+        else
+            echo "Send Email to ${RECEIVERS} about missing 'coverityToken'."
+            echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} failed on missing coverityToken.\n\nThanks\n\nOBT" | mailx -s "Missing coverityToken" -u root  ${RECEIVERS}
+            exit -1
+        fi
+else
+    REPORT_FILE_NAME=hpcc-cloud-$SHORT_DATE.tgz
+    if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
+    then
+            CONTAINERIZED=1
+            COVERITY_PROJECT_NAME=HPCC-Platform-Cloud
+            PROJECT_ID=29342
+
+            if [ -f coverityTokenCloud.dat ]
+            then
+                echo "Get Coverity Cloud upload token."
+                COVERITY_TOKEN=$(cat coverityTokenCloud.dat)
+                echo "Done."
+            else
+                echo "Send Email to ${RECEIVERS} about missing 'coverityTokenCloud.dat'."
+                echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} failed on missing coverityCloudToken.\n\nThanks\n\nOBT" | mailx -s "Missing coverityCloudToken" -u root  ${RECEIVERS}
+                exit -1
+            fi
+    else
+        echo "Coverity scan file not found."
+        exit -1
+    fi
+fi
 
 WEEK_DAY=$(date "+%w")
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
-if [ -f coverityToken.dat ]
-then
-    echo "Get Coverity upload token."
-    COVERITY_TOKEN=$(cat coverityToken.dat)
-    echo "Done."
-else
-    echo "Send Email to ${RECEIVERS} about missing 'coverityToken'."
-    echo -e "Hi,\n\nCoverity analysis upload failed on missing coverityToken.\n\nThanks\n\nOBT" | mailx -s "Missing coverityToken" -u root  ${RECEIVERS}
-    exit -1
-fi
+echo "Start Coverity scan upload."
 
+# To upload
+# When you upload the build can you also include the commit SHA in the version (Gavin)
+#
+echo "Get ${BRANCH_ID} branch SHA"
+pushd ~/build/CE/platform/HPCC-Platform/
 
-if [[ -f ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} ]]
-then
-    echo "Start Coverity scan upload."
+branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
 
-    # To upload
-    # When you upload the build can you also include the commit SHA in the version (Gavin)
-    #
+echo ${branchCrc}
+popd
 
-    echo "Get ${BRANCH_ID} branch SHA"
-    pushd ~/build/CE/platform/HPCC-Platform/
-          
-    branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+echo "Send Email to ${RECEIVERS}"
+echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
 
-    #branchCrc=db01fc58b205926f02dda2963a0c0e562b6331f3
-            
-    echo ${branchCrc}
-    popd
+# Need to add error handling and retrying
+echo "Uploading started"
+echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
+echo "PROJECT_ID      : '$PROJECT_ID'"
 
-    curl --form token=$COVERITY_TOKEN \
-      --form email=${ADMIN_EMAIL_ADDRESS} \
-      --form file=@${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} \
-      --form version="${BRANCH_ID}-SHA:${branchCrc}" \
-      --form description=" " \
-      https://scan.coverity.com/builds?project=HPCC-Platform
+res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
+echo "Result: ${res}"
 
-    #echo "$res"
-else
-    echo "Coverity scan file not found."
-fi        
+#uploadUrl=$(jq -r '.url' response)
+uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
+echo "uploadUrl: '$uploadUrl'"
+
+#buildId=$(jq -r '.build_id' response)
+buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
+echo "buildId: $buildId"
+
+res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
+echo "Result: ${res}"
+
+echo "Trigger the build on Scan."
+res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
+echo "Result: ${res}"
+
+echo "Clean-up, remove the generated cov-int directory"
+rm -rf cov-int
 
 echo "End."
 
