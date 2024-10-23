@@ -414,8 +414,8 @@ RUN_COVERITY=1
 COVERITY_TEST_BRANCH=master
 COVERITY_REPORT_PATH=~/common/nightly_builds/Coverity
 
-COVERITY_TEST_DAY=1    # Monday for BM/VM build
-COVERITY_CLOUD_TEST_DAY=3   # Wednesday
+COVERITY_TEST_DAY=4 # Thursday   #1    # Monday for BM/VM build
+COVERITY_CLOUD_TEST_DAY=5 # Friday 3   # Wednesday
 
 #
 #----------------------------------------------------

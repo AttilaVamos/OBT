@@ -97,8 +97,8 @@ echo -e "Ret code: $retCode\nResult: ${res}"
 
 # Check the response
 # If
-#     "Your build is already in the queue for analysis...." 
-# or 
+#     "Your build is already in the queue for analysis...."
+# or
 #     "The build submission quota for this project has been reached..."
 # is there then nothing to do
 #

@@ -113,7 +113,7 @@ then
                 then
                     pushd $branchDir
                     branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
-                    popd   
+                    popd
                 else
                     echo "$branchDir not found"
                     branchCrc="NotFound"
@@ -136,8 +136,8 @@ then
 
                 # Check the response
                 # If
-                #     "Your build is already in the queue for analysis...." 
-                # or 
+                #     "Your build is already in the queue for analysis...."
+                # or
                 #     "The build submission quota for this project has been reached..."
                 # is there then nothing to do
                 #
