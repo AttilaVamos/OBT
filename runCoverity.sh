@@ -145,7 +145,7 @@ then
                 then
                     echo "Skip the rest, result is already uploaded."
                 else
-                    uploadUrl=$( echo "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )
+                    uploadUrl=$( echo -e "$res" | sed -n 's/.*"url":"\([^"]*\)",.*/\1/p' )  # the '-e' for echo necessary to avoid '&' chars conversion to '\u0026' code
                     echo "uploadUrl: '$uploadUrl'"
 
                     buildId=$(echo "$res" | sed -n 's/.*"build_id":\([^,]*\).*/\1/p' )
@@ -155,9 +155,14 @@ then
                     res=$(curl -X PUT --header 'Content-Type: application/json' --upload-file ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} --http1.1 $uploadUrl)
                     echo "Result: ${res}"
 
-                    echo "Trigger the build on Scan."
-                    res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
-                    echo "Result: ${res}"
+                    if [[ "$res" =~ "<Error>" ]]
+                    then
+                        echo "Problem with upload. Skip the rest."
+                    else
+                        echo "Trigger the build on Scan."
+                        res=$(curl -X PUT -d token=$COVERITY_TOKEN https://scan.coverity.com/projects/$PROJECT_ID/builds/$buildId/enqueue)
+                        echo "Result: ${res}"
+                    fi
                 fi
 
                 echo "Clean-up, remove the generated cov-int directory"
