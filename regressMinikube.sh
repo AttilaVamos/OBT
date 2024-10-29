@@ -1,6 +1,8 @@
 #!/usr/bin/bash
 #set -x;
 
+START_TIME=$( date "+%H:%M:%S")
+
 if [ -f ./timestampLogger.sh ]
 then
     . ./timestampLogger.sh
@@ -28,6 +30,12 @@ usage()
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
+}
+
+secToTimeStr()
+{
+    t=$1
+    echo "($( date -u --date @$t "+%H:%M:%S"))"
 }
 
 #set -x;
@@ -143,8 +151,11 @@ WriteLog "TAG            : $TAG" "$logFile"
 WriteLog "VERBOSE        : $VERBOSE" "$logFile"
 
 WriteLog "Update helm repo..." "$logFile"
+TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
+HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
+WriteLog "  Done in $HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -260,6 +271,7 @@ then
     exit 2
 else
     # We have the latest version of latest release branch in '<major>.<minor>.<point>' form
+    TAG_TO_TEST="$tagToTest$suffix"
     WriteLog "Final tag to test: $tagToTest$suffix" "$logFile"
 fi
 
@@ -276,6 +288,7 @@ WriteLog "base: ${base}" "$logFile"
 
 WriteLog "base major.minor:$baseMajorMinor" "$logFile"
 WriteLog "pkg:$pkg" "$logFile"
+TIME_STAMP=$(date +%s)
 if [ "$PKG_EXT" == ".deb" ]
 then
     CURRENT_PKG=$( ${PKG_QRY_CMD} | grep 'hpccsystems-pl' | awk '{ print $3 }' )
@@ -320,7 +333,11 @@ else
         fi
     fi
 fi
+PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
+PLATFORM_INSTALL_TIME_RESULT_STR="Done in $PLATFORM_INSTALL_TIME sec $(secToTimeStr "$PLATFORM_INSTALL_TIME")"
+WriteLog "  $PLATFORM_INSTALL_TIME_RESULT_STR" "$logFile"
 
+TIME_STAMP=$(date +%s)
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
 if [[ $isMinikubeUp -ne 4 ]]
 then
@@ -350,11 +367,21 @@ else
     WriteLog "Minikube is up." "$logFile"
 fi
 
+MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+MINIKUBE_START_TIME_RESULT_STR="Done in $MINIKUBE_START_TIME sec $(secToTimeStr "$MINIKUBE_START_TIME")"
+WriteLog "  $MINIKUBE_START_TIME_RESULT_STR" "$logFile"
+
+TIME_STAMP=$(date +%s)
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( helm install minikube hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
 WriteLog "$res" "$logFile"
+PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
+PLATFORM_DEPLOY_TIME_RESULT_STR="Done in $PLATFORM_DEPLOY_TIME sec $(secToTimeStr "$PLATFORM_DEPLOY_TIME")"
+WriteLog "  $PLATFORM_DEPLOY_TIME_RESULT_STR" "$logFile"
 
 # Wait until everything is up
+WriteLog "Wait for PODs" "$logFile"
+TIME_STAMP=$(date +%s)
 tryCount=60
 delay=10
 expected=0
@@ -381,6 +408,9 @@ done
 sleep 10
 # test it
 WriteLog "$(printf '\nExpected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
+PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+PODS_START_TIME_RESULT_STR="Done in $PODS_START_TIME sec $(secToTimeStr "$PODS_START_TIME"), $running PODs are up."
+WriteLog "  $PODS_START_TIME_RESULT_STR" "$logFile"
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
@@ -388,7 +418,8 @@ then
 
     pushd $RTE_DIR > /dev/null
     WriteLog "cwd: $(pwd)" "$logFile"
-
+    
+    TIME_STAMP=$(date +%s)
     WriteLog "Start ECLWatch." "$logFile"
     res=$( minikube service eclwatch 2>&1)
     WriteLog "$res" "$logFile"
@@ -402,7 +433,10 @@ then
     WriteLog "port: $port" "$logFile"
     #echo "Press <Enter> to continue"
     #read
-
+    GET_ECLWATCH_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    GET_ECLWATCH_TIME_RESULT_STR="Done in $GET_ECLWATCH_TIME sec $(secToTimeStr "$GET_ECLWATCH_TIME")"
+    WriteLog "  $GET_ECLWATCH_TIME_RESULT_STR" "$logFile"
+    
     WriteLog "Run tests." "$logFile"
     #pwd
 
@@ -424,17 +458,23 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
+        numberOfPublished=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
+        TIME_STAMP=$(date +%s)
         while read query
         do
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
+            numberOfPublished=$(( numberOfPublished + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
+        QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        WriteLog "  Done." "$logFile"
+        QUERIES_PUBLISH_TIME_RESULT_STR="Done in $QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME"), $numberOfPublished queries published to Roxie."
+        WriteLog "  $QUERIES_PUBLISH_TIME_RESULT_STR" "$logFile"
 
+        REGRESSION_START_TIME=$( date "+%H:%M:%S")
         # Regression stage
         WriteLog "Run regression ..." "$logFile"
         if [[ $FULL_REGRESSION -eq 1 ]]
@@ -461,9 +501,13 @@ then
 
     if [[ -n "$QUERY_STAT2_DIR" ]]
     then
+        TIME_STAMP=$(date +%s)
         pushd $QUERY_STAT2_DIR > /dev/null
         res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
+        QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
+        QUERY_STAT2_TIME_RESULT_STR="Done in $QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
+        WriteLog "  $QUERY_STAT2_TIME_RESULT_STR" "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
@@ -476,6 +520,7 @@ else
 fi
 
 # Get all logs if needed
+TIME_STAMP=$(date +%s)
 if [[ ${getLogs} -ne 0 ]]
 then
     WriteLog "Collect logs" "$logFile"
@@ -495,6 +540,9 @@ then
 else
     WriteLog "Skip log collection" "$logFile"
 fi
+COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
+COLLECT_LOGS_TIME_RESULT_STR="Done in $COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
+WriteLog "  $COLLECT_LOGS_TIME_RESULT_STR" "$logFile"
 
 if [[ $INTERACTIVE -eq 1 ]]
 then
@@ -503,6 +551,7 @@ then
 fi
 
 WriteLog "Uninstall PODs ..." "$logFile"
+TIME_STAMP=$(date +%s)
 res=$(helm uninstall minikube 2>&1)
 WriteLog "${res}" "$logFile"
 
@@ -556,17 +605,30 @@ do
     fi
 done;
 WriteLog "System is down" "$logFile"
+UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
+UNINSTALL_PODS_TIME_RESULT_STR="Done in $UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
+WriteLog "  $UNINSTALL_PODS_TIME_RESULT_STR" "$logFile"
 
+WriteLog "Stop Minikube" "$logFile"
+TIME_STAMP=$(date +%s)
 res=$(minikube stop 2>&1)
 WriteLog "${res}" "$logFile"
+MINIKUBE_STOP_TIME=$(( $(date +%s) - $TIME_STAMP ))
+MINIKUBE_STOP_TIME_RESULT_STR="Done in $MINIKUBE_STOP_TIME sec $(secToTimeStr "$MINIKUBE_STOP_TIME")."
+WriteLog "  $MINIKUBE_STOP_TIME_RESULT_STR" "$logFile"
 
 if [[ -n "$QUERY_STAT2_DIR" ]]
 then
+    WriteLog "Start log processor..." "$logFile"
     pushd $QUERY_STAT2_DIR > /dev/null
     if [ -f regressK8sLogProcessor.py ]
     then
+        TIME_STAMP=$(date +%s)
         res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
         WriteLog "${res}" "$logFile"
+        REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
+        REGRESS_LOG_PROCESSING_TIME_RESULT_STR="Done in $REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")."
+        WriteLog "  $REGRESS_LOG_PROCESSING_TIME_RESULT_STR" "$logFile"
     else
         WriteLog "regressK8sLogProcessor.py not found." "$logFile"
     fi
@@ -576,4 +638,5 @@ else
 fi
 
 WriteLog "End." "$logFile"
+END_TIME=$( date "+%H:%M:%S")
 WriteLog "==================================" "$logFile"

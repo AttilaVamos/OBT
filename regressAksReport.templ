@@ -1,0 +1,56 @@
+  - Execute regressAks.sh -r
+    - Start @$START_TIME
+
+    - Update helm repo
+      - $HELM_UPDATE_TIME_RESULT_STR
+
+    - Is choosed a good tag?
+      - Yes: $TAG_TO_TEST
+
+    - Upgrade Terraform
+      - $TERRAFORM_UPGRADE_TIME_RESULT_STR
+
+    - Virtual network
+      - $VNET_START_TIME_REULT_STR
+
+    - Storage accounts
+      - $STORAGE_START_TIME_RESULT_STR
+
+    - AKS
+      - $AKS_START_TIME_RESULT_STR
+
+    - ECLWatch annotated, up and running
+      -  $GET_ECLWATCH_TIME_RESULT_STR
+
+    - Setup:
+      - $SETUP_RESULT_STR 
+
+    - Publish queries:
+      - $QUERIES_PUBLISH_TIME_RESULT_STR
+
+    - Regression
+      - Started (local time): @REGRESSION_START_TIME
+
+      - $REGRESSION_RESULT_STR
+
+      - Errors: 
+        - see: $logFile
+
+    - Collect timings (QueryStat2.py)
+      - $QUERY_STAT2_TIME_RESULT_STR
+
+    - It finished without any problem with connection 
+
+    - Collect POD logs
+      - $COLLECT_LOGS_TIME_RESULT_STR
+
+    - AKS destroyed by the script
+      - $AKS_DESTROY_TIME_RESULT_STR
+
+    - Storage accounts destroyed
+      - $STORAGE_DESTROY_TIME_RESULT_STR
+
+    - VNET destroyed
+      - $VNET_DESTROY_TIME_RESULT_STR
+
+    - Finished @$END_TIME

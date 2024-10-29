@@ -1,0 +1,56 @@
+  - Execute regressAks.sh -r
+    - Start @$START_TIME
+
+    - Update helm repo
+      - $HELM_UPDATE_TIME_RESULT_STR
+
+    - Is choosed a good tag?
+      - Yes: $TAG_TO_TEST
+
+    - Check the locally installed platform
+      - $PLATFORM_INSTALL_TIME_RESULT_STR
+
+    - Start Minikube
+      - $MINIKUBE_START_TIME_RESULT_STR
+
+    - Deploy HPCC
+      - $PLATFORM_DEPLOY_TIME_RESULT_STR
+
+    - Wait for PODs
+      - $PODS_START_TIME_RESULT_STR
+
+    - ECLWatch annotated, up and running
+      -  $GET_ECLWATCH_TIME_RESULT_STR
+
+    - Setup:
+      - $SETUP_RESULT_STR 
+
+    - Publish queries:
+      - $QUERIES_PUBLISH_TIME_RESULT_STR
+
+    - Regression
+      - Started (local time): @REGRESSION_START_TIME
+
+      - $REGRESSION_RESULT_STR
+
+      - Errors: 
+        - see: $logFile
+
+    - Collect timings (QueryStat2.py)
+      - $QUERY_STAT2_TIME_RESULT_STR
+
+    - It finished without any problem with connection 
+
+    - Collect POD logs
+      - $COLLECT_LOGS_TIME_RESULT_STR
+
+    - Uninstall PODS
+      - $UNINSTALL_PODS_TIME_RESULT_STR
+
+    - Stop Minikube
+      - $MINIKUBE_STOP_TIME_RESULT_STR
+      
+    - Start log processor
+      - $REGRESS_LOG_PROCESSING_TIME_RESULT_STR
+
+    - Finished @$END_TIME
