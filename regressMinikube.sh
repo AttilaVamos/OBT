@@ -154,8 +154,10 @@ WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
+HELM_UPDATE_TIME_STR=$($HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME") )
+HELM_UPDATE_RESULT_STR="Done"
 WriteLog "$res" "$logFile"
-WriteLog "  Done in $HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")" "$logFile"
+WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -326,6 +328,7 @@ else
                 WriteLog "Install $candiadate failed with $retCode." "$logFile"
                 exit 1
             fi
+            CURRENT_PKG=$dandiate
             WriteLog "Done." "$logFile"
         else
             WriteLog "Platform install package:$pkd not found, exit." "$logFile"
@@ -333,9 +336,11 @@ else
         fi
     fi
 fi
+
 PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PLATFORM_INSTALL_TIME_RESULT_STR="Done in $PLATFORM_INSTALL_TIME sec $(secToTimeStr "$PLATFORM_INSTALL_TIME")"
-WriteLog "  $PLATFORM_INSTALL_TIME_RESULT_STR" "$logFile"
+PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(secToTimeStr "$PLATFORM_INSTALL_TIME")"
+PLATFORM_INSTALL_RESULT_STR="Done"
+WriteLog "  $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_RESULT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
@@ -368,16 +373,18 @@ else
 fi
 
 MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-MINIKUBE_START_TIME_RESULT_STR="Done in $MINIKUBE_START_TIME sec $(secToTimeStr "$MINIKUBE_START_TIME")"
-WriteLog "  $MINIKUBE_START_TIME_RESULT_STR" "$logFile"
+MINIKUBE_START_TIME_STR="$MINIKUBE_START_TIME sec $(secToTimeStr "$MINIKUBE_START_TIME")"
+MINIKUBE_START_RESULT_STR="Done"
+WriteLog "  $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_RESULT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 WriteLog "Deploy HPCC ..." "$logFile"
 res=$( helm install minikube hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
 WriteLog "$res" "$logFile"
 PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PLATFORM_DEPLOY_TIME_RESULT_STR="Done in $PLATFORM_DEPLOY_TIME sec $(secToTimeStr "$PLATFORM_DEPLOY_TIME")"
-WriteLog "  $PLATFORM_DEPLOY_TIME_RESULT_STR" "$logFile"
+PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(secToTimeStr "$PLATFORM_DEPLOY_TIME")"
+PLATFORM_DEPLOY_RESULT_STR="Done"
+WriteLog "  $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_RESULT_STR" "$logFile"
 
 # Wait until everything is up
 WriteLog "Wait for PODs" "$logFile"
@@ -409,8 +416,11 @@ sleep 10
 # test it
 WriteLog "$(printf '\nExpected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
 PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PODS_START_TIME_RESULT_STR="Done in $PODS_START_TIME sec $(secToTimeStr "$PODS_START_TIME"), $running PODs are up."
-WriteLog "  $PODS_START_TIME_RESULT_STR" "$logFile"
+PODS_START_TIME_STR="$PODS_START_TIME sec $(secToTimeStr "$PODS_START_TIME")"
+PODS_START_RESULT_STR="Done"
+NUMBER_OF_RUNNING_PODS=$running
+PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS PODs are up."
+WriteLog "  $PODS_START_RESULT_STR in $PODS_START_TIME_RESULT_STR, $PODS_START_RESULT_SUFFIX_STR" "$logFile"
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
@@ -434,8 +444,9 @@ then
     #echo "Press <Enter> to continue"
     #read
     GET_ECLWATCH_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    GET_ECLWATCH_TIME_RESULT_STR="Done in $GET_ECLWATCH_TIME sec $(secToTimeStr "$GET_ECLWATCH_TIME")"
-    WriteLog "  $GET_ECLWATCH_TIME_RESULT_STR" "$logFile"
+    GET_ECLWATCH_TIME_STR="$GET_ECLWATCH_TIME sec $(secToTimeStr "$GET_ECLWATCH_TIME")"
+    GET_ECLWATCH_TIME_RESULT_STR="Done"
+    WriteLog "  $GET_ECLWATCH_TIME_RESULT_STR in $GET_ECLWATCH_TIME_RESULT_STR" "$logFile"
     
     WriteLog "Run tests." "$logFile"
     #pwd
@@ -458,7 +469,7 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
-        numberOfPublished=0
+        NUMBER_OF_PUBLISHED=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
         TIME_STAMP=$(date +%s)
@@ -467,12 +478,14 @@ then
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
-            numberOfPublished=$(( numberOfPublished + 1 ))
+            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        QUERIES_PUBLISH_TIME_RESULT_STR="Done in $QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME"), $numberOfPublished queries published to Roxie."
-        WriteLog "  $QUERIES_PUBLISH_TIME_RESULT_STR" "$logFile"
+        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
+        QUERIES_PUBLISH_RESULT_STR="Done"
+        QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
+        WriteLog "  $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR" "$logFile"
 
         REGRESSION_START_TIME=$( date "+%H:%M:%S")
         # Regression stage
@@ -506,8 +519,9 @@ then
         res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
-        QUERY_STAT2_TIME_RESULT_STR="Done in $QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
-        WriteLog "  $QUERY_STAT2_TIME_RESULT_STR" "$logFile"
+        QUERY_STAT2_TIME_STR="$QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
+        QUERY_STAT2_RESULT_STR="Done"
+        WriteLog "  $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR" "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
@@ -540,9 +554,10 @@ then
 else
     WriteLog "Skip log collection" "$logFile"
 fi
-COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-COLLECT_LOGS_TIME_RESULT_STR="Done in $COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
-WriteLog "  $COLLECT_LOGS_TIME_RESULT_STR" "$logFile"
+COLLECT_POD_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
+COLLECT_POD_LOGS_TIME_STR="$COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
+COLLECT_POD_LOGS_RESULT_STR="Done"
+WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
 
 if [[ $INTERACTIVE -eq 1 ]]
 then
@@ -606,16 +621,18 @@ do
 done;
 WriteLog "System is down" "$logFile"
 UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-UNINSTALL_PODS_TIME_RESULT_STR="Done in $UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
-WriteLog "  $UNINSTALL_PODS_TIME_RESULT_STR" "$logFile"
+UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
+UNINSTALL_PODS_RESULT_STR="Done"
+WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR" "$logFile"
 
 WriteLog "Stop Minikube" "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(minikube stop 2>&1)
 WriteLog "${res}" "$logFile"
 MINIKUBE_STOP_TIME=$(( $(date +%s) - $TIME_STAMP ))
-MINIKUBE_STOP_TIME_RESULT_STR="Done in $MINIKUBE_STOP_TIME sec $(secToTimeStr "$MINIKUBE_STOP_TIME")."
-WriteLog "  $MINIKUBE_STOP_TIME_RESULT_STR" "$logFile"
+MINIKUBE_STOP_TIME_STR="$MINIKUBE_STOP_TIME sec $(secToTimeStr "$MINIKUBE_STOP_TIME")."
+MINIKUBE_STOP_TIME_RESULT="Done"
+WriteLog "  $MINIKUBE_STOP_TIME_RESULT in $MINIKUBE_STOP_TIME_STR" "$logFile"
 
 if [[ -n "$QUERY_STAT2_DIR" ]]
 then
@@ -627,8 +644,9 @@ then
         res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
         WriteLog "${res}" "$logFile"
         REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        REGRESS_LOG_PROCESSING_TIME_RESULT_STR="Done in $REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")."
-        WriteLog "  $REGRESS_LOG_PROCESSING_TIME_RESULT_STR" "$logFile"
+        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")."
+        REGRESS_LOG_PROCESSING_RESULT_STR="Done"
+        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR" "$logFile"
     else
         WriteLog "regressK8sLogProcessor.py not found." "$logFile"
     fi

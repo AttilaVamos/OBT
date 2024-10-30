@@ -2,31 +2,31 @@
     - Start @$START_TIME
 
     - Update helm repo
-      - $HELM_UPDATE_TIME_RESULT_STR
+      -$HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR
 
     - Is choosed a good tag?
       - Yes: $TAG_TO_TEST
 
     - Check the locally installed platform
-      - $PLATFORM_INSTALL_TIME_RESULT_STR
+      - $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_RESULT_STR
 
     - Start Minikube
-      - $MINIKUBE_START_TIME_RESULT_STR
+      - $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_RESULT_STR
 
     - Deploy HPCC
-      - $PLATFORM_DEPLOY_TIME_RESULT_STR
+      -$PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_RESULT_STR
 
     - Wait for PODs
-      - $PODS_START_TIME_RESULT_STR
+      -$PODS_START_RESULT_STR in $PODS_START_TIME_RESULT_STR, $PODS_START_RESULT_SUFFIX_STR
 
     - ECLWatch annotated, up and running
-      -  $GET_ECLWATCH_TIME_RESULT_STR
+      -  $GET_ECLWATCH_TIME_RESULT_STR in $GET_ECLWATCH_TIME_RESULT_STR
 
     - Setup:
       - $SETUP_RESULT_STR 
 
     - Publish queries:
-      - $QUERIES_PUBLISH_TIME_RESULT_STR
+      - $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR
 
     - Regression
       - Started (local time): @REGRESSION_START_TIME
@@ -37,20 +37,20 @@
         - see: $logFile
 
     - Collect timings (QueryStat2.py)
-      - $QUERY_STAT2_TIME_RESULT_STR
+      - $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR
 
     - It finished without any problem with connection 
 
     - Collect POD logs
-      - $COLLECT_LOGS_TIME_RESULT_STR
+      -  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR
 
     - Uninstall PODS
-      - $UNINSTALL_PODS_TIME_RESULT_STR
+      - $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR
 
     - Stop Minikube
-      - $MINIKUBE_STOP_TIME_RESULT_STR
+      - $MINIKUBE_STOP_TIME_RESULT in $MINIKUBE_STOP_TIME_STR
       
     - Start log processor
-      - $REGRESS_LOG_PROCESSING_TIME_RESULT_STR
+      - $$REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR
 
     - Finished @$END_TIME

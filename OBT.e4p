@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-10-28, 23:15:22 -->
+<!-- Saved: 2024-10-30, 12:52:42 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -96,8 +96,11 @@
     <Source>regress.sh</Source>
     <Source>regressAks.sh</Source>
     <Source>regressAksReport.templ</Source>
+    <Source>regressAksReportJson.templ</Source>
     <Source>regressK8sLogProcessor.py</Source>
     <Source>regressMinikube.sh</Source>
+    <Source>regressMinikubeReport.templ</Source>
+    <Source>regressMinikubeReportJson.templ</Source>
     <Source>regress_cassandra.sh</Source>
     <Source>regressionLogProcessor.py</Source>
     <Source>remove_hpcc.sh</Source>
@@ -131,6 +134,7 @@
   <Others>
     <Other>.gitignore</Other>
     <Other>regressAksReport.templ</Other>
+    <Other>regressMinikubeReport.templ</Other>
   </Others>
   <Vcs>
     <VcsType>Git</VcsType>
