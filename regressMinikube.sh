@@ -1,7 +1,9 @@
 #!/usr/bin/bash
 #set -x;
+PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 START_TIME=$( date "+%H:%M:%S")
+START_CMD="$0 $*"
 
 if [ -f ./timestampLogger.sh ]
 then
@@ -39,7 +41,8 @@ secToTimeStr()
 }
 
 #set -x;
-logFile=$(pwd)/regressMinikube-$(date +%Y-%m-%d_%H-%M-%S).log
+START_DATE=$(date +%Y-%m-%d_%H-%M-%S)
+logFile=$(pwd)/regressMinikube-$START_DATE.log
 
 getLogs=0
 if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
@@ -154,7 +157,7 @@ WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
-HELM_UPDATE_TIME_STR=$($HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME") )
+HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")"
 HELM_UPDATE_RESULT_STR="Done"
 WriteLog "$res" "$logFile"
 WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
@@ -340,7 +343,7 @@ fi
 PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(secToTimeStr "$PLATFORM_INSTALL_TIME")"
 PLATFORM_INSTALL_RESULT_STR="Done"
-WriteLog "  $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_RESULT_STR" "$logFile"
+WriteLog "  $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
@@ -375,7 +378,7 @@ fi
 MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
 MINIKUBE_START_TIME_STR="$MINIKUBE_START_TIME sec $(secToTimeStr "$MINIKUBE_START_TIME")"
 MINIKUBE_START_RESULT_STR="Done"
-WriteLog "  $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_RESULT_STR" "$logFile"
+WriteLog "  $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 WriteLog "Deploy HPCC ..." "$logFile"
@@ -384,7 +387,7 @@ WriteLog "$res" "$logFile"
 PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(secToTimeStr "$PLATFORM_DEPLOY_TIME")"
 PLATFORM_DEPLOY_RESULT_STR="Done"
-WriteLog "  $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_RESULT_STR" "$logFile"
+WriteLog "  $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR" "$logFile"
 
 # Wait until everything is up
 WriteLog "Wait for PODs" "$logFile"
@@ -420,7 +423,7 @@ PODS_START_TIME_STR="$PODS_START_TIME sec $(secToTimeStr "$PODS_START_TIME")"
 PODS_START_RESULT_STR="Done"
 NUMBER_OF_RUNNING_PODS=$running
 PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS PODs are up."
-WriteLog "  $PODS_START_RESULT_STR in $PODS_START_TIME_RESULT_STR, $PODS_START_RESULT_SUFFIX_STR" "$logFile"
+WriteLog "  $PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR" "$logFile"
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
@@ -443,10 +446,10 @@ then
     WriteLog "port: $port" "$logFile"
     #echo "Press <Enter> to continue"
     #read
-    GET_ECLWATCH_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    GET_ECLWATCH_TIME_STR="$GET_ECLWATCH_TIME sec $(secToTimeStr "$GET_ECLWATCH_TIME")"
-    GET_ECLWATCH_TIME_RESULT_STR="Done"
-    WriteLog "  $GET_ECLWATCH_TIME_RESULT_STR in $GET_ECLWATCH_TIME_RESULT_STR" "$logFile"
+    ECLWATCH_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    ECLWATCH_START_TIME_STR="$ECLWATCH_START_TIME sec $(secToTimeStr "$ECLWATCH_START_TIME")"
+    ECLWATCH_START_RESULT_STR="Done"
+    WriteLog "  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR" "$logFile"
     
     WriteLog "Run tests." "$logFile"
     #pwd
@@ -555,7 +558,7 @@ else
     WriteLog "Skip log collection" "$logFile"
 fi
 COLLECT_POD_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-COLLECT_POD_LOGS_TIME_STR="$COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
+COLLECT_POD_LOGS_TIME_STR="$COLLECT_POD_LOGS_TIME sec $(secToTimeStr "$COLLECT_POD_LOGS_TIME")."
 COLLECT_POD_LOGS_RESULT_STR="Done"
 WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
 
@@ -623,7 +626,8 @@ WriteLog "System is down" "$logFile"
 UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
 UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
 UNINSTALL_PODS_RESULT_STR="Done"
-WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR" "$logFile"
+UNINSTALL_PODS_RESULT_SUFFIX_STR="$running PODs are running."
+WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR, UNINSTALL_PODS_RESULT_SUFFIX_STR" "$logFile"
 
 WriteLog "Stop Minikube" "$logFile"
 TIME_STAMP=$(date +%s)
@@ -655,6 +659,25 @@ else
     WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
 fi
 
-WriteLog "End." "$logFile"
 END_TIME=$( date "+%H:%M:%S")
+
+WriteLog "Generate reports..." "$logFile"
+TIME_STAMP=$(date +%s)
+WriteLog "  Text one" "$logFile"
+report1=$(<./regressMinikubeReport.templ)
+# Do it with 'eval'
+eval "resolved1=\"$report1\""
+echo "$resolved1" > regressMinikube-$START_DATE.report
+
+WriteLog "  JSON one" "$logFile"
+report2=$(<./regressMinikubeReportJson.templ)
+eval "resolved2=\"$report2\""
+echo "$resolved2"
+echo "$resolved2" > regressMinikube-$START_DATE.json
+
+REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))
+REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(secToTimeStr "$REPORT_GENERATION_TIME")"
+WriteLog "  Report generation is done in $REPORT_GENERATION_TIME_STR." "$logFile"
+
+WriteLog "End." "$logFile"
 WriteLog "==================================" "$logFile"

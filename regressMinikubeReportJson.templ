@@ -1,192 +1,213 @@
 {
-    "OBTResult": {
-        "Env": {
-            "BuildSystem": "Rocky_Linux_8_9",
-            "Hardware": "CPU/Cores: 8, RAM: 15 GB",
-            "IPAddress": "10.22.254.98 (OBT-AWS04)"
+    \"OBTResult\":{
+        \"Env\":{
+            \"BuildSystem\":\"Rocky_Linux_8_9\",
+            \"Hardware\":\"vCPU: 8, RAM: 15 GB\",
+            \"IPAddress\":\"10.22.254.98\"
         },
-        "BuildSet": {
-            "Branch": " $TAG_TO_TEST",
-            "BranchDate": "Tue Oct 29 11:30:11 2024",
-            "BranchSHA": "cf4b0158b43c83c24f9c9fcfe98f4dd6119405fc",
-            "BuildType": "RelWithDebInfo",
-            "Target": "Minikube"
+        \"BuildSet\":{
+            \"Branch\":\" $TAG_TO_TEST\",
+            \"BranchDate\":\"Tue Oct 29 11:30:11 2024\",
+            \"BranchSHA\":\"cf4b0158b43c83c24f9c9fcfe98f4dd6119405fc\",
+            \"BuildType\":\"RelWithDebInfo\",
+            \"Target\":\"Minikube\"
         },
-        "Exclusion": {
-            "Build": "MAKE_CASSANDRAEMBED, COUCHBASEEMBED, USE_AZURE, USE_AWS, WASMEMBED",
-            "Documentation": "not built",
-            "Unittest": "JlibReaderWriterTestTiming, AtomicTimingTest, AtomicTimingStressTest",
-            "MLtest": "ClassicTestModified.ecl, SVCTest.ecl",
-            "Regression": "embedded, 3rdparty, python2, wasmembed*"
+        \"Exclusion\":{
+            \"Build\":\"MAKE_CASSANDRAEMBED, COUCHBASEEMBED, USE_AZURE, USE_AWS, WASMEMBED\",
+            \"Documentation\":\"not built\",
+            \"Unittest\":\"JlibReaderWriterTestTiming, AtomicTimingTest, AtomicTimingStressTest\",
+            \"MLtest\":\"ClassicTestModified.ecl, SVCTest.ecl\",
+            \"Regression\":\"embedded, 3rdparty, python2, wasmembed*\"
         },
-        "ThorConfig": {
-            "Slaves": "4",
-            "Channels": "1"
+        \"ThorConfig\":{
+            \"Slaves\":\"4\",
+            \"Channels\":\"1\"
         },
-        "Tasks": [
+        \"Tasks\":[
             {
-                "UpdateHelmRepo": {
-                    "Result" : "$HELM_UPDATE_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$HELM_UPDATE_TIME_STR",
-                        "RawSec": "$HELM_UPDATE_TIME"
-                    },
-                }
-            },
-            {
-                "CheckLocalPlatform": {
-                    "Result" : "$PLATFORM_INSTALL_RESULT_STR",
-                    "Version" "$CURRENT_PKG",
-                    "Elaps": {
-                        "Formatted": "$PLATFORM_INSTALL_TIME_STR",
-                        "RawSec": "$PLATFORM_INSTALL_TIME"
-                    },
-                }
-            },
-            {
-                "StartMinikube": {
-                    "Result" : "$MINIKUBE_START_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$MINIKUBE_START_TIME_STR",
-                        "RawSec": "$MINIKUBE_START_TIME"
-                    },
-                }
-            },
-            {
-                "DeployHPCC": {
-                    "Result" : "$PLATFORM_DEPLOY_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$PLATFORM_DEPLOY_TIME_STR",
-                        "RawSec": "$PLATFORM_DEPLOY_TIME"
-                    },
-                }
-            },
-            {
-                "WaitForPODs": {
-                    "Result" : "$PODS_START_RESULT_STR",
-                    "NumberOfPODs" : "$NUMBER_OF_RUNNING_PODS",
-                    "Elaps": {
-                        "Formatted": "$PODS_START_TIME_STR",
-                        "RawSec": "$PODS_START_TIME"
-                    },
-                }
-            },
-            {
-                "ECLWatchAnnotation": {
-                    "Result" : "$GET_ECLWATCH_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$GET_ECLWATCH_TIME_RESULT_STR",
-                        "RawSec": "$GET_ECLWATCH_TIME"
-                    },
-                }
-            },
-            {
-                "Setup": {
-                    "Result": "$SETUP_RESULT_STR",
-                    "hthor": {
-                        "Elaps": {
-                            "Formatted": "$HTHOR_SETUP_TIME_STR",
-                            "RawSec": "$HTHOR_SETUP_TIME"
-                        },
-                        "Total": $HTHOR_SETUP_QUERIES,
-                        "Pass": $HTHOR_SETUP_PASS,
-                        "Fail": $HTHOR_SETUP_FAIL,
-                        "Result": "$HTHOR_SETUP_RESULT"
-                    },
-                    "thor": {
-                        "Elaps": {
-                            "Formatted": "$THOR_SETUP_TIME_STR",
-                            "RawSec": "$THOR_SETUP_TIME"
-                        },
-                        "Total": $THOR_SETUP_QUERIES,
-                        "Pass": $THOR_SETUP_PASS,
-                        "Fail": $THOR_SETUP_FAIL,
-                        "Result": "$THOR_SETUP_RESULT"
-                    },
-                    "roxie": {
-                        "Elaps": {
-                            "Formatted": "$ROXIE_SETUP_TIME_STR",
-                            "RawSec": "$ROXIE_SETUP_TIME"
-                        },
-                        "Total": $ROXIE_SETUP_QUERIES,
-                        "Pass": $ROXIE_SETUP_PASS,
-                        "Fail": $ROXIE_SETUP_FAIL,
-                        "Result": "$ROXIE_SETUP_RESULT"
+                \"UpdateHelmRepo\":{
+                    \"Result\":\"$HELM_UPDATE_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$HELM_UPDATE_TIME_STR\",
+                        \"RawSec\":\"$HELM_UPDATE_TIME\"
                     }
                 }
             },
             {
-                " PublishQueries": {
-                    "Result" : "$QUERIES_PUBLISH_RESULT_STR",
-                    "Total" : "$NUMBER_OF_PUBLISHED",
-                    "Elaps": {
-                        "Formatted": "$QUERIES_PUBLISH_TIME_STR",
-                        "RawSec": "$QUERIES_PUBLISH_TIME"
-                    },
-                }
-            },
-            {
-                "Regress": {
-                    "Result": "$REGRESS_RESULT_STR",
-                    "Hthor": {
-                        "Result": "$HTHOR_REGRESS_RESULT_STR",
-                        "Elaps": {
-                            "Formatted": "$HTHOR_REGRESS_TIME_STR",
-                            "RawSec": "$HTHOR_REGRESS_TIME"
-                        },
-                        "Total": $HTHOR_REGRESS_QUERIES,
-                        "Pass": $HTHOR_REGRESS_PASS,
-                        "Fail": $HTHOR_REGRESS_FAIL
-                    },
-                    "Thor": {
-                        "Result": "$THOR_REGRESS_RESULT_STR",
-                        "Elaps": {
-                            "Formatted": "$THOR_REGRESS_TIME_STR",
-                            "RawSec": "$THOR_REGRESS_TIME"
-                        },
-                        "Total":  $THOR_REGRESS_QUERIES,
-                        "Pass": $THOR_REGRESS_PASS,
-                        "Fail": $THOR_REGRESS_FAIL
-                    },
-                    "Roxie": {
-                        "Result": "$ROXIE_REGRESS_RESULT_STR",
-                        "Elaps": {
-                            "Formatted": "$ROXIE_REGRESS_TIME_STR",
-                            "RawSec": "$ROXIE_REGRESS_TIME"
-                        },
-                        "Total":  $ROXIE_REGRESS_QUERIES,
-                        "Pass": $ROXIE_REGRESS_PASS,
-                        "Fail": $ROXIE_REGRESS_FAIL
+                \"CheckLocalPlatform\":{
+                    \"Result\":\"$PLATFORM_INSTALL_RESULT_STR\",
+                    \"Version\":\"$CURRENT_PKG\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$PLATFORM_INSTALL_TIME_STR\",
+                        \"RawSec\":\"$PLATFORM_INSTALL_TIME\"
                     }
                 }
             },
             {
-                "CollectTimings": {
-                    "Result" : "$QUERY_STAT2_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$QUERY_STAT2_TIME_STR",
-                        "RawSec": "$QUERY_STAT2_TIME"
-                    },
+                \"StartMinikube\":{
+                    \"Result\":\"$MINIKUBE_START_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$MINIKUBE_START_TIME_STR\",
+                        \"RawSec\":\"$MINIKUBE_START_TIME\"
+                    }
                 }
             },
             {
-                "CollectPODLogs": {
-                    "Result" : "$COLLECT_POD_LOGS_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$COLLECT_POD_LOGS_TIME_STR",
-                        "RawSec": "$COLLECT_POD_LOGS_TIME"
-                    },
+                \"DeployHPCC\":{
+                    \"Result\":\"$PLATFORM_DEPLOY_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$PLATFORM_DEPLOY_TIME_STR\",
+                        \"RawSec\":\"$PLATFORM_DEPLOY_TIME\"
+                    }
                 }
             },
             {
-                "RunLogProcessor": {
-                   "Result" : "$REGRESS_LOG_PROCESSING_RESULT_STR",
-                    "Elaps": {
-                        "Formatted": "$REGRESS_LOG_PROCESSING_TIME_STR",
-                        "RawSec": "$REGRESS_LOG_PROCESSING_TIME"
+                \"WaitForPODs\":{
+                    \"Result\":\"$PODS_START_RESULT_STR\",
+                    \"NumberOfPODs\":\"$NUMBER_OF_RUNNING_PODS\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$PODS_START_TIME_STR\",
+                        \"RawSec\":\"$PODS_START_TIME\"
+                    }
+                }
+            },
+            {
+                \"ECLWatchAnnotation\":{
+                    \"Result\":\"$ECLWATCH_START_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$ECLWATCH_START_TIME_STR\",
+                        \"RawSec\":\"$ECLWATCH_START_TIME\"
+                    }
+                }
+            },
+            {
+                \"Setup\":{
+                    \"Result\":\"$SETUP_RESULT_STR\",
+                    \"hthor\":{
+                        \"Elaps\":{
+                            \"Formatted\":\"$HTHOR_SETUP_TIME_STR\",
+                            \"RawSec\":\"$HTHOR_SETUP_TIME\"
+                        },
+                        \"Total\":\"$HTHOR_SETUP_QUERIES\",
+                        \"Pass\":\"$HTHOR_SETUP_PASS\",
+                        \"Fail\":\"$HTHOR_SETUP_FAIL\",
+                        \"Result\":\"$HTHOR_SETUP_RESULT\"
                     },
+                    \"thor\":{
+                        \"Elaps\":{
+                            \"Formatted\":\"$THOR_SETUP_TIME_STR\",
+                            \"RawSec\":\"$THOR_SETUP_TIME\"
+                        },
+                        \"Total\":\"$THOR_SETUP_QUERIES\",
+                        \"Pass\":\"$THOR_SETUP_PASS\",
+                        \"Fail\":\"$THOR_SETUP_FAIL\",
+                        \"Result\":\"$THOR_SETUP_RESULT\"
+                    },
+                    \"roxie\":{
+                        \"Elaps\":{
+                            \"Formatted\":\"$ROXIE_SETUP_TIME_STR\",
+                            \"RawSec\":\"$ROXIE_SETUP_TIME\"
+                        },
+                        \"Total\":\"$ROXIE_SETUP_QUERIES\",
+                        \"Pass\":\"$ROXIE_SETUP_PASS\",
+                        \"Fail\":\"$ROXIE_SETUP_FAIL\",
+                        \"Result\":\"$ROXIE_SETUP_RESULT\"
+                    }
+                }
+            },
+            {
+                \" PublishQueries\":{
+                    \"Result\":\"$QUERIES_PUBLISH_RESULT_STR\",
+                    \"Total\":\"$NUMBER_OF_PUBLISHED\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$QUERIES_PUBLISH_TIME_STR\",
+                        \"RawSec\":\"$QUERIES_PUBLISH_TIME\"
+                    }
+                }
+            },
+            {
+                \"Regress\":{
+                    \"Result\":\"$REGRESS_RESULT_STR\",
+                    \"Hthor\":{
+                        \"Result\":\"$HTHOR_REGRESS_RESULT_STR\",
+                        \"Elaps\":{
+                            \"Formatted\":\"$HTHOR_REGRESS_TIME_STR\",
+                            \"RawSec\":\"$HTHOR_REGRESS_TIME\"
+                        },
+                        \"Total\":\"$HTHOR_REGRESS_QUERIES\",
+                        \"Pass\":\"$HTHOR_REGRESS_PASS\",
+                        \"Fail\":\"$HTHOR_REGRESS_FAIL\"
+                    },
+                    \"Thor\":{
+                        \"Result\":\"$THOR_REGRESS_RESULT_STR\",
+                        \"Elaps\":{
+                            \"Formatted\":\"$THOR_REGRESS_TIME_STR\",
+                            \"RawSec\":\"$THOR_REGRESS_TIME\"
+                        },
+                        \"Total\":\"$THOR_REGRESS_QUERIES\",
+                        \"Pass\":\"$THOR_REGRESS_PASS\",
+                        \"Fail\":\"$THOR_REGRESS_FAIL\"
+                    },
+                    \"Roxie\":{
+                        \"Result\":\"$ROXIE_REGRESS_RESULT_STR\",
+                        \"Elaps\":{
+                            \"Formatted\":\"$ROXIE_REGRESS_TIME_STR\",
+                            \"RawSec\":\"$ROXIE_REGRESS_TIME\"
+                        },
+                        \"Total\":\"$ROXIE_REGRESS_QUERIES\",
+                        \"Pass\":\"$ROXIE_REGRESS_PASS\",
+                        \"Fail\":\"$ROXIE_REGRESS_FAIL\"
+                    }
+                }
+            },
+            {
+                \"CollectTimings\":{
+                    \"Result\":\"$QUERY_STAT2_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$QUERY_STAT2_TIME_STR\",
+                        \"RawSec\":\"$QUERY_STAT2_TIME\"
+                    }
+                }
+            },
+            {
+                \"CollectPODLogs\":{
+                    \"Result\":\"$COLLECT_POD_LOGS_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$COLLECT_POD_LOGS_TIME_STR\",
+                        \"RawSec\":\"$COLLECT_POD_LOGS_TIME\"
+                    }
+                }
+            },
+            {
+                \"UninstallPODs\":{
+                    \"Result\":\"$UNINSTALL_PODS_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$UNINSTALL_PODS_TIME_STR\",
+                        \"RawSec\":\"$UNINSTALL_PODS_TIME\"
+                    }
+                }
+            },
+            {
+                \"StopMinikube\":{
+                    \"Result\":\"$MINIKUBE_STOP_TIME_RESULT\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$MINIKUBE_STOP_TIME_STR\",
+                        \"RawSec\":\"$MINIKUBE_STOP_TIME\"
+                    }
+                }
+            },
+            {
+                \"RunLogProcessor\":{
+                    \"Result\":\"$REGRESS_LOG_PROCESSING_RESULT_STR\",
+                    \"Elaps\":{
+                        \"Formatted\":\"$REGRESS_LOG_PROCESSING_TIME_STR\",
+                        \"RawSec\":\"$REGRESS_LOG_PROCESSING_TIME\"
+                    }
+                }
             }
         ],
-        "Errors": []
+        \"Errors\":[
+            
+        ]
     }
 }

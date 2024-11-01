@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+
 START_TIME=$( date "+%H:%M:%S")
 
 if [ -f ./timestampLogger.sh ]
@@ -65,9 +67,10 @@ collectAllLogs()
     kubectl get services > $dirName/services.log;
     kubectl describe nodes > $dirName/nodes.desc;
     #minikube logs >  $dirName/all.log 2>&1
-    COLLECT_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    COLLECT_LOGS_TIME_RESULT_STR="Done in $COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
-    WriteLog "  $COLLECT_LOGS_TIME_RESULT_STR" "$logFile"
+    COLLECT_POD_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    COLLECT_POD_LOGS_TIME_STR="$COLLECT_LOGS_TIME sec $(secToTimeStr "$COLLECT_LOGS_TIME")."
+    COLLECT_POD_LOGS_RESULT_STR="Done"
+    WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
 }
 
 destroyResources()
@@ -90,9 +93,11 @@ destroyResources()
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    AKS_DESTROY_TIME_RESULT_STR="Done in $AKS_DESTROY_TIME sec $(secToTimeStr "$AKS_DESTROY_TIME"), $numOfResources."
-    WriteLog "  $AKS_DESTROY_TIME_RESULT_STR" "$logFile"
+    AKS_DESTROYED_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    AKS_DESTROYED_NUM_OF_RESOURCES=$( echo $AKS_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+    AKS_DESTROY_TIME_STR="$AKS_DESTROY_TIME sec $(secToTimeStr "$AKS_DESTROY_TIME")"
+    AKS_DESTROY_RESULT_STR="Done"
+    WriteLog "  $AKS_DESTROY_RESULT_STR in $AKS_DESTROY_TIME_STR, $AKS_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
 
     if [[ $START_RESOURCES -eq 1 ]]
     then
@@ -107,9 +112,12 @@ destroyResources()
         else
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
-        numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-        STORAGE_DESTROY_TIME_RESULT_STR="Done in $STORAGE_DESTROY_TIME sec $(secToTimeStr "$STORAGE_DESTROY_TIME"), $numOfResources."
-        WriteLog "  $STORAGE_DESTROY_TIME_RESULT_STR" "$logFile"
+        STORAGE_DESTROYED_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+        STORAGE_DESTROYED_NUM_OF_RESOURCES=$( echo $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+        
+        STORAGE_DESTROY_TIME__STR="$STORAGE_DESTROY_TIME sec $(secToTimeStr "$STORAGE_DESTROY_TIME")"
+        STORAGE_DESTROY_RESULT_STR="Done"
+        WriteLog "  $STORAGE_DESTROY_RESULT_STR in $STORAGE_DESTROY_TIME__STR, $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
         popd > /dev/null
 
         WriteLog "Destroy VNET ..." "$logFile"
@@ -123,9 +131,12 @@ destroyResources()
         else
             WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
         fi
-        numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-        VNET_DESTROY_TIME_RESULT_STR="Done in $VNET_DESTROY_TIME sec $(secToTimeStr "$VNET_DESTROY_TIME"), $numOfResources."
-        WriteLog "  $VNET_DESTROY_TIME_RESULT_STR" "$logFile"
+        VNET_DESTROYED_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+        VNET_DESTROYED_NUM_OF_RESOURCES=$( echo $VNET_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+        
+        VNET_DESTROY_TIME__STR="$VNET_DESTROY_TIME sec $(secToTimeStr "$VNET_DESTROY_TIME")"
+        VNET_DESTROY_RESULT_STR="Done"
+        WriteLog "  $VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME__STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
         popd > /dev/null
     fi
 
@@ -144,7 +155,8 @@ handler()
 trap handler 2; 
 #set -x;
 OBT_DIR=$(pwd)
-logFile=$OBT_DIR/regressAks-$(date +%Y-%m-%d_%H-%M-%S).log
+START_DATE=$(date +%Y-%m-%d_%H-%M-%S)
+logFile=$OBT_DIR/regressAks-START_DATE.log
 
 getLogs=0
 if [[ -f ./settings.sh && ( "$OBT_ID" =~ "OBT" ) ]]
@@ -284,8 +296,9 @@ TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
-HELM_UPDATE_TIME_RESULT_STR="Done in $HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")"
-WriteLog "  $HELM_UPDATE_TIME_RESULT_STR" "$logFile"
+HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")"
+HELM_UPDATE_RESULT_STR="Done"
+WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -481,8 +494,10 @@ WriteLog "Upgrade terraform..." "$logFile"
 TIME_STAMP=$(date +%s)
 WriteLog "$(terraform init -upgrade 2>&1)" "$logFile"
 TERRAFORM_UPGRADE_TIME=$(( $(date +%s) - $TIME_STAMP ))
-TERRAFORM_UPGRADE_TIME_RESULT_STR="Done in $TERRAFORM_UPGRADE_TIME sec $(secToTimeStr "$TERRAFORM_UPGRADE_TIME")."
-WriteLog "  $TERRAFORM_UPGRADE_TIME_RESULT_STR" "$logFile"
+TERRAFORM_UPGRADE_TIME_STR="$TERRAFORM_UPGRADE_TIME sec $(secToTimeStr "$TERRAFORM_UPGRADE_TIME")."
+TERRAFORM_UPGRADE_RESULT_STR="Done"
+TERRAFORM_VERSION=$(terraform --version | head -n 1)
+WriteLog "  $TERRAFORM_UPGRADE_RESULT_STR in $TERRAFORM_UPGRADE_TIME_STR, version: $TERRAFORM_VERSION" "$logFile"
 
 # Check login status
 loginCheck=$(az ad signed-in-user show)
@@ -514,9 +529,11 @@ then
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    VNET_START_TIME_REULT_STR="Done in $VNET_START_TIME sec $(secToTimeStr "$VNET_START_TIME"), $numOfResources."
-    WriteLog "  $VNET_START_TIME_REULT_STR" "$logFile"
+    VNET_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    VNET_NUM_OF_RESOURCES=$( echo $VNET_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+    VNET_START_TIME_STR="$VNET_START_TIME sec $(secToTimeStr "$VNET_START_TIME")"
+    VNET_START_RESULT_STR="Done"
+    WriteLog "  $VNET_START_RESULT_STR in $VNET_START_TIME_REULT_STR, VNET_NUM_OF_RESOURCES_STR" "$logFile"
     popd > /dev/null
      
     WriteLog "Create storage accounts ..." "$logFile"
@@ -530,9 +547,11 @@ then
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    STORAGE_START_TIME_RESULT_STR="Done in $STORAGE_START_TIME sec $(secToTimeStr "$STORAGE_START_TIME"), $numOfResources."
-    WriteLog "  $STORAGE_START_TIME_RESULT_STR" "$logFile"
+    STORAGE_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+    STORAGE_NUM_OF_RESOURCES=$( echo $NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+    STORAGE_START_TIME__STR="$STORAGE_START_TIME sec $(secToTimeStr "$STORAGE_START_TIME")"
+    STORAGE_START_RESULT_STR="Done"
+    WriteLog "  $STORAGE_START_RESULT_STR in STORAGE_START_TIME__STR, STORAGE_NUM_OF_RESOURCES_STR" "$logFile"
     popd > /dev/null
 
 fi
@@ -545,11 +564,14 @@ res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-fi
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
 AKS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+AKS_START_TIME_STR="$AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME")"
 isError=$( echo "$res" | egrep 'Error:' )
 # TO-DO What to do if more than the automation error happens?
 isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
 WriteLog "retCode: $retCode, ignoreAutomationError: $IGNORE_AUTOMATION_ERROR, isAutomationError: $isAutomationError" "$logFile"
-numOfResources=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+
+AKS_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
+AKS_NUM_OF_RESOURCES=$( echo $NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
 
 if [[ ($retCode -eq 0) || ( ($IGNORE_AUTOMATION_ERROR -eq 1) && ($isAutomationError -ne 0 )) ]]
 then
@@ -560,13 +582,13 @@ then
     else
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
-    AKS_START_TIME_RESULT_STR="Done in $AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME"), $numOfResources."
-    WriteLog "  Done in $AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME"), $numOfResources." "$logFile"
+    AKS_START_RESULT_STR="Done"
+    WriteLog "  $AKS_START_RESULT_STR in $AKS_START_TIME_STR, $AKS_NUM_OF_RESOURCES_STR." "$logFile"
 else
     WriteLog "Error in deploy hpcc. \nRet code is: $retCode." "$logFile"
     WriteLog "res:$res" "$logFile"
-    AKS_START_TIME_RESULT_STR="Failed in $AKS_START_TIME sec $(secToTimeStr "$AKS_START_TIME"), $numOfResources."
-    WriteLog "  $AKS_START_TIME_RESULT_STR" "$logFile"
+    AKS_START_RESULT_STR="Failed"
+    WriteLog "  $AKS_START_RESULT_STR in $AKS_START_TIME_STR, $AKS_NUM_OF_RESOURCES_STR." "$logFile"
 
     collectAllLogs "$logFile"
 
@@ -646,9 +668,10 @@ then
     WriteLog "URL: http://$ip:$port" "$logFile"
     #echo "Press <Enter> to continue"
     #read
-    GET_ECLWATCH_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    GET_ECLWATCH_TIME_RESULT_STR="Done in $GET_ECLWATCH_TIME sec $(secToTimeStr "$GET_ECLWATCH_TIME")"
-    WriteLog "  $GET_ECLWATCH_TIME_RESULT_STR" "$logFile"
+    ECLWATCH_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    ECLWATCH_START_TIME_STR="$ECLWATCH_START_TIME sec $(secToTimeStr "$ECLWATCH_START_TIME")"
+    ECLWATCH_START_RESULT_STR="Done"
+    WriteLog "  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR" "$logFile"
     
     [[ -z "$ip" ]] && exit 1
 
@@ -676,7 +699,7 @@ then
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
-        numberOfPublished=0
+        NUMBER_OF_PUBLISHED=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
         TIME_STAMP=$(date +%s)
@@ -685,12 +708,15 @@ then
             WriteLog "Query: $query" "$logFile"
             res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
             WriteLog "$res" "$logFile"
-            numberOfPublished=$(( numberOfPublished + 1 ))
+            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
+        
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        QUERIES_PUBLISH_TIME_RESULT_STR="Done in $QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME"), $numberOfPublished queries published to Roxie."
-        WriteLog "  $QUERIES_PUBLISH_TIME_RESULT_STR" "$logFile"
+        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
+        QUERIES_PUBLISH_RESULT_STR="Done"
+        QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
+        WriteLog "  $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR" "$logFile"
 
         REGRESSION_START_TIME=$( date "+%H:%M:%S")
         # Regression stage
@@ -726,8 +752,9 @@ then
         res=$(./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp)
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
-        QUERY_STAT2_TIME_RESULT_STR="Done in $QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
-        WriteLog "  $QUERY_STAT2_TIME_RESULT_STR" "$logFile"
+        QUERY_STAT2_TIME_STR="$QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
+        QUERY_STAT2_RESULT_STR="Done"
+        WriteLog "  $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR" "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
@@ -798,7 +825,9 @@ then
         WriteLog "${res}" "$logFile"
         WriteLog "  End." "$logFile"
         REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        WriteLog "  Done in $REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")." "$logFile"
+        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")."
+        REGRESS_LOG_PROCESSING_RESULT_STR="Done"
+        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR." "$logFile"
     else
         WriteLog "regressK8sLogProcessor.py not found." "$logFile"
     fi
@@ -808,6 +837,22 @@ else
 fi
 
 trap 2
+
+WriteLog "Generate reports..." "$logFile"
+TIME_STAMP=$(date +%s)
+report1=$(<./regressAksReport.templ)
+# Do it with 'eval'
+eval "resolved1=\"$report1\""
+echo "$resolved1" > regressAks-$START_DATE.report
+
+report2=$(<./regressAksReportJson.templ)
+eval "resolved2=\"$report2\""
+echo "$resolved2" > regressAks-$START_DATE.json
+
+REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))
+REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(secToTimeStr "$REPORT_GENERATION_TIME")."
+WriteLog "  Report generation is done in $REPORT_GENERATION_TIME_STR." "$logFile"
+
 
 WriteLog "End." "$logFile"
 END_TIME=$( date "+%H:%M:%S")

@@ -1,244 +1,224 @@
 {
-    "OBTResult": {
-        "Env": {
-            "BuildSystem": "Rocky_Linux_8_9",
-            "Hardware": "CPU/Cores: 8, RAM: 15 GB",
-            "IPAddress": "10.22.254.98 (OBT-AWS04)"
+    \"OBTResult\": {
+        \"Env\": {
+            \"BuildSystem\": \"Rocky_Linux_8_9\",
+            \"Hardware\": \"CPU/Cores: 8, RAM: 15 GB\",
+            \"IPAddress\": \"10.22.254.98 (OBT-AWS04)\"
         },
-        "BuildSet": {
-            "Branch": "candidate-9.6.x",
-            "BranchDate": "Tue Oct 29 11:30:11 2024",
-            "BranchSHA": "cf4b0158b43c83c24f9c9fcfe98f4dd6119405fc",
-            "BuildType": "RelWithDebInfo",
-            "Target": "BM/VM"
+        \"BuildSet\": {
+            \"Branch\": \"candidate-9.6.x\",
+            \"BranchDate\": \"Tue Oct 29 11:30:11 2024\",
+            \"BranchSHA\": \"cf4b0158b43c83c24f9c9fcfe98f4dd6119405fc\",
+            \"BuildType\": \"RelWithDebInfo\",
+            \"Target\": \"BM/VM\"
         },
-        "Exclusion": {
-            "Build": "MAKE_CASSANDRAEMBED, COUCHBASEEMBED, USE_AZURE, USE_AWS, WASMEMBED",
-            "Documentation": "not built",
-            "Unittest": "JlibReaderWriterTestTiming, AtomicTimingTest, AtomicTimingStressTest",
-            "MLtest": "ClassicTestModified.ecl, SVCTest.ecl",
-            "Regression": "embedded, 3rdparty, python2, wasmembed*"
+        \"Exclusion\": {
+            \"Build\": \"MAKE_CASSANDRAEMBED, COUCHBASEEMBED, USE_AZURE, USE_AWS, WASMEMBED\",
+            \"Documentation\": \"not built\",
+            \"Unittest\": \"JlibReaderWriterTestTiming, AtomicTimingTest, AtomicTimingStressTest\",
+            \"MLtest\": \"ClassicTestModified.ecl, SVCTest.ecl\",
+            \"Regression\": \"embedded, 3rdparty, python2, wasmembed*\"
         },
-        "ThorConfig": {
-            "Slaves": "4",
-            "Channels": "1"
+        \"ThorConfig\": {
+            \"Slaves\": \"4\",
+            \"Channels\": \"1\"
         },
-        "Tasks": [
+        \"Tasks\": [
             {
-                "Build": {
-                    "Result": "PASSED",
-                    "CMake": {
-                        "Formatted": "11 sec (00:00:11)",
-                        "RawSec": "11"
+                \"UpdateHelmRepo\": {
+                    \"Result\" : \"$HELM_UPDATE_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$HELM_UPDATE_TIME_STR\",
+                        \"RawSec\": \"$HELM_UPDATE_TIME\"
                     },
-                    "Build": {
-                        "Formatted": "808 sec (00:13:28)",
-                        "RawSec": "808"
+                }
+            },
+            {
+                \"UpgradeTerraform\": {
+                    \"Result\" : \"$TERRAFORM_UPGRADE_RESULT_STR\",
+                    \"Version\" \"$TERRAFORM_VERSION\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$TERRAFORM_UPGRADE_TIME_STR\",
+                        \"RawSec\": \"$TERRAFORM_UPGRADE_TIME\"
                     },
-                    "Package": {
-                        "Formatted": "229 sec (00:03:49)",
-                        "RawSec": "229"
+                }
+            },
+            {
+                \"CreateVirtualNetwork\": {
+                    \"Result\" : \"$VNET_START_RESULT_STR\",
+                    \"NumberOfResources\" : $VNET_NUM_OF_RESOURCES,
+                    \"Elaps\": {
+                        \"Formatted\": \"$VNET_START_TIME_STR\",
+                        \"RawSec\": \"$VNET_START_TIME\"
                     },
-                    "Altogether": {
-                        "Formatted": "1048 sec (00:17:28)",
-                        "RawSec": "1048"
+                }
+            },
+            {
+                \"CreateStorage\": {
+                    \"Result\" : \"$STORAGE_START_RESULT_STR\",
+                    \"NumberOfResources\" : $STORAGE_NUM_OF_RESOURCES,
+                    \"Elaps\": {
+                        \"Formatted\": \"$STORAGE_START_TIME__STR\",
+                        \"RawSec\": \"$STORAGE_START_TIME\"
+                    },
+                }
+            },
+            {
+                \"CreateAKS\": {
+                    \"Result\" : \"$AKS_START_RESULT_STR\",
+                    \"NumberOfResources\" : $AKS_NUM_OF_RESOURCES,
+                    \"Elaps\": {
+                        \"Formatted\": \"$AKS_START_TIME_STR\",
+                        \"RawSec\": \"$AKS_START_TIME\"
+                    },
+                }
+            },
+            {
+                \"ECLWatchAnnotation\": {
+                    \"Result\" : \"$ECLWATCH_START_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$ECLWATCH_START_TIME_STR\",
+                        \"RawSec\": \"$ECLWATCH_START_TIME\"
+                    },
+                }
+            },
+            {
+                \"Setup\": {
+                    \"Result\": \"$SETUP_RESULT_STR\",
+                    \"hthor\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"$HTHOR_SETUP_TIME_STR\",
+                            \"RawSec\": \"$HTHOR_SETUP_TIME\"
+                        },
+                        \"Total\": $HTHOR_SETUP_QUERIES,
+                        \"Pass\": $HTHOR_SETUP_PASS,
+                        \"Fail\": $HTHOR_SETUP_FAIL,
+                        \"Result\": \"$HTHOR_SETUP_RESULT\"
+                    },
+                    \"thor\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"$THOR_SETUP_TIME_STR\",
+                            \"RawSec\": \"$THOR_SETUP_TIME\"
+                        },
+                        \"Total\": $THOR_SETUP_QUERIES,
+                        \"Pass\": $THOR_SETUP_PASS,
+                        \"Fail\": $THOR_SETUP_FAIL,
+                        \"Result\": \"$THOR_SETUP_RESULT\"
+                    },
+                    \"roxie\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"$ROXIE_SETUP_TIME_STR\",
+                            \"RawSec\": \"$ROXIE_SETUP_TIME\"
+                        },
+                        \"Total\": $ROXIE_SETUP_QUERIES,
+                        \"Pass\": $ROXIE_SETUP_PASS,
+                        \"Fail\": $ROXIE_SETUP_FAIL,
+                        \"Result\": \"$ROXIE_SETUP_RESULT\"
                     }
                 }
             },
             {
-                "Install": {
-                    "Elaps": "No data"
+                \" PublishQueries\": {
+                    \"Result\" : \"$QUERIES_PUBLISH_RESULT_STR\",
+                    \"Total\" : \"$NUMBER_OF_PUBLISHED\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$QUERIES_PUBLISH_TIME_STR\",
+                        \"RawSec\": \"$QUERIES_PUBLISH_TIME\"
+                    },
                 }
             },
             {
-                "Unittests": {
-                    "Result": "PASSED",
-                    "Elaps": {
-                        "Formatted": "3051 sec (00:50:51)",
-                        "RawSec": "3051"
-                    },
-                    "Total": 375,
-                    "Pass": 375,
-                    "Fail": 0,
-                    "Error": 0,
-                    "Timeout": 0
-                }
-            },
-            {
-                "Wutooltests": {
-                    "Result": "PASSED",
-                    "Elaps": {
-                        "Formatted": "1 sec (00:00:01)",
-                        "RawSec": "1"
-                    },
-                    "Total": 19,
-                    "Pass": 19,
-                    "Fail": 0,
-                    "Error": 0,
-                    "Timeout": 0
-                }
-            },
-            {
-                "MLtests": {
-                    "Result": "PASSED",
-                    "DBSCAN": {
-                        "Elaps": {
-                            "Formatted": "10 sec  (00:00:10)",
-                            "RawSec": "10"
+                \"Regress\": {
+                    \"Result\": \"$REGRESS_RESULT_STR\",
+                    \"Hthor\": {
+                        \"Result\": \"$HTHOR_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$HTHOR_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$HTHOR_REGRESS_TIME\"
                         },
-                        "Total": 2,
-                        "Pass": 2,
-                        "Fail": 0,
-                        "Result": "PASSED"
+                        \"Total\": $HTHOR_REGRESS_QUERIES,
+                        \"Pass\": $HTHOR_REGRESS_PASS,
+                        \"Fail\": $HTHOR_REGRESS_FAIL
                     },
-                    "GLM": {
-                        "Elaps": {
-                            "Formatted": "74 sec  (00:01:14)",
-                            "RawSec": "74"
+                    \"Thor\": {
+                        \"Result\": \"$THOR_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$THOR_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$THOR_REGRESS_TIME\"
                         },
-                        "Total": 7,
-                        "Pass": 7,
-                        "Fail": 0,
-                        "Result": "PASSED"
+                        \"Total\":  $THOR_REGRESS_QUERIES,
+                        \"Pass\": $THOR_REGRESS_PASS,
+                        \"Fail\": $THOR_REGRESS_FAIL
                     },
-                    "GNN": {
-                        "Elaps": {
-                            "Formatted": "68 sec  (00:01:08)",
-                            "RawSec": "68"
+                    \"Roxie\": {
+                        \"Result\": \"$ROXIE_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$ROXIE_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$ROXIE_REGRESS_TIME\"
                         },
-                        "Total": 4,
-                        "Pass": 4,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "KMeans": {
-                        "Elaps": {
-                            "Formatted": "5 sec  (00:00:05)",
-                            "RawSec": "5"
-                        },
-                        "Total": 1,
-                        "Pass": 1,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "LearningTrees": {
-                        "Elaps": {
-                            "Formatted": "171 sec  (00:02:51)",
-                            "RawSec": "171"
-                        },
-                        "Total": 3,
-                        "Pass": 3,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "PBblas": {
-                        "Elaps": {
-                            "Formatted": "17 sec  (00:00:17)",
-                            "RawSec": "17"
-                        },
-                        "Total": 2,
-                        "Pass": 2,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "SupportVectorMachines": {
-                        "Elaps": {
-                            "Formatted": "14 sec  (00:00:14)",
-                            "RawSec": "14"
-                        },
-                        "Total": 1,
-                        "Pass": 1,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "TextVectors": {
-                        "Elaps": {
-                            "Formatted": "11 sec  (00:00:11)",
-                            "RawSec": "11"
-                        },
-                        "Total": 5,
-                        "Pass": 5,
-                        "Fail": 0,
-                        "Result": "PASSED"
+                        \"Total\":  $ROXIE_REGRESS_QUERIES,
+                        \"Pass\": $ROXIE_REGRESS_PASS,
+                        \"Fail\": $ROXIE_REGRESS_FAIL
                     }
                 }
             },
             {
-                "Setup": {
-                    "Result": "PASSED",
-                    "hthor": {
-                        "Elaps": {
-                            "Formatted": "39 sec  (00:00:39)",
-                            "RawSec": "39"
-                        },
-                        "Total": 9,
-                        "Pass": 9,
-                        "Fail": 0,
-                        "Result": "PASSED"
+                \"CollectTimings\": {
+                    \"Result\" : \"$QUERY_STAT2_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$QUERY_STAT2_TIME_STR\",
+                        \"RawSec\": \"$QUERY_STAT2_TIME\"
                     },
-                    "thor": {
-                        "Elaps": {
-                            "Formatted": "19 sec  (00:00:19)",
-                            "RawSec": "19"
-                        },
-                        "Total": 9,
-                        "Pass": 9,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    },
-                    "roxie": {
-                        "Elaps": {
-                            "Formatted": "38 sec  (00:00:38)",
-                            "RawSec": "38"
-                        },
-                        "Total": 24,
-                        "Pass": 24,
-                        "Fail": 0,
-                        "Result": "PASSED"
-                    }
                 }
             },
             {
-                "Regress": {
-                    "Result": "PASSED",
-                    "Hthor": {
-                        "Result": "PASSED",
-                        "Elaps": {
-                            "Formatted": "462 sec  (00:07:42)",
-                            "RawSec": "462"
-                        },
-                        "Total": 1004,
-                        "Pass": 1004,
-                        "Fail": 0
+                \"CollectPODLogs\": {
+                    \"Result\" : \"$COLLECT_POD_LOGS_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$COLLECT_POD_LOGS_TIME_STR\",
+                        \"RawSec\": \"$COLLECT_POD_LOGS_TIME\"
                     },
-                    "Thor": {
-                        "Result": "PASSED",
-                        "Elaps": {
-                            "Formatted": "943 sec  (00:15:43)",
-                            "RawSec": "943"
-                        },
-                        "Total": 897,
-                        "Pass": 897,
-                        "Fail": 0
-                    },
-                    "Roxie": {
-                        "Result": "PASSED",
-                        "Elaps": {
-                            "Formatted": "623 sec  (00:10:23)",
-                            "RawSec": "623"
-                        },
-                        "Total": 1097,
-                        "Pass": 1097,
-                        "Fail": 0
-                    }
                 }
             },
             {
-                "Uninstall": {
-                    "Elaps": "No data"
+                \"DestroyAKS\": {
+                    \"Result\" : \"$AKS_DESTROY_TIME_STR\",
+                    \"NumberOfResources\" : $AKS_DESTROYED_NUM_OF_RESOURCES,
+                    \"Elaps\": {
+                        \"Formatted\": \"$AKS_DESTROY_TIME_STR\",
+                        \"RawSec\": \"$AKS_DESTROY_TIME\"
+                    },
                 }
+            },
+            {
+                \"DestroyStorage\": {
+                    \"Result\" : \"$STORAGE_DESTROY_RESULT_STR\",
+                    \"NumberOfResources\" : $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR,
+                    \"Elaps\": {
+                        \"Formatted\": \"$STORAGE_DESTROY_TIME__STR\",
+                        \"RawSec\": \"$STORAGE_DESTROY_TIME\"
+                    },
+                }
+            },
+            {
+                \"DestroyVirtualNetwork\": {
+                    \"Result\" : \"$VNET_DESTROY_RESULT_STR\",
+                    \"NumberOfResources\" : $VNET_DESTROYED_NUM_OF_RESOURCES_STR,
+                    \"Elaps\": {
+                        \"Formatted\": \"$VNET_DESTROY_TIME__STR\",
+                        \"RawSec\": \"$VNET_DESTROY_TIME\"
+                    },
+                }
+            },
+            {
+                \"RunLogProcessor\": {
+                   \"Result\" : \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$REGRESS_LOG_PROCESSING_TIME_STR\",
+                        \"RawSec\": \"$REGRESS_LOG_PROCESSING_TIME\"
+                    },
             }
         ],
-        "Errors": []
+        \"Errors\": []
     }
 }

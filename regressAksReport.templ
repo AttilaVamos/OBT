@@ -2,34 +2,34 @@
     - Start @$START_TIME
 
     - Update helm repo
-      - $HELM_UPDATE_TIME_RESULT_STR
+      - $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR
 
     - Is choosed a good tag?
       - Yes: $TAG_TO_TEST
 
     - Upgrade Terraform
-      - $TERRAFORM_UPGRADE_TIME_RESULT_STR
+      - $TERRAFORM_UPGRADE_RESULT_STR in $TERRAFORM_UPGRADE_TIME_STR, version: $TERRAFORM_VERSION
 
     - Virtual network
-      - $VNET_START_TIME_REULT_STR
+      - $VNET_START_RESULT_STR in $VNET_START_TIME_REULT_STR, VNET_NUM_OF_RESOURCES_STR
 
     - Storage accounts
-      - $STORAGE_START_TIME_RESULT_STR
+      - $STORAGE_START_RESULT_STR in STORAGE_START_TIME__STR, STORAGE_NUM_OF_RESOURCES_STR
 
     - AKS
-      - $AKS_START_TIME_RESULT_STR
+      - $AKS_START_RESULT_STR in $AKS_START_TIME_STR, $AKS_NUM_OF_RESOURCES_STR.
 
     - ECLWatch annotated, up and running
-      -  $GET_ECLWATCH_TIME_RESULT_STR
+      - $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR
 
     - Setup:
       - $SETUP_RESULT_STR 
 
     - Publish queries:
-      - $QUERIES_PUBLISH_TIME_RESULT_STR
+      - $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR
 
     - Regression
-      - Started (local time): @REGRESSION_START_TIME
+      - Started (local time): @$REGRESSION_START_TIME
 
       - $REGRESSION_RESULT_STR
 
@@ -37,20 +37,23 @@
         - see: $logFile
 
     - Collect timings (QueryStat2.py)
-      - $QUERY_STAT2_TIME_RESULT_STR
+      - $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR
 
     - It finished without any problem with connection 
 
     - Collect POD logs
-      - $COLLECT_LOGS_TIME_RESULT_STR
+      - $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR
 
     - AKS destroyed by the script
-      - $AKS_DESTROY_TIME_RESULT_STR
+      - $AKS_DESTROY_RESULT_STR in $AKS_DESTROY_TIME_STR, $AKS_DESTROYED_NUM_OF_RESOURCES_STR.
 
     - Storage accounts destroyed
-      - $STORAGE_DESTROY_TIME_RESULT_STR
+      - $STORAGE_DESTROY_RESULT_STR in $STORAGE_DESTROY_TIME__STR, $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR.
 
     - VNET destroyed
-      - $VNET_DESTROY_TIME_RESULT_STR
-
+      - $VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME__STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR.
+  
+    - Start log processor
+      -  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR.
+      
     - Finished @$END_TIME
