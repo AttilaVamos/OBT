@@ -1,33 +1,53 @@
 {
     \"OBTResult\":{
         \"Env\":{
-            \"BuildSystem\":\"Rocky_Linux_8_9\",
-            \"Hardware\":\"vCPU: 8, RAM: 15 GB\",
-            \"IPAddress\":\"10.22.254.98\"
+            \"BuildSystem\":\"$SYSTEM_ID\",
+            \"Hardware\":\"vCPU: 8, RAM: 16 GB\",
+            \"IPAddress\":\"$LOCAL_IP\"
+        },
+        \"Remote\" : {
+            \"System\" : \"Minikube\",
+            \"Hardware\": \"CPU/Cores: 16, RAM: 64 GB\",
+            \"HthorConfig\" : {
+                \"Replicas\" : \"3\",
+                \"MaxActive\" : \"4\",
+                \"UseChildProcesses\" : \"true\",
+                \"AllowedPipePrograms\" : \"\*\"
+            },
+            \"ThorConfig\" : {
+                \"NumWorkers\" : \"2\",
+                \"MaxJobs\" : \"4\",
+                \"MaxGraph\" : \"2\",
+                \"MultiJobLinger\" : \"true\",
+                \"LingerPeriod\" : \"200\",
+                \"AllowedPipePrograms\" : \"*\"
+            },
+            \"RoxieWorkunitConfig\" : {
+                \"Replicas\" : \"1\",
+                \"MaxActive\" : \"20\",
+                \"UseChildProcesses\" : \"true\",
+                \"AllowedPipePrograms\" : \"\*\"
+            },
         },
         \"BuildSet\":{
-            \"Branch\":\" $TAG_TO_TEST\",
-            \"BranchDate\":\"Tue Oct 29 11:30:11 2024\",
-            \"BranchSHA\":\"cf4b0158b43c83c24f9c9fcfe98f4dd6119405fc\",
-            \"BuildType\":\"RelWithDebInfo\",
-            \"Target\":\"Minikube\"
+            \"Branch\" : \"$TAG_TO_TEST\",
+            \"BranchDate\" : \"N/A\",
+            \"BranchSHA\" : \"N/A\",
+            \"BuildType\" : \"Release\",
+            \"Target\" : \"K8s\"
         },
         \"Exclusion\":{
-            \"Build\":\"MAKE_CASSANDRAEMBED, COUCHBASEEMBED, USE_AZURE, USE_AWS, WASMEMBED\",
-            \"Documentation\":\"not built\",
-            \"Unittest\":\"JlibReaderWriterTestTiming, AtomicTimingTest, AtomicTimingStressTest\",
-            \"MLtest\":\"ClassicTestModified.ecl, SVCTest.ecl\",
-            \"Regression\":\"embedded, 3rdparty, python2, wasmembed*\"
+            \"Build\" : \"N/A\",
+            \"Documentation\" : \"N/A\",
+            \"Unittest\" : \"N/A\",
+            \"MLtest\" : \"N/A\",
+            \"Regression\" : \"$EXCLUSIONS\"
         },
-        \"ThorConfig\":{
-            \"Slaves\":\"4\",
-            \"Channels\":\"1\"
-        },
-        \"Tasks\":[
+        \"Tasks\" : [
             {
-                \"UpdateHelmRepo\":{
-                    \"Result\":\"$HELM_UPDATE_RESULT_STR\",
-                    \"Elaps\":{
+                \"UpdateHelmRepo\" : {
+                    \"Result\" : \"$HELM_UPDATE_RESULT_STR\",
+                    \"Elaps\" : {
                         \"Formatted\":\"$HELM_UPDATE_TIME_STR\",
                         \"RawSec\":\"$HELM_UPDATE_TIME\"
                     }

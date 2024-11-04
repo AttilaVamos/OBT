@@ -40,6 +40,68 @@ secToTimeStr()
     echo "($( date -u --date @$t "+%H:%M:%S"))"
 }
 
+ProcessLog()
+{ 
+    result="$1"
+    local -n retString=$2
+    local action="$3"
+    #echo "result:$result"
+    #echo "action:$action"
+    #set -x
+    engine=()
+    engine+=( $(echo "$result" | sed -n "s/^.*[[:space:]]*Suite: \([^ ]*\).*/\1/p") )
+    
+    total=()
+    total+=( $(echo "$result" | sed -n "s/^.*[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p") )
+
+    passed=()
+    passed+=( $(echo "$result" | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p") )
+
+    failed=()
+    failed+=( $(echo "$result" | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p") )
+
+    readarray -t errors < <( echo "$result" | egrep "Suite:|Fail " )
+    OLD_IFS=$IFS
+    IFS=$'\n'
+    elapsed=()
+    readarray -t elapsed < <( echo "$result" | egrep "Elapsed time:" |  awk '{ print $3" "$4" "$5 }' )
+
+    #echo "${engine[@]}"
+    #echo "................."
+    #echo "${total[@]}"
+    #echo "................."
+    #echo "${passed[@]}"
+    #echo "................."
+    #echo "${failed[@]}"
+    #echo "................."
+    #echo "${elapsed[@]}"
+    #echo "................."
+    
+    _retStr=$(printf "%-20s %s\t%s\t%s\t%s\n\n" "Engine" "Query" "Pass" "Fail" "Time")
+    for i in "${!engine[@]}"
+    do
+        engine=${engine[$i]}
+        engines+=("$engine")
+        queries[$engine]="${total[$i]}"
+        passes[$engine]="${passed[$i]}"
+        fails[$engine]="${failed[$i]}"
+        time_str[$engine]="${elapsed[$i]}"
+        _str=$(printf "%8s%-20s %5d\t%4d\t%4d\t%s\n" " " "${engine[$i]}" "${total[$i]}" "${passed[$i]}" "${failed[$i]}" "${elapsed[$i]}") 
+        _retStr=$(echo -e "${_retStr}\n${_str}")
+
+        capEngine=${engine^^}_${action}
+        #echo "capEngine: $capEngine"
+        printf -v "$capEngine"_QUERIES  '%s' "${queries[$engine]}"
+        #declare -g "${capEngine}_QUERIES"="${queries[$engine]}"    # An alternative
+        printf -v "$capEngine"_PASS     '%s' "${passes[$engine]}"
+        printf -v "$capEngine"_FAIL     '%s' "${fails[$engine]}"
+        printf -v "$capEngine"_TIME_STR '%s' "${time_str[$engine]}"
+        printf -v "$capEngine"_TIME     '%s' "$(echo ${time_str[$engine]} | cut -d' ' -f1 )"
+    done
+    retString=$_retStr
+    set +x
+}
+
 #set -x;
 START_DATE=$(date +%Y-%m-%d_%H-%M-%S)
 logFile=$(pwd)/regressMinikube-$START_DATE.log
@@ -84,6 +146,17 @@ else
         PKG_QRY_CMD="rpm -qa "
         PKG_REM_CMD="rpm -e --nodeps "
     fi
+    
+    # Get system info 
+    SYSTEM_ID=$( cat /etc/*-release | egrep -i "^PRETTY_NAME" | cut -d= -f2 | tr -d '"' )
+    if [[ "${SYSTEM_ID}" == "" ]]
+    then
+        SYSTEM_ID=$( cat /etc/*-release | head -1 )
+    fi
+    SYSTEM_ID=${SYSTEM_ID// (*)/}
+    SYSTEM_ID=${SYSTEM_ID// /_}
+    SYSTEM_ID=${SYSTEM_ID//./_}
+
 fi
 
 CONFIG="./ecl-test-k8s.json"
@@ -94,6 +167,8 @@ QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
+LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
 WriteLog "Start          : $0 $*" "$logFile"
 WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
@@ -464,15 +539,24 @@ then
     then
         getLogs=1
         setupPass=0
+        SETUP_RESULT_STR="Failed"
     fi
     _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
     WriteLog "$_res" "$logFile"
-
+    declare -A queries passes fails time_str 
+    declare -a errors=()
+    declare -a engines=()
+    SETUP_RESULT_REPORT_STR=''
+    action="SETUP"
+    ProcessLog "$res" SETUP_RESULT_REPORT_STR $action
+    WriteLog "action: '$action'" "$logFile"
+    WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
+    
+     NUMBER_OF_PUBLISHED=0
     if [[ $setupPass -eq 1 ]]
     then
         # Experimental code for publish Queries to Roxie
         WriteLog "Publish queries to Roxie ..." "$logFile"
-        NUMBER_OF_PUBLISHED=0
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
         pushd $SUITEDIR/ecl
         TIME_STAMP=$(date +%s)
@@ -488,7 +572,8 @@ then
         QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
         QUERIES_PUBLISH_RESULT_STR="Done"
         QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
-        WriteLog "  $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR" "$logFile"
+        QUERIES_PUBLISH_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
+        WriteLog "  $QUERIES_PUBLISH_REPORT_STR" "$logFile"
 
         REGRESSION_START_TIME=$( date "+%H:%M:%S")
         # Regression stage
@@ -511,8 +596,22 @@ then
         fi
         _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
         WriteLog "$_res" "$logFile"
+        
+        REGRESSION_RESULT_STR=''
+        action="REGRESSION"
+        ProcessLog "$res" REGRESSION_RESULT_STR $action
+        WriteLog "action: '$action'" "$logFile"
+        WriteLog "REGRESSION_RESULT_STR:\n$REGRESSION_RESULT_STR" "$logFile"
+    
     else
         WriteLog "Setup is failed, skip regression tessting." "$logFile"
+        QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
+        QUERIES_PUBLISH_TIME=0
+        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
+        QUERIES_PUBLISH_REPORT_STR="Skipped based on setup error"
+        
+        REGRESSION_START_TIME=$( date "+%H:%M:%S")
+        REGRESSION_RESULT_STR="Skipped based on setup error"
     fi
 
     if [[ -n "$QUERY_STAT2_DIR" ]]
@@ -627,7 +726,7 @@ UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
 UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
 UNINSTALL_PODS_RESULT_STR="Done"
 UNINSTALL_PODS_RESULT_SUFFIX_STR="$running PODs are running."
-WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR, UNINSTALL_PODS_RESULT_SUFFIX_STR" "$logFile"
+WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR, $UNINSTALL_PODS_RESULT_SUFFIX_STR" "$logFile"
 
 WriteLog "Stop Minikube" "$logFile"
 TIME_STAMP=$(date +%s)
@@ -663,16 +762,16 @@ END_TIME=$( date "+%H:%M:%S")
 
 WriteLog "Generate reports..." "$logFile"
 TIME_STAMP=$(date +%s)
-WriteLog "  Text one" "$logFile"
+WriteLog "  Text" "$logFile"
 report1=$(<./regressMinikubeReport.templ)
 # Do it with 'eval'
 eval "resolved1=\"$report1\""
 echo "$resolved1" > regressMinikube-$START_DATE.report
 
-WriteLog "  JSON one" "$logFile"
+WriteLog "  JSON" "$logFile"
 report2=$(<./regressMinikubeReportJson.templ)
 eval "resolved2=\"$report2\""
-echo "$resolved2"
+#echo "$resolved2"
 echo "$resolved2" > regressMinikube-$START_DATE.json
 
 REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))
