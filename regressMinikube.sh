@@ -97,8 +97,88 @@ ProcessLog()
         printf -v "$capEngine"_FAIL     '%s' "${fails[$engine]}"
         printf -v "$capEngine"_TIME_STR '%s' "${time_str[$engine]}"
         printf -v "$capEngine"_TIME     '%s' "$(echo ${time_str[$engine]} | cut -d' ' -f1 )"
+        printf -v "$capEngine"_RESULT '%s' "$( [[ ${fails[$engine]} -eq 0 ]] && echo "PASSED" || echo "FAILED" )"
     done
     retString=$_retStr
+    
+    declare -a hthorErrors thorErrors roxieErrors
+    arrayName=''
+    for item in ${errors[@]}
+    do
+        if [[ "$item" =~ "hthor" ]]
+        then
+            arrayName="hthorErrors"
+            continue
+        fi
+
+        if [[ "$item" =~ "thor" ]]
+        then
+            arrayName="thorErrors"
+            continue
+        fi
+
+        if [[ "$item" =~ "roxie" ]]
+        then
+            arrayName="roxieErrors"
+            continue
+        fi
+
+        if [[ "$arrayName" == "hthorErrors" ]]
+        then
+            hthorErrors+=("$item")
+            continue
+        fi
+        
+        if [[ "$arrayName" == "thorErrors" ]]
+        then
+            thorErrors+=("$item")
+            continue
+        fi
+
+        if [[ "$arrayName" == "roxieErrors" ]]
+        then
+            roxieErrors+=("$item")
+            continue
+        fi
+    done
+    
+    #echo "hthorErrors:${hthorErrors[@]}"
+    #echo "................."
+    #echo "thorErrors:${thorErrors[@]}"
+    #echo "................."
+    #echo "roxieErrors:${roxieErrors[@]}"
+    #echo "................."
+
+    unset errStr
+    for item in ${hthorErrors[@]}
+    do
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Hthor_${action}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n\"$item\",")
+    done
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    capEngine=HTHOR_${action}
+    printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
+
+    unset errStr
+    for item in ${thorErrors[@]}
+    do
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Thor_${action}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n\"$item\",")
+    done
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    capEngine=THOR_${action}
+    printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
+
+    unset errStr
+    for item in ${roxieErrors[@]}
+    do
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Roxie_${action}\" :\n")"
+        errStr=$( echo -e "${errStr}\n\"$item\",")
+    done
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n}\n")
+    capEngine=ROXIE_${action}
+    printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
+
     set +x
 }
 
@@ -539,7 +619,6 @@ then
     then
         getLogs=1
         setupPass=0
-        SETUP_RESULT_STR="Failed"
     fi
     _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
     WriteLog "$_res" "$logFile"
@@ -551,6 +630,7 @@ then
     ProcessLog "$res" SETUP_RESULT_REPORT_STR $action
     WriteLog "action: '$action'" "$logFile"
     WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
+    SETUP_RESULT_STR="PASSED"
     
      NUMBER_OF_PUBLISHED=0
     if [[ $setupPass -eq 1 ]]
@@ -605,6 +685,8 @@ then
     
     else
         WriteLog "Setup is failed, skip regression tessting." "$logFile"
+        SETUP_RESULT_STR="FAILED"
+        
         QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
         QUERIES_PUBLISH_TIME=0
         QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
