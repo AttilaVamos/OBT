@@ -441,11 +441,15 @@ sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"')/
 
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
-WriteLog "Patch regression suite setup setuptext.ecl to change COMPRESSED to UNCOMRESSED to help stresstext.ecl until PR-19206 merged" "${REGRESS_LOG_FILE}"
-cp -fv ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl-back
-sed -i -e 's/RETURN OUTPUT(projected,, Files.NameSearchSource, THOR, OVERWRITE, COMPRESSED)/RETURN OUTPUT(projected,, Files.NameSearchSource, THOR, OVERWRITE, UNCOMPRESSED)/g' ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl
-WriteLog "Done." "${REGRESS_LOG_FILE}"
-
+if [[ ("$BRANCH_ID" == "candidate-8.12.x")  || ("$BRANCH_ID" == "candidate-9.0.x") || ("$BRANCH_ID" == "candidate-9.2.x") ]]
+then
+    WriteLog "Skip patch regression suite setup setuptext.ecl because this version:$BRANCH_ID doesn't have 'UNCOMRESSED'parameter." "${REGRESS_LOG_FILE}"
+else
+    WriteLog "Patch regression suite setup setuptext.ecl to change COMPRESSED to UNCOMRESSED to help stresstext.ecl until PR-19206 merged" "${REGRESS_LOG_FILE}"
+    cp -fv ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl-back
+    sed -i -e 's/RETURN OUTPUT(projected,, Files.NameSearchSource, THOR, OVERWRITE, COMPRESSED)/RETURN OUTPUT(projected,, Files.NameSearchSource, THOR, OVERWRITE, UNCOMPRESSED)/g' ${SOURCE_HOME}/testing/regress/ecl/setup/setuptext.ecl
+    WriteLog "Done." "${REGRESS_LOG_FILE}"
+fi
 # -------------------------------------------
 # Inject/update packetAcknowledgeTimeout into environment.xml
 #
