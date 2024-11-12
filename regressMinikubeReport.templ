@@ -29,9 +29,9 @@
       - $QUERIES_PUBLISH_REPORT_STR
 
     - Regression
-      - Started: @$REGRESSION_START_TIME
+      - Started: @$REGRESS_START_TIME
 
-      - $REGRESSION_RESULT_STR
+      - $REGRESS_RESULT_REPORT_STR
 
       - Errors: 
         - see: $logFile
@@ -53,4 +53,4 @@
     - Start log processor
       -  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR
 
-    - Finished @$END_TIME
+    - Finished @$END_TIME_STR

@@ -27,7 +27,7 @@ configure_network_role = true
 
 node_pools = {
   system = {
-    vm_size                      = "Standard_D4_v4"
+    vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
     node_count                   = 1
     #enable_auto_scaling          = true  #problem on 2024.08.27
     only_critical_addons_enabled = true
@@ -48,7 +48,7 @@ node_pools = {
   }
 
   addpool1 = {
-    vm_size                      = "Standard_D4_v4"
+    vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
     #enable_auto_scaling          = true  #problem on 2024.08.27
     node_count                   = 2
     min_count                    = 1
@@ -77,7 +77,7 @@ node_pools = {
   }
 
   addpool2 = {
-    vm_size                      = "Standard_D4_v4"
+    vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
     #enable_auto_scaling          = true  #problem on 2024.08.27
     node_count                   = 2
     min_count                    = 1

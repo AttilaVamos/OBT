@@ -12,7 +12,7 @@
                 \"Replicas\" : \"3\",
                 \"MaxActive\" : \"4\",
                 \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"\*\"
+                \"AllowedPipePrograms\" : \"*\"
             },
             \"ThorConfig\" : {
                 \"NumWorkers\" : \"2\",
@@ -111,7 +111,7 @@
                         \"Total\":\"$HTHOR_SETUP_QUERIES\",
                         \"Pass\":\"$HTHOR_SETUP_PASS\",
                         \"Fail\":\"$HTHOR_SETUP_FAIL\",
-                        \"Result\":\"$HTHOR_SETUP_RESULT\"
+                        \"Result\":\"$HTHOR_SETUP_RESULT_STR\"
                     },
                     \"thor\":{
                         \"Elaps\":{
@@ -121,7 +121,7 @@
                         \"Total\":\"$THOR_SETUP_QUERIES\",
                         \"Pass\":\"$THOR_SETUP_PASS\",
                         \"Fail\":\"$THOR_SETUP_FAIL\",
-                        \"Result\":\"$THOR_SETUP_RESULT\"
+                        \"Result\":\"$THOR_SETUP_RESULT_STR\"
                     },
                     \"roxie\":{
                         \"Elaps\":{
@@ -131,7 +131,7 @@
                         \"Total\":\"$ROXIE_SETUP_QUERIES\",
                         \"Pass\":\"$ROXIE_SETUP_PASS\",
                         \"Fail\":\"$ROXIE_SETUP_FAIL\",
-                        \"Result\":\"$ROXIE_SETUP_RESULT\"
+                        \"Result\":\"$ROXIE_SETUP_RESULT_STR\"
                     }
                 }
             },

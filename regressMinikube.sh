@@ -3,6 +3,7 @@
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 START_TIME=$( date "+%H:%M:%S")
+START_TIME_SEC=$(date +%s)
 START_CMD="$0 $*"
 
 if [ -f ./timestampLogger.sh ]
@@ -34,7 +35,7 @@ usage()
     WriteLog " " "/dev/null"
 }
 
-secToTimeStr()
+SecToTimeStr()
 {
     t=$1
     echo "($( date -u --date @$t "+%H:%M:%S"))"
@@ -62,7 +63,7 @@ ProcessLog()
 
     readarray -t errors < <( echo "$result" | egrep "Suite:|Fail " )
     OLD_IFS=$IFS
-    IFS=$'\n'
+    local IFS=$'\n'
     elapsed=()
     readarray -t elapsed < <( echo "$result" | egrep "Elapsed time:" |  awk '{ print $3" "$4" "$5 }' )
 
@@ -80,24 +81,24 @@ ProcessLog()
     _retStr=$(printf "%-20s %s\t%s\t%s\t%s\n\n" "Engine" "Query" "Pass" "Fail" "Time")
     for i in "${!engine[@]}"
     do
-        engine=${engine[$i]}
-        engines+=("$engine")
-        queries[$engine]="${total[$i]}"
-        passes[$engine]="${passed[$i]}"
-        fails[$engine]="${failed[$i]}"
-        time_str[$engine]="${elapsed[$i]}"
-        _str=$(printf "%8s%-20s %5d\t%4d\t%4d\t%s\n" " " "${engine[$i]}" "${total[$i]}" "${passed[$i]}" "${failed[$i]}" "${elapsed[$i]}") 
+        eng=${engine[$i]}
+        engines+=("$eng")
+        queries[$eng]="${total[$i]}"
+        passes[$eng]="${passed[$i]}"
+        fails[$eng]="${failed[$i]}"
+        time_str[$eng]="${elapsed[$i]}"
+        _str=$(printf "%8s%-20s %5d\t%4d\t%4d\t%19s\n" " " "${engine[$i]}" "${total[$i]}" "${passed[$i]}" "${failed[$i]}" "${elapsed[$i]}") 
         _retStr=$(echo -e "${_retStr}\n${_str}")
 
-        capEngine=${engine^^}_${action}
+        capEngine=${eng^^}_${action}
         #echo "capEngine: $capEngine"
-        printf -v "$capEngine"_QUERIES  '%s' "${queries[$engine]}"
+        printf -v "$capEngine"_QUERIES  '%s' "${queries[$eng]}"
         #declare -g "${capEngine}_QUERIES"="${queries[$engine]}"    # An alternative
-        printf -v "$capEngine"_PASS     '%s' "${passes[$engine]}"
-        printf -v "$capEngine"_FAIL     '%s' "${fails[$engine]}"
-        printf -v "$capEngine"_TIME_STR '%s' "${time_str[$engine]}"
-        printf -v "$capEngine"_TIME     '%s' "$(echo ${time_str[$engine]} | cut -d' ' -f1 )"
-        printf -v "$capEngine"_RESULT '%s' "$( [[ ${fails[$engine]} -eq 0 ]] && echo "PASSED" || echo "FAILED" )"
+        printf -v "$capEngine"_PASS     '%s' "${passes[$eng]}"
+        printf -v "$capEngine"_FAIL     '%s' "${fails[$eng]}"
+        printf -v "$capEngine"_TIME_STR '%s' "${time_str[$eng]}"
+        printf -v "$capEngine"_TIME     '%s' "$(echo ${time_str[$eng]} | cut -d' ' -f1 )"
+        printf -v "$capEngine"_RESULT_STR '%s' "$( [[ ${fails[$eng]} -eq 0 ]] && echo "PASSED" || echo "FAILED" )"
     done
     retString=$_retStr
     
@@ -125,6 +126,7 @@ ProcessLog()
 
         if [[ "$arrayName" == "hthorErrors" ]]
         then
+
             hthorErrors+=("$item")
             continue
         fi
@@ -180,6 +182,7 @@ ProcessLog()
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     set +x
+    IFS=$OLD_IFS
 }
 
 #set -x;
@@ -241,7 +244,7 @@ fi
 
 CONFIG="./ecl-test-k8s.json"
 PQ="--pq 2"
-TIMEOUT="--timeout 1200"
+RTE_TIMEOUT="--timeout 1200"
 QUICK_TEST_SET='teststdlib*'
 QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
@@ -266,7 +269,7 @@ WriteLog "PKG_QRY_CMD    : $PKG_QRY_CMD" "$logFile"
 WriteLog "PKG_REM_CMD    : $PKG_REM_CMD" "$logFile"
 WriteLog "CONFIG         : $CONFIG" "$logFile"
 WriteLog "PQ             : $PQ" "$logFile"
-WriteLog "TIMEOUT        : $TIMEOUT" "$logFile"
+WriteLog "RTE_TIMEOUT    : $RTE_TIMEOUT" "$logFile"
 
 #set -x
 INTERACTIVE=0
@@ -312,7 +315,7 @@ WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
-HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(secToTimeStr "$HELM_UPDATE_TIME")"
+HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(SecToTimeStr $HELM_UPDATE_TIME)"
 HELM_UPDATE_RESULT_STR="Done"
 WriteLog "$res" "$logFile"
 WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
@@ -496,7 +499,7 @@ else
 fi
 
 PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(secToTimeStr "$PLATFORM_INSTALL_TIME")"
+PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(SecToTimeStr $PLATFORM_INSTALL_TIME)"
 PLATFORM_INSTALL_RESULT_STR="Done"
 WriteLog "  $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_STR" "$logFile"
 
@@ -531,7 +534,7 @@ else
 fi
 
 MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-MINIKUBE_START_TIME_STR="$MINIKUBE_START_TIME sec $(secToTimeStr "$MINIKUBE_START_TIME")"
+MINIKUBE_START_TIME_STR="$MINIKUBE_START_TIME sec $(SecToTimeStr $MINIKUBE_START_TIME)"
 MINIKUBE_START_RESULT_STR="Done"
 WriteLog "  $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR" "$logFile"
 
@@ -540,7 +543,7 @@ WriteLog "Deploy HPCC ..." "$logFile"
 res=$( helm install minikube hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
 WriteLog "$res" "$logFile"
 PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(secToTimeStr "$PLATFORM_DEPLOY_TIME")"
+PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(SecToTimeStr $PLATFORM_DEPLOY_TIME)"
 PLATFORM_DEPLOY_RESULT_STR="Done"
 WriteLog "  $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR" "$logFile"
 
@@ -574,7 +577,7 @@ sleep 10
 # test it
 WriteLog "$(printf '\nExpected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
 PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PODS_START_TIME_STR="$PODS_START_TIME sec $(secToTimeStr "$PODS_START_TIME")"
+PODS_START_TIME_STR="$PODS_START_TIME sec $(SecToTimeStr $PODS_START_TIME)"
 PODS_START_RESULT_STR="Done"
 NUMBER_OF_RUNNING_PODS=$running
 PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS PODs are up."
@@ -602,7 +605,7 @@ then
     #echo "Press <Enter> to continue"
     #read
     ECLWATCH_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    ECLWATCH_START_TIME_STR="$ECLWATCH_START_TIME sec $(secToTimeStr "$ECLWATCH_START_TIME")"
+    ECLWATCH_START_TIME_STR="$ECLWATCH_START_TIME sec $(SecToTimeStr $ECLWATCH_START_TIME)"
     ECLWATCH_START_RESULT_STR="Done"
     WriteLog "  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR" "$logFile"
     
@@ -619,6 +622,7 @@ then
     then
         getLogs=1
         setupPass=0
+        SETUP_RESULT_STR="FAILED"
     fi
     _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
     WriteLog "$_res" "$logFile"
@@ -632,7 +636,7 @@ then
     WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
     SETUP_RESULT_STR="PASSED"
     
-     NUMBER_OF_PUBLISHED=0
+    NUMBER_OF_PUBLISHED=0
     if [[ $setupPass -eq 1 ]]
     then
         # Experimental code for publish Queries to Roxie
@@ -649,22 +653,24 @@ then
         done< <(egrep -l '\/\/publish' setup/*.ecl)
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
-        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
+        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
         QUERIES_PUBLISH_RESULT_STR="Done"
         QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
         QUERIES_PUBLISH_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
         WriteLog "  $QUERIES_PUBLISH_REPORT_STR" "$logFile"
 
-        REGRESSION_START_TIME=$( date "+%H:%M:%S")
+        REGRESS_START_TIME=$( date "+%H:%M:%S")
         # Regression stage
-        WriteLog "Run regression ..." "$logFile"
         if [[ $FULL_REGRESSION -eq 1 ]]
         then
+        WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
-            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info 2>&1 )
+            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info 2>&1 )
         else
             # For sanity testing on all engines
-            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+            WriteLog "Run regression quick sanity chceck with ($QUICK_TEST_SET)" "$logFile"
+            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+            #res=$( ./ecl-test query --server $ip:$port --ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray --suiteDir $SUITEDIR --config $CONFIG --pq 2 --timeout 1200 pipe* httpcall* soapcall* roxie* badindex.ecl 2>&1 )
         fi
 
         retCode=$?
@@ -673,27 +679,29 @@ then
         if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
         then
             getLogs=1
+            REGRESS_RESULT_STR="FAILED"
+            WriteLog "$res" "$logFile"
         fi
         _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
         WriteLog "$_res" "$logFile"
         
-        REGRESSION_RESULT_STR=''
-        action="REGRESSION"
-        ProcessLog "$res" REGRESSION_RESULT_STR $action
+        REGRESS_RESULT_REPORT_STR=''
+        action="REGRESS"
+        ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action
         WriteLog "action: '$action'" "$logFile"
-        WriteLog "REGRESSION_RESULT_STR:\n$REGRESSION_RESULT_STR" "$logFile"
+        WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
+        REGRESS_RESULT_STR="PASSED"
     
     else
         WriteLog "Setup is failed, skip regression tessting." "$logFile"
-        SETUP_RESULT_STR="FAILED"
-        
         QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
         QUERIES_PUBLISH_TIME=0
-        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(secToTimeStr "$QUERIES_PUBLISH_TIME")"
+        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
         QUERIES_PUBLISH_REPORT_STR="Skipped based on setup error"
         
-        REGRESSION_START_TIME=$( date "+%H:%M:%S")
-        REGRESSION_RESULT_STR="Skipped based on setup error"
+        REGRESS_START_TIME=$( date "+%H:%M:%S")
+        REGRESS_RESULT_STR="Skipped based on setup error"
+        REGRESS_RESULT_REPORT_STR="$REGRESS_RESULT_STR"
     fi
 
     if [[ -n "$QUERY_STAT2_DIR" ]]
@@ -703,7 +711,7 @@ then
         res=$( ./QueryStat2.py -a -t $ip --port $port --obtSystem=Minikube --buildBranch=$base -p $PERFSTAT_DIR --addHeader --compileTimeDetails 1 --timestamp )
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
-        QUERY_STAT2_TIME_STR="$QUERY_STAT2_TIME sec $(secToTimeStr "$QUERY_STAT2_TIME")."
+        QUERY_STAT2_TIME_STR="$QUERY_STAT2_TIME sec $(SecToTimeStr $QUERY_STAT2_TIME)."
         QUERY_STAT2_RESULT_STR="Done"
         WriteLog "  $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR" "$logFile"
         popd > /dev/null
@@ -739,7 +747,7 @@ else
     WriteLog "Skip log collection" "$logFile"
 fi
 COLLECT_POD_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-COLLECT_POD_LOGS_TIME_STR="$COLLECT_POD_LOGS_TIME sec $(secToTimeStr "$COLLECT_POD_LOGS_TIME")."
+COLLECT_POD_LOGS_TIME_STR="$COLLECT_POD_LOGS_TIME sec $(SecToTimeStr $COLLECT_POD_LOGS_TIME)."
 COLLECT_POD_LOGS_RESULT_STR="Done"
 WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
 
@@ -762,15 +770,19 @@ do
     #date;
     expected=0;
     running=0;
-    while read a b c;
+    #set -x
+    while read a b c
     do
+        #echo "a:'$a', b:'$b', c:'$c'"
         running=$(( $running + $a ));
-        expected=$(( $expected + $b ));
+        #expected=$(( $expected + $b ));
         #WriteLog " $( printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up ))" "$logFile" ;
-    done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " ");
+    done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );
+    #done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " " | cut -d ' ' -f1,2,3 | awk '{ print $1" "$2" "$3}' );
+    #set +x
     WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
 
-    [[ $expected -eq 0 ]] && break || sleep $delay;
+    [[ $running -eq 0 ]] && break || sleep $delay;
 
     tryCount=$(( $tryCount - 1 ))
 
@@ -803,9 +815,10 @@ do
         tryCount=10
     fi
 done;
+#set +x
 WriteLog "System is down" "$logFile"
 UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
-UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(secToTimeStr "$UNINSTALL_PODS_TIME")."
+UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(SecToTimeStr $UNINSTALL_PODS_TIME)"
 UNINSTALL_PODS_RESULT_STR="Done"
 UNINSTALL_PODS_RESULT_SUFFIX_STR="$running PODs are running."
 WriteLog "  $UNINSTALL_PODS_RESULT_STR in $UNINSTALL_PODS_TIME_STR, $UNINSTALL_PODS_RESULT_SUFFIX_STR" "$logFile"
@@ -815,7 +828,7 @@ TIME_STAMP=$(date +%s)
 res=$(minikube stop 2>&1)
 WriteLog "${res}" "$logFile"
 MINIKUBE_STOP_TIME=$(( $(date +%s) - $TIME_STAMP ))
-MINIKUBE_STOP_TIME_STR="$MINIKUBE_STOP_TIME sec $(secToTimeStr "$MINIKUBE_STOP_TIME")."
+MINIKUBE_STOP_TIME_STR="$MINIKUBE_STOP_TIME sec $(SecToTimeStr $MINIKUBE_STOP_TIME)."
 MINIKUBE_STOP_TIME_RESULT="Done"
 WriteLog "  $MINIKUBE_STOP_TIME_RESULT in $MINIKUBE_STOP_TIME_STR" "$logFile"
 
@@ -829,7 +842,7 @@ then
         res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
         WriteLog "${res}" "$logFile"
         REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(secToTimeStr "$REGRESS_LOG_PROCESSING_TIME")."
+        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(SecToTimeStr $REGRESS_LOG_PROCESSING_TIME)."
         REGRESS_LOG_PROCESSING_RESULT_STR="Done"
         WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR" "$logFile"
     else
@@ -841,6 +854,9 @@ else
 fi
 
 END_TIME=$( date "+%H:%M:%S")
+RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
+RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
+END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
 
 WriteLog "Generate reports..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -857,8 +873,8 @@ eval "resolved2=\"$report2\""
 echo "$resolved2" > regressMinikube-$START_DATE.json
 
 REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))
-REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(secToTimeStr "$REPORT_GENERATION_TIME")"
+REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(SecToTimeStr $REPORT_GENERATION_TIME)"
 WriteLog "  Report generation is done in $REPORT_GENERATION_TIME_STR." "$logFile"
 
-WriteLog "End." "$logFile"
+WriteLog "End ($RUN_TIME_STR)." "$logFile"
 WriteLog "==================================" "$logFile"

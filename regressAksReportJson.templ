@@ -2,7 +2,7 @@
     \"OBTResult\": {
         \"Env\": {
             \"BuildSystem\" : \"$SYSTEM_ID\",
-            \"Hardware\": \"CPU/Cores: 16, RAM: 64 GB\",
+            \"Hardware\": \"CPU/Cores: 8, RAM: 16 GB\",
             \"IPAddress\": \"$LOCAL_IP\"
         },
          \"Remote\" : {
@@ -27,12 +27,12 @@
                 \"Replicas\":\"1\",
                 \"MaxActive\":\"20\",
                 \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"\*\"
+                \"AllowedPipePrograms\" : \"*\"
             },
         },
         \"BuildSet\": {
             \"Branch\": \"$TAG_TO_TEST\",
-           \"BranchDate\":\"N/A\",
+            \"BranchDate\":\"N/A\",
             \"BranchSHA\":\"N/A\",
             \"BuildType\":\"Release\",
             \"Target\": \"K8s\"
@@ -114,7 +114,7 @@
                         \"Total\": $HTHOR_SETUP_QUERIES,
                         \"Pass\": $HTHOR_SETUP_PASS,
                         \"Fail\": $HTHOR_SETUP_FAIL,
-                        \"Result\": \"$HTHOR_SETUP_RESULT\"
+                        \"Result\": \"$HTHOR_SETUP_RESULT_STR\"
                     },
                     \"thor\": {
                         \"Elaps\": {
@@ -124,7 +124,7 @@
                         \"Total\": $THOR_SETUP_QUERIES,
                         \"Pass\": $THOR_SETUP_PASS,
                         \"Fail\": $THOR_SETUP_FAIL,
-                        \"Result\": \"$THOR_SETUP_RESULT\"
+                        \"Result\": \"$THOR_SETUP_RESULT_STR\"
                     },
                     \"roxie\": {
                         \"Elaps\": {
@@ -134,7 +134,7 @@
                         \"Total\": $ROXIE_SETUP_QUERIES,
                         \"Pass\": $ROXIE_SETUP_PASS,
                         \"Fail\": $ROXIE_SETUP_FAIL,
-                        \"Result\": \"$ROXIE_SETUP_RESULT\"
+                        \"Result\": \"$ROXIE_SETUP_RESULT_STR\"
                     }
                 }
             },
@@ -203,7 +203,7 @@
             },
             {
                 \"DestroyAKS\": {
-                    \"Result\" : \"$AKS_DESTROY_TIME_STR\",
+                    \"Result\" : \"$AKS_DESTROY_RESULT_STR\",
                     \"NumberOfResources\" : $AKS_DESTROYED_NUM_OF_RESOURCES,
                     \"Elaps\": {
                         \"Formatted\": \"$AKS_DESTROY_TIME_STR\",
@@ -214,9 +214,9 @@
             {
                 \"DestroyStorage\": {
                     \"Result\" : \"$STORAGE_DESTROY_RESULT_STR\",
-                    \"NumberOfResources\" : $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR,
+                    \"NumberOfResources\" : $STORAGE_DESTROYED_NUM_OF_RESOURCES,
                     \"Elaps\": {
-                        \"Formatted\": \"$STORAGE_DESTROY_TIME__STR\",
+                        \"Formatted\": \"$STORAGE_DESTROY_TIME_STR\",
                         \"RawSec\": \"$STORAGE_DESTROY_TIME\"
                     },
                 }
@@ -224,9 +224,9 @@
             {
                 \"DestroyVirtualNetwork\": {
                     \"Result\" : \"$VNET_DESTROY_RESULT_STR\",
-                    \"NumberOfResources\" : $VNET_DESTROYED_NUM_OF_RESOURCES_STR,
+                    \"NumberOfResources\" : $VNET_DESTROYED_NUM_OF_RESOURCES,
                     \"Elaps\": {
-                        \"Formatted\": \"$VNET_DESTROY_TIME__STR\",
+                        \"Formatted\": \"$VNET_DESTROY_TIME_STR\",
                         \"RawSec\": \"$VNET_DESTROY_TIME\"
                     },
                 }
@@ -240,6 +240,13 @@
                     },
             }
         ],
-        \"Errors\": []
+        \"Errors\": [
+            $HTHOR_SETUP_ERROR_STR
+            $THOR_SETUP_ERROR_STR
+            $ROXIE_SETUP_ERROR_STR
+            $HTHOR_REGRESS_ERROR_STR
+            $THOR_REGRESS_ERROR_STR
+            $ROXIE_REGRESS_ERROR_STR
+        ]
     }
 }
