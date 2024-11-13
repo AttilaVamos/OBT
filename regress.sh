@@ -441,7 +441,7 @@ sed -i -e 's/operation_timeout(5.5)/operation_timeout('"${operation_timeout}"')/
 
 WriteLog "Done." "${REGRESS_LOG_FILE}"
 
-if [[ ("$BRANCH_ID" == "candidate-8.12.x")  || ("$BRANCH_ID" == "candidate-9.0.x") || ("$BRANCH_ID" == "candidate-9.2.x") ]]
+if [[ ("$BRANCH_ID" == "candidate-8.8.x") || ("$BRANCH_ID" == "candidate-8.10.x") || ("$BRANCH_ID" == "candidate-8.12.x") || ("$BRANCH_ID" == "candidate-9.0.x") || ("$BRANCH_ID" == "candidate-9.2.x") ]]
 then
     WriteLog "Skip patch regression suite setup setuptext.ecl because this version:$BRANCH_ID doesn't have 'UNCOMRESSED'parameter." "${REGRESS_LOG_FILE}"
 else
