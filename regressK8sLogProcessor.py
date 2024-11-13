@@ -183,15 +183,17 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
     
     def processFailure(items, timestamp,  sysLogs):
         global suite
-        error = items[3]
-        if 'version:' in items:
-            error += ''.join( items[4:items.index(')')+1])
-        
-        if suite not in sysLogs[timestamp]['errors']:
-            sysLogs[timestamp]['errors'] [suite] = []
+        if "Fail" in items[2]:
+            # Process the line which contains the test case name only and ignore any other lines like URL ZAP generation, etc.
+            error = items[3]
+            if 'version:' in items:
+                error += ''.join( items[4:items.index(')')+1])
+            
+            if suite not in sysLogs[timestamp]['errors']:
+                sysLogs[timestamp]['errors'] [suite] = []
 
-        sysLogs[timestamp]['errors'][suite].append(error)
-        print("\t%s error:'%s'" % (suite, error))
+            sysLogs[timestamp]['errors'][suite].append(error)
+            print("\t%s error:'%s'" % (suite, error))
         pass
     
     # Keywords function directory

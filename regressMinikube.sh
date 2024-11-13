@@ -31,6 +31,7 @@ usage()
     WriteLog " -q       - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
     WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
     WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
+    WriteLog " -d       - Enable debug log." "/dev/null"
     WriteLog " -h       - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
@@ -39,6 +40,14 @@ SecToTimeStr()
 {
     t=$1
     echo "($( date -u --date @$t "+%H:%M:%S"))"
+}
+
+PrintSetting()
+{
+    name=$1
+    log=$2
+    local str=$( printf "%-20s : %s" "$name" "${!name}" )
+    WriteLog "$str" "$log"
 }
 
 ProcessLog()
@@ -242,36 +251,20 @@ else
 
 fi
 
-CONFIG="./ecl-test-k8s.json"
-PQ="--pq 2"
+RTE_CONFIG="./ecl-test-k8s.json"
+RTE_PQ="--pq 2"
 RTE_TIMEOUT="--timeout 1200"
-QUICK_TEST_SET='teststdlib*'
-QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
-#QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
-#QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
-EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+RTE_QUICK_TEST_SET='teststdlib*'
+RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+#RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
+#RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
+RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
-WriteLog "Start          : $0 $*" "$logFile"
-WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
-WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
-WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
-WriteLog "OBT BIN DIR    : $OBT_BIN_DIR" "$logFile"
-WriteLog "QUERY_STAT2_DIR: $QUERY_STAT2_DIR" "$logFile"
-WriteLog "PERFSTAT_DIR   : $PERFSTAT_DIR" "$logFile"
-WriteLog "QUICK_TEST_SET : $QUICK_TEST_SET" "$logFile"
-WriteLog "EXCLUSIONS     : $EXCLUSIONS" "$logFile"
-WriteLog "PKG_DIR        : $PKG_DIR" "$logFile"
-WriteLog "PKG_EXT        : $PKG_EXT" "$logFile"
-WriteLog "PKG_INST_CMD   : $PKG_INST_CMD" "$logFile"
-WriteLog "PKG_QRY_CMD    : $PKG_QRY_CMD" "$logFile"
-WriteLog "PKG_REM_CMD    : $PKG_REM_CMD" "$logFile"
-WriteLog "CONFIG         : $CONFIG" "$logFile"
-WriteLog "PQ             : $PQ" "$logFile"
-WriteLog "RTE_TIMEOUT    : $RTE_TIMEOUT" "$logFile"
-
 #set -x
+DEBUG=0
 INTERACTIVE=0
 FULL_REGRESSION=1
 TAG='<latest>'
@@ -284,6 +277,9 @@ do
     upperParam=${param^^}
     #WriteLog "Param: ${upperParam}" "/dev/null"
     case $upperParam in
+        D) DEBUG=1
+            ;;
+            
         I)  INTERACTIVE=1
             ;;
                
@@ -306,10 +302,29 @@ do
     shift
 done
 
-WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
-WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
-WriteLog "TAG            : $TAG" "$logFile"
-WriteLog "VERBOSE        : $VERBOSE" "$logFile"
+
+PrintSetting "START_CMD" "$logFile"
+PrintSetting "SOURCE_DIR" "$logFile"
+PrintSetting "SUITEDIR" "$logFile"
+PrintSetting "RTE_DIR" "$logFile"
+PrintSetting "OBT_BIN_DIR" "$logFile"
+PrintSetting "QUERY_STAT2_DIR" "$logFile"
+PrintSetting "PERFSTAT_DIR" "$logFile"
+PrintSetting "RTE_QUICK_TEST_SET" "$logFile"
+PrintSetting "RTE_EXCLUSIONS" "$logFile"
+PrintSetting "PKG_DIR" "$logFile"
+PrintSetting "PKG_EXT" "$logFile"
+PrintSetting "PKG_INST_CMD" "$logFile"
+PrintSetting "PKG_QRY_CMD" "$logFile"
+PrintSetting "PKG_REM_CMD" "$logFile"
+PrintSetting "RTE_CONFIG" "$logFile"
+PrintSetting "RTE_PQ" "$logFile"
+PrintSetting "RTE_TIMEOUT" "$logFile"
+PrintSetting "INTERACTIVE" "$logFile"
+PrintSetting "FULL_REGRESSION" "$logFile"
+PrintSetting "TAG" "$logFile"
+PrintSetting "VERBOSE" "$logFile"
+PrintSetting "LOCAL_IP" "$logFile"
 
 WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -560,7 +575,7 @@ do
     do 
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
-        #WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile"; 
+        [[ $DEBUG == 1 ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile"; 
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
     WriteLog "$( printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount)" "$logFile"; 
 
@@ -610,11 +625,11 @@ then
     WriteLog "  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR" "$logFile"
     
     WriteLog "Run tests." "$logFile"
-    #pwd
+     [[ $DEBUG == 1 ]] && pwd
 
     setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
-    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG  $PQ --timeout 900 --loglevel info 2>&1 )
+    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG  $RTE_PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
     isError=$( echo "${res}" | egrep -c 'Fail ' )
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
@@ -665,12 +680,12 @@ then
         then
         WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
-            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info 2>&1 )
+            res=$( ./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info 2>&1 )
         else
             # For sanity testing on all engines
-            WriteLog "Run regression quick sanity chceck with ($QUICK_TEST_SET)" "$logFile"
-            res=$( ./ecl-test query --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
-            #res=$( ./ecl-test query --server $ip:$port --ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray --suiteDir $SUITEDIR --config $CONFIG --pq 2 --timeout 1200 pipe* httpcall* soapcall* roxie* badindex.ecl 2>&1 )
+            WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
+            res=$( ./ecl-test query --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET 2>&1 )
+            #res=$( ./ecl-test query --server $ip:$port --ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray --suiteDir $SUITEDIR --config $RTE_CONFIG --pq 2 --timeout 1200 pipe* httpcall* soapcall* roxie* badindex.ecl 2>&1 )
         fi
 
         retCode=$?
@@ -770,16 +785,16 @@ do
     #date;
     expected=0;
     running=0;
-    #set -x
+    [[ $DEBUG == 1 ]] && set -x
     while read a b c
     do
-        #echo "a:'$a', b:'$b', c:'$c'"
+        [[ $DEBUG == 1 ]] && WriteLog "a:'$a', b:'$b', c:'$c'" "$logFile"
         running=$(( $running + $a ));
         #expected=$(( $expected + $b ));
-        #WriteLog " $( printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up ))" "$logFile" ;
+        [[ $DEBUG == 1 ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up ))" "$logFile" ;
     done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );
     #done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " " | cut -d ' ' -f1,2,3 | awk '{ print $1" "$2" "$3}' );
-    #set +x
+    [[ $DEBUG == 1 ]] && set +x
     WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
 
     [[ $running -eq 0 ]] && break || sleep $delay;
@@ -815,7 +830,7 @@ do
         tryCount=10
     fi
 done;
-#set +x
+[[ $DEBUG == 1 ]] && set +x
 WriteLog "System is down" "$logFile"
 UNINSTALL_PODS_TIME=$(( $(date +%s) - $TIME_STAMP ))
 UNINSTALL_PODS_TIME_STR="$UNINSTALL_PODS_TIME sec $(SecToTimeStr $UNINSTALL_PODS_TIME)"
@@ -864,12 +879,15 @@ WriteLog "  Text" "$logFile"
 report1=$(<./regressMinikubeReport.templ)
 # Do it with 'eval'
 eval "resolved1=\"$report1\""
+
+[[ $DEBUG == 1 ]] && WriteLog "resolved1:\n$resolved1" "$logFile"
 echo "$resolved1" > regressMinikube-$START_DATE.report
 
 WriteLog "  JSON" "$logFile"
 report2=$(<./regressMinikubeReportJson.templ)
 eval "resolved2=\"$report2\""
-#echo "$resolved2"
+
+[[ $DEBUG == 1 ]] && WriteLog "resolved2:\n$resolved2" "$logFile"
 echo "$resolved2" > regressMinikube-$START_DATE.json
 
 REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))

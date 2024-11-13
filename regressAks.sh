@@ -306,6 +306,14 @@ GenerateReports()
     WriteLog "  Report generation is done in $REPORT_GENERATION_TIME_STR." "$logFile"
 }
 
+PrintSetting()
+{
+    name=$1
+    log=$2
+    local str=$( printf "%-25s : %s" "$name" "${!name}" )
+    WriteLog "$str" "$log"
+}
+
 handler()
 {
     echo ""
@@ -316,7 +324,7 @@ handler()
 }
 
 
-trap handler 2; 
+#trap handler 2; 
 #set -x;
 OBT_DIR=$(pwd)
 START_DATE=$(date +%Y-%m-%d_%H-%M-%S)
@@ -368,15 +376,21 @@ fi
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
 TERRAFORM_DIR=~/terraform-azurerm-hpcc
 
-CONFIG="./ecl-test-k8s.json"
-PQ="--pq 2"
+RTE_CONFIG="./ecl-test-k8s.json"
+RTE_PQ="--pq 2"
 RTE_TIMEOUT="--timeout 1200"
-QUICK_TEST_SET='teststdlib*'
-QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
-#QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
-#QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
-EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
-DEPLOY_TIMEOUT="30.0m"
+RTE_QUICK_TEST_SET='teststdlib*'
+RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+# Alternatives
+#RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
+#RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
+
+RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+
+# Timeouts
+VNET_DEPLOY_TIMEOUT="5.0m"          # Usually <2 minutes
+STORAGE_DEPLOY_TIMEOUT="7.0m"   # Usually <3 minutes
+AKS_DEPLOY_TIMEOUT="30.0m"          # Usually <12 Minutes
 
 #set -x
 INTERACTIVE=0
@@ -401,7 +415,7 @@ do
             ;;
             
         DT) shift
-            DEPLOY_TIMEOUT=$1
+            AKS_DEPLOY_TIMEOUT=$1
             ;;
             
         T)  shift
@@ -430,30 +444,32 @@ do
     shift
 done
 
-WriteLog "Start          : $0 $*" "$logFile"
-WriteLog "SOURCE_DIR     : $SOURCE_DIR" "$logFile"
-WriteLog "SUITEDIR       : $SUITEDIR" "$logFile"
-WriteLog "RTE_DIR        : $RTE_DIR" "$logFile"
-WriteLog "QUERY_STAT2_DIR: $QUERY_STAT2_DIR" "$logFile"
-WriteLog "PERFSTAT_DIR   : $PERFSTAT_DIR" "$logFile"
-WriteLog "TERRAFORM_DIR  : $TERRAFORM_DIR" "$logFile"
-WriteLog "QUICK_TEST_SET : $QUICK_TEST_SET" "$logFile"
-WriteLog "EXCLUSIONS     : $EXCLUSIONS" "$logFile"
-WriteLog "PKG_DIR        : $PKG_DIR" "$logFile"
-WriteLog "PKG_EXT        : $PKG_EXT" "$logFile"
-WriteLog "PKG_INST_CMD   : $PKG_INST_CMD" "$logFile"
-WriteLog "PKG_QRY_CMD    : $PKG_QRY_CMD" "$logFile"
-WriteLog "PKG_REM_CMD    : $PKG_REM_CMD" "$logFile"
-WriteLog "CONFIG         : $CONFIG" "$logFile"
-WriteLog "PQ             : $PQ" "$logFile"
-WriteLog "RTE_TIMEOUT    : $RTE_TIMEOUT" "$logFile"
-WriteLog "DEPLOY_TIMEOUT : $DEPLOY_TIMEOUT" "$logFile"
-WriteLog "INTERACTIVE    : $INTERACTIVE" "$logFile"
-WriteLog "FULL_REGRESSION: $FULL_REGRESSION" "$logFile"
-WriteLog "TAG            : $TAG" "$logFile"
-WriteLog "VERBOSE        : $VERBOSE" "$logFile"
-WriteLog "START_RESOURCES: $START_RESOURCES" "$logFile"
-WriteLog "IGNORE_AUTOMATION_ERROR: $IGNORE_AUTOMATION_ERROR $( [[ $IGNORE_AUTOMATION_ERROR -eq 1 ]] && echo '(!!!)')" "$logFile"
+PrintSetting "START_CMD" "$logFile"
+PrintSetting "SOURCE_DIR" "$logFile"
+PrintSetting "SUITEDIR" "$logFile"
+PrintSetting "RTE_DIR" "$logFile"
+PrintSetting "QUERY_STAT2_DIR" "$logFile"
+PrintSetting "PERFSTAT_DIR" "$logFile"
+PrintSetting "TERRAFORM_DIR" "$logFile"
+PrintSetting "RTE_QUICK_TEST_SET" "$logFile"
+PrintSetting "RTE_EXCLUSIONS" "$logFile"
+PrintSetting "PKG_DIR" "$logFile"
+PrintSetting "PKG_EXT" "$logFile"
+PrintSetting "PKG_INST_CMD" "$logFile"
+PrintSetting "PKG_QRY_CMD" "$logFile"
+PrintSetting "PKG_REM_CMD" "$logFile"
+PrintSetting "RTE_CONFIG" "$logFile"
+PrintSetting "RTE_PQ" "$logFile"
+PrintSetting "RTE_TIMEOUT" "$logFile"
+PrintSetting "VNET_DEPLOY_TIMEOUT" "$logFile"
+PrintSetting "STORAGE_DEPLOY_TIMEOUT" "$logFile"
+PrintSetting "AKS_DEPLOY_TIMEOUT" "$logFile"
+PrintSetting "INTERACTIVE" "$logFile"
+PrintSetting "FULL_REGRESSION" "$logFile"
+PrintSetting "TAG" "$logFile"
+PrintSetting "VERBOSE" "$logFile"
+PrintSetting "START_RESOURCES" "$logFile"
+PrintSetting "IGNORE_AUTOMATION_ERROR" "$logFile"  # !!!!
 
 WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -682,10 +698,10 @@ WriteLog "account: $account" "$logFile"
 
 if [[ $START_RESOURCES -eq 1 ]]
 then
-    WriteLog "Create VNET ..." "$logFile"
+    WriteLog "Create VNET ... (timeout is $VNET_DEPLOY_TIMEOUT)" "$logFile"
     pushd modules/virtual_network > /dev/null
     TIME_STAMP=$(date +%s)
-    res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    res=$(timeout  -s 15 --preserve-status $VNET_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
     VNET_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
@@ -700,10 +716,10 @@ then
     WriteLog "  $VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR" "$logFile"
     popd > /dev/null
      
-    WriteLog "Create storage accounts ..." "$logFile"
+    WriteLog "Create storage accounts ... (timeout is $STORAGE_DEPLOY_TIMEOUT)" "$logFile"
     pushd modules/storage_accounts > /dev/null
     TIME_STAMP=$(date +%s)
-    res=$(terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    res=$(timeout  -s 15 --preserve-status $STORAGE_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
     STORAGE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
@@ -721,9 +737,9 @@ then
 fi
 
 
-WriteLog "Deploy HPCC ... (timeout is $DEPLOY_TIMEOUT)" "$logFile"
+WriteLog "Deploy HPCC ... (timeout is $AKS_DEPLOY_TIMEOUT)" "$logFile"
 TIME_STAMP=$(date +%s)
-res=$( timeout  -s 15 --preserve-status $DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve 2>&1 )
+res=$( timeout  -s 15 --preserve-status $AKS_DEPLOY_TIMEOUT  terraform apply -var-file=obt-admin.tfvars -auto-approve 2>&1 )
 #res=$( times terraform apply -var-file=obt-admin.tfvars -auto-approve )
 #res=$( terraform apply -var-file=obt-admin.tfvars -auto-approve )
 retCode=$?
@@ -869,7 +885,7 @@ then
 
     setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
-    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG  $PQ --timeout 900 --loglevel info 2>&1 )
+    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG  $RTE_PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
     isError=$( echo "${res}" | egrep -c 'Fail ' )
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
@@ -926,13 +942,13 @@ then
         then
             WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
-            REGRESS_CMD="./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info"
-            res=$( ./ecl-test run --server $ip:$port $EXCLUSIONS --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info 2>&1 )
+            REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info"
+            res=$( ./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info 2>&1 )
         else
-            WriteLog "Run regression quick sanity chceck with ($QUICK_TEST_SET)" "$logFile"
+            WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
             # For sanity testing on all engines
-            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info $QUICK_TEST_SET"
-            res=$( ./ecl-test query --server $ip:$port  --suiteDir $SUITEDIR --config $CONFIG $PQ $RTE_TIMEOUT --loglevel info $QUICK_TEST_SET 2>&1 )
+            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET"
+            res=$( ./ecl-test query --server $ip:$port  --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET 2>&1 )
         fi
 
         retCode=$?
@@ -945,7 +961,15 @@ then
             REGRESS_RESULT_REPORT_STR="$res"
             WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
             WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
-            WriteLog "$res" "$logFile"
+            if [[ $retCode -ne 0 ]]
+            then
+                # RTE itself reported error, log the problem
+                WriteLog "$res" "$logFile"
+            else
+                # Report the failed tet cases
+                _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+                WriteLog "$_res" "$logFile"
+            fi
         else
             _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
             WriteLog "$_res" "$logFile"
