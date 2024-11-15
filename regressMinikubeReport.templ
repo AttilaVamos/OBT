@@ -2,25 +2,25 @@
     - Start @$START_TIME
 
     - Update helm repo
-      - $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR
+      - $HELM_UPDATE_RESULT_REPORT_STR
 
     - Is choosed a good tag?
       - Yes: $TAG_TO_TEST
 
     - Check the locally installed platform
-      - $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_STR
+      - $PLATFORM_INSTALL_RESULT_REPORT_STR
 
     - Start Minikube
-      - $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR
+      - $MINIKUBE_START_RESULT_REPORT_STR
 
     - Deploy HPCC
-      - $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR
+      - $PLATFORM_DEPLOY_RESULT_REPORT_STR
 
     - Wait for PODs
-      - $PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR
+      - $PODS_START_RESULT_REPORT_STR
 
     - ECLWatch annotated, up and running
-      -  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR
+      -  $ECLWATCH_START_RESULT_REPORT_STR
 
     - Setup:
       - $SETUP_RESULT_REPORT_STR 

@@ -39,7 +39,7 @@ usage()
 SecToTimeStr()
 {
     t=$1
-    echo "($( date -u --date @$t "+%H:%M:%S"))"
+    echo "($( date -u --date @$t +%H:%M:%S))"
 }
 
 PrintSetting()
@@ -330,10 +330,11 @@ WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(helm repo update 2>&1)
 HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
+WriteLog "$res" "$logFile"
 HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(SecToTimeStr $HELM_UPDATE_TIME)"
 HELM_UPDATE_RESULT_STR="Done"
-WriteLog "$res" "$logFile"
-WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
+HELM_UPDATE_RESULT_REPORT_STR="$HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR"
+WriteLog "  $HELM_UPDATE_RESULT_REPORT_STR" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -516,7 +517,8 @@ fi
 PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(SecToTimeStr $PLATFORM_INSTALL_TIME)"
 PLATFORM_INSTALL_RESULT_STR="Done"
-WriteLog "  $PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_STR" "$logFile"
+PLATFORM_INSTALL_RESULT_REPORT_STR="$PLATFORM_INSTALL_RESULT_STR in $PLATFORM_INSTALL_TIME_STR"
+WriteLog "  $PLATFORM_INSTALL_RESULT_REPORT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
@@ -551,7 +553,8 @@ fi
 MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
 MINIKUBE_START_TIME_STR="$MINIKUBE_START_TIME sec $(SecToTimeStr $MINIKUBE_START_TIME)"
 MINIKUBE_START_RESULT_STR="Done"
-WriteLog "  $MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR" "$logFile"
+MINIKUBE_START_RESULT_REPORT_STR="$MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR"
+WriteLog "  $MINIKUBE_START_RESULT_REPORT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 WriteLog "Deploy HPCC ..." "$logFile"
@@ -560,7 +563,8 @@ WriteLog "$res" "$logFile"
 PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(SecToTimeStr $PLATFORM_DEPLOY_TIME)"
 PLATFORM_DEPLOY_RESULT_STR="Done"
-WriteLog "  $PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR" "$logFile"
+PLATFORM_DEPLOY_RESULT_REPORT_STR="$PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR"
+WriteLog "  $PLATFORM_DEPLOY_RESULT_REPORT_STR" "$logFile"
 
 # Wait until everything is up
 WriteLog "Wait for PODs" "$logFile"
@@ -596,7 +600,8 @@ PODS_START_TIME_STR="$PODS_START_TIME sec $(SecToTimeStr $PODS_START_TIME)"
 PODS_START_RESULT_STR="Done"
 NUMBER_OF_RUNNING_PODS=$running
 PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS PODs are up."
-WriteLog "  $PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR" "$logFile"
+PODS_START_RESULT_REPORT_STR="$PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR"
+WriteLog "  $PODS_START_RESULT_REPORT_STR" "$logFile"
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
@@ -621,8 +626,8 @@ then
     #read
     ECLWATCH_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     ECLWATCH_START_TIME_STR="$ECLWATCH_START_TIME sec $(SecToTimeStr $ECLWATCH_START_TIME)"
-    ECLWATCH_START_RESULT_STR="Done"
-    WriteLog "  $ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR" "$logFile"
+    ECLWATCH_START_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR"
+    WriteLog "  $ECLWATCH_START_RESULT_REPORT_STR" "$logFile"
     
     WriteLog "Run tests." "$logFile"
      [[ $DEBUG == 1 ]] && pwd
@@ -633,12 +638,15 @@ then
     retCode=$?
     isError=$( echo "${res}" | egrep -c 'Fail ' )
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
-    if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
+     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
         getLogs=1
         setupPass=0
         SETUP_RESULT_STR="FAILED"
+    else
+        SETUP_RESULT_STR="PASSED"
     fi
+    
     _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
     WriteLog "$_res" "$logFile"
     declare -A queries passes fails time_str 
@@ -649,7 +657,7 @@ then
     ProcessLog "$res" SETUP_RESULT_REPORT_STR $action
     WriteLog "action: '$action'" "$logFile"
     WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
-    SETUP_RESULT_STR="PASSED"
+
     
     NUMBER_OF_PUBLISHED=0
     if [[ $setupPass -eq 1 ]]
@@ -675,17 +683,19 @@ then
         WriteLog "  $QUERIES_PUBLISH_REPORT_STR" "$logFile"
 
         REGRESS_START_TIME=$( date "+%H:%M:%S")
+        REGRESS_RESULT_REPORT_STR=''
         # Regression stage
         if [[ $FULL_REGRESSION -eq 1 ]]
         then
-        WriteLog "Run Regression Suite ..." "$logFile"
+            WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
+            REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info"
             res=$( ./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info 2>&1 )
         else
             # For sanity testing on all engines
             WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
+            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET"
             res=$( ./ecl-test query --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET 2>&1 )
-            #res=$( ./ecl-test query --server $ip:$port --ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray --suiteDir $SUITEDIR --config $RTE_CONFIG --pq 2 --timeout 1200 pipe* httpcall* soapcall* roxie* badindex.ecl 2>&1 )
         fi
 
         retCode=$?
@@ -695,17 +705,29 @@ then
         then
             getLogs=1
             REGRESS_RESULT_STR="FAILED"
-            WriteLog "$res" "$logFile"
+            WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
+            WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
+            if [[ $retCode -ne 0 ]]
+            then
+                # RTE itself reported error, log the problem
+                WriteLog "$res" "$logFile"
+                REGRESS_RESULT_REPORT_STR="$res"
+            else
+                # Report the failed tet cases
+                _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+                WriteLog "$_res" "$logFile"
+                REGRESS_RESULT_REPORT_STR="$_res"
+            fi
+        else
+            _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+            WriteLog "$_res" "$logFile"
+            REGRESS_RESULT_STR="PASSED"
         fi
-        _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
-        WriteLog "$_res" "$logFile"
         
-        REGRESS_RESULT_REPORT_STR=''
         action="REGRESS"
         ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action
         WriteLog "action: '$action'" "$logFile"
         WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
-        REGRESS_RESULT_STR="PASSED"
     
     else
         WriteLog "Setup is failed, skip regression tessting." "$logFile"

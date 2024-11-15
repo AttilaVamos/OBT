@@ -84,7 +84,7 @@
             {
                 \"WaitForPODs\":{
                     \"Result\":\"$PODS_START_RESULT_STR\",
-                    \"NumberOfPODs\":\"$NUMBER_OF_RUNNING_PODS\",
+                    \"NumberOfPODs\": ${NUMBER_OF_RUNNING_PODS:-0},
                     \"Elaps\":{
                         \"Formatted\":\"$PODS_START_TIME_STR\",
                         \"RawSec\":\"$PODS_START_TIME\"
@@ -108,9 +108,9 @@
                             \"Formatted\":\"$HTHOR_SETUP_TIME_STR\",
                             \"RawSec\":\"$HTHOR_SETUP_TIME\"
                         },
-                        \"Total\":\"$HTHOR_SETUP_QUERIES\",
-                        \"Pass\":\"$HTHOR_SETUP_PASS\",
-                        \"Fail\":\"$HTHOR_SETUP_FAIL\",
+                        \"Total\": ${HTHOR_SETUP_QUERIES:-0},
+                        \"Pass\": ${HTHOR_SETUP_PASS:-0},
+                        \"Fail\": ${HTHOR_SETUP_FAIL:-0},
                         \"Result\":\"$HTHOR_SETUP_RESULT_STR\"
                     },
                     \"thor\":{
@@ -118,19 +118,19 @@
                             \"Formatted\":\"$THOR_SETUP_TIME_STR\",
                             \"RawSec\":\"$THOR_SETUP_TIME\"
                         },
-                        \"Total\":\"$THOR_SETUP_QUERIES\",
-                        \"Pass\":\"$THOR_SETUP_PASS\",
-                        \"Fail\":\"$THOR_SETUP_FAIL\",
-                        \"Result\":\"$THOR_SETUP_RESULT_STR\"
+                        \"Total\": ${THOR_SETUP_QUERIES:-0},
+                        \"Pass\": ${THOR_SETUP_PASS:-0},
+                        \"Fail\": ${THOR_SETUP_FAIL:-0},
+                        \"Result\": ${THOR_SETUP_RESULT_STR:-0}
                     },
                     \"roxie\":{
                         \"Elaps\":{
                             \"Formatted\":\"$ROXIE_SETUP_TIME_STR\",
                             \"RawSec\":\"$ROXIE_SETUP_TIME\"
                         },
-                        \"Total\":\"$ROXIE_SETUP_QUERIES\",
-                        \"Pass\":\"$ROXIE_SETUP_PASS\",
-                        \"Fail\":\"$ROXIE_SETUP_FAIL\",
+                        \"Total\": ${ROXIE_SETUP_QUERIES:-0},
+                        \"Pass\": ${ROXIE_SETUP_PASS:-0},
+                        \"Fail\": ${$ROXIE_SETUP_FAIL:-0},
                         \"Result\":\"$ROXIE_SETUP_RESULT_STR\"
                     }
                 }
@@ -138,7 +138,7 @@
             {
                 \" PublishQueries\":{
                     \"Result\":\"$QUERIES_PUBLISH_RESULT_STR\",
-                    \"Total\":\"$NUMBER_OF_PUBLISHED\",
+                    \"Total\": ${NUMBER_OF_PUBLISHED:-0},
                     \"Elaps\":{
                         \"Formatted\":\"$QUERIES_PUBLISH_TIME_STR\",
                         \"RawSec\":\"$QUERIES_PUBLISH_TIME\"
@@ -154,9 +154,9 @@
                             \"Formatted\":\"$HTHOR_REGRESS_TIME_STR\",
                             \"RawSec\":\"$HTHOR_REGRESS_TIME\"
                         },
-                        \"Total\":\"$HTHOR_REGRESS_QUERIES\",
-                        \"Pass\":\"$HTHOR_REGRESS_PASS\",
-                        \"Fail\":\"$HTHOR_REGRESS_FAIL\"
+                        \"Total\": ${HTHOR_REGRESS_QUERIES:-0},
+                        \"Pass\": ${HTHOR_REGRESS_PASS:-0},
+                        \"Fail\": ${HTHOR_REGRESS_FAIL:-0}
                     },
                     \"Thor\":{
                         \"Result\":\"$THOR_REGRESS_RESULT_STR\",
@@ -164,9 +164,9 @@
                             \"Formatted\":\"$THOR_REGRESS_TIME_STR\",
                             \"RawSec\":\"$THOR_REGRESS_TIME\"
                         },
-                        \"Total\":\"$THOR_REGRESS_QUERIES\",
-                        \"Pass\":\"$THOR_REGRESS_PASS\",
-                        \"Fail\":\"$THOR_REGRESS_FAIL\"
+                        \"Total\": ${THOR_REGRESS_QUERIES:-0},
+                        \"Pass\": ${THOR_REGRESS_PASS:-0},
+                        \"Fail\": ${THOR_REGRESS_FAIL:-0}
                     },
                     \"Roxie\":{
                         \"Result\":\"$ROXIE_REGRESS_RESULT_STR\",
@@ -174,9 +174,9 @@
                             \"Formatted\":\"$ROXIE_REGRESS_TIME_STR\",
                             \"RawSec\":\"$ROXIE_REGRESS_TIME\"
                         },
-                        \"Total\":\"$ROXIE_REGRESS_QUERIES\",
-                        \"Pass\":\"$ROXIE_REGRESS_PASS\",
-                        \"Fail\":\"$ROXIE_REGRESS_FAIL\"
+                        \"Total\": ${ROXIE_REGRESS_QUERIES:-0},
+                        \"Pass\": ${ROXIE_REGRESS_PASS:-0},
+                        \"Fail\": ${ROXIE_REGRESS_FAIL:-0}
                     }
                 }
             },

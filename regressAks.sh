@@ -215,7 +215,8 @@ collectAllLogs()
     COLLECT_POD_LOGS_TIME=$(( $(date +%s) - $TIME_STAMP ))
     COLLECT_POD_LOGS_TIME_STR="$COLLECT_POD_LOGS_TIME sec $(SecToTimeStr $COLLECT_POD_LOGS_TIME)."
     COLLECT_POD_LOGS_RESULT_STR="Done"
-    WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
+    COLLECT_POD_LOGS_RESULT_REPORT_STR="$COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR"
+    WriteLog "  $COLLECT_POD_LOGS_RESULT_REPORT_STR" "$logFile"
 }
 
 destroyResources()
@@ -242,7 +243,8 @@ destroyResources()
     AKS_DESTROYED_NUM_OF_RESOURCES=$( echo $AKS_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     AKS_DESTROY_TIME_STR="$AKS_DESTROY_TIME sec $(SecToTimeStr $AKS_DESTROY_TIME)"
     AKS_DESTROY_RESULT_STR="Done"
-    WriteLog "  $AKS_DESTROY_RESULT_STR in $AKS_DESTROY_TIME_STR, $AKS_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
+    AKS_DESTROY_RESULT_REPORT_STR="$AKS_DESTROY_RESULT_STR in $AKS_DESTROY_TIME_STR, $AKS_DESTROYED_NUM_OF_RESOURCES_STR."
+    WriteLog "  $AKS_DESTROY_RESULT_REPORT_STR" "$logFile"
 
     if [[ $START_RESOURCES -eq 1 ]]
     then
@@ -262,7 +264,8 @@ destroyResources()
         
         STORAGE_DESTROY_TIME_STR="$STORAGE_DESTROY_TIME sec $(SecToTimeStr $STORAGE_DESTROY_TIME)"
         STORAGE_DESTROY_RESULT_STR="Done"
-        WriteLog "  $STORAGE_DESTROY_RESULT_STR in $STORAGE_DESTROY_TIME_STR, $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
+        STORAGE_DESTROY_RESULT_REPORT_STR="$STORAGE_DESTROY_RESULT_STR in $STORAGE_DESTROY_TIME_STR, $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR."
+        WriteLog "  $STORAGE_DESTROY_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
 
         WriteLog "Destroy VNET ..." "$logFile"
@@ -281,7 +284,8 @@ destroyResources()
         
         VNET_DESTROY_TIME_STR="$VNET_DESTROY_TIME sec $(SecToTimeStr $VNET_DESTROY_TIME)"
         VNET_DESTROY_RESULT_STR="Done"
-        WriteLog "  $VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME_STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR." "$logFile"
+        VNET_DESTROY_RESULT_REPORT_STR="$VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME_STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR."
+        WriteLog "  $VNET_DESTROY_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
     fi
 
@@ -369,6 +373,7 @@ else
         PKG_QRY_CMD="rpm -qa "
         PKG_REM_CMD="rpm -e --nodeps "
     fi
+    SYSTEM_ID="Ubuntu Docker Playground VM"
 fi    
 
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
@@ -386,6 +391,9 @@ RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+
+INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
+LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
 # Timeouts
 VNET_DEPLOY_TIMEOUT="5.0m"          # Usually <2 minutes
@@ -478,7 +486,8 @@ HELM_UPDATE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "$res" "$logFile"
 HELM_UPDATE_TIME_STR="$HELM_UPDATE_TIME sec $(SecToTimeStr $HELM_UPDATE_TIME)"
 HELM_UPDATE_RESULT_STR="Done"
-WriteLog "  $HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR" "$logFile"
+HELM_UPDATE_RESULT_REPORT_STR="$HELM_UPDATE_RESULT_STR in $HELM_UPDATE_TIME_STR"
+WriteLog "  $HELM_UPDATE_RESULT_REPORT_STR" "$logFile"
 
 pushd $SOURCE_DIR > /dev/null
 
@@ -677,7 +686,8 @@ TERRAFORM_UPGRADE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 TERRAFORM_UPGRADE_TIME_STR="$TERRAFORM_UPGRADE_TIME sec $(SecToTimeStr $TERRAFORM_UPGRADE_TIME)."
 TERRAFORM_UPGRADE_RESULT_STR="Done"
 TERRAFORM_VERSION=$(terraform --version | head -n 1)
-WriteLog "  $TERRAFORM_UPGRADE_RESULT_STR in $TERRAFORM_UPGRADE_TIME_STR, version: $TERRAFORM_VERSION" "$logFile"
+TERRAFORM_UPGRADE_RESULT_REPORT_STR="$TERRAFORM_UPGRADE_RESULT_STR in $TERRAFORM_UPGRADE_TIME_STR, version: $TERRAFORM_VERSION"
+WriteLog "  $TERRAFORM_UPGRADE_RESULT_REPORT_STR" "$logFile"
 
 # Check login status
 loginCheck=$(az ad signed-in-user show)
@@ -713,7 +723,8 @@ then
     VNET_NUM_OF_RESOURCES=$( echo $VNET_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     VNET_START_TIME_STR="$VNET_START_TIME sec $(SecToTimeStr $VNET_START_TIME)"
     VNET_START_RESULT_STR="Done"
-    WriteLog "  $VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR" "$logFile"
+    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
+    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
     popd > /dev/null
      
     WriteLog "Create storage accounts ... (timeout is $STORAGE_DEPLOY_TIMEOUT)" "$logFile"
@@ -728,10 +739,11 @@ then
         WriteLog "$( echo "$res" | egrep ' Resources:')" "$logFile"
     fi
     STORAGE_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-    STORAGE_NUM_OF_RESOURCES=$( echo $NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+    STORAGE_NUM_OF_RESOURCES=$( echo $STORAGE_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     STORAGE_START_TIME__STR="$STORAGE_START_TIME sec $(SecToTimeStr $STORAGE_START_TIME)"
     STORAGE_START_RESULT_STR="Done"
-    WriteLog "  $STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR" "$logFile"
+    STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
+    WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
     popd > /dev/null
 
 fi
@@ -751,7 +763,7 @@ isAutomationError=$( echo "isError" |egrep -c 'creating Automation Account')
 WriteLog "retCode: $retCode, ignoreAutomationError: $IGNORE_AUTOMATION_ERROR, isAutomationError: $isAutomationError" "$logFile"
 
 AKS_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
-AKS_NUM_OF_RESOURCES=$( echo $NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
+AKS_NUM_OF_RESOURCES=$( echo $AKS_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
 
 if [[ ($retCode -eq 0) || ( ($IGNORE_AUTOMATION_ERROR -eq 1) && ($isAutomationError -ne 0 )) ]]
 then
@@ -933,7 +945,8 @@ then
         QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
         QUERIES_PUBLISH_RESULT_STR="Done"
         QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
-        WriteLog "  $QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR" "$logFile"
+        QUERIES_PUBLISH_RESULT_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
+        WriteLog "  $QUERIES_PUBLISH_RESULT_REPORT_STR" "$logFile"
 
         REGRESS_START_TIME=$( date "+%H:%M:%S")
         REGRESS_RESULT_REPORT_STR=''
@@ -958,17 +971,18 @@ then
         then
             getLogs=1
             REGRESS_RESULT_STR="FAILED"
-            REGRESS_RESULT_REPORT_STR="$res"
             WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
             WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
             if [[ $retCode -ne 0 ]]
             then
                 # RTE itself reported error, log the problem
                 WriteLog "$res" "$logFile"
+                REGRESS_RESULT_REPORT_STR="$res"
             else
                 # Report the failed tet cases
                 _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
                 WriteLog "$_res" "$logFile"
+                REGRESS_RESULT_REPORT_STR="$_res"
             fi
         else
             _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
@@ -1003,7 +1017,8 @@ then
         WriteLog "${res}" "$logFile"
         QUERY_STAT2_TIME_STR="$QUERY_STAT2_TIME sec $(SecToTimeStr $QUERY_STAT2_TIME)."
         QUERY_STAT2_RESULT_STR="Done"
-        WriteLog "  $QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR" "$logFile"
+        QUERY_STAT2_RESULT_REPORT_STR="$QUERY_STAT2_RESULT_STR in $QUERY_STAT2_TIME_STR"
+        WriteLog "  $QUERY_STAT2_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
     else
         WriteLog "Missing QueryStat2.py, skip cluster and compile time query." "$logFile"
@@ -1024,7 +1039,8 @@ else
     COLLECT_POD_LOGS_TIME=0
     COLLECT_POD_LOGS_TIME_STR="$COLLECT_POD_LOGS_TIME sec $(SecToTimeStr $COLLECT_POD_LOGS_TIME)."
     COLLECT_POD_LOGS_RESULT_STR="PODs log collection skipped"
-    WriteLog "  $COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR" "$logFile"
+    COLLECT_POD_LOGS_RESULT_REPORT_STR="$COLLECT_POD_LOGS_RESULT_STR in $COLLECT_POD_LOGS_TIME_STR"
+    WriteLog "  $COLLECT_POD_LOGS_RESULT_REPORT_STR" "$logFile"
 fi    
 
 if [[ $INTERACTIVE -eq 1 ]]
@@ -1080,7 +1096,8 @@ then
         REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
         REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(SecToTimeStr $REGRESS_LOG_PROCESSING_TIME)."
         REGRESS_LOG_PROCESSING_RESULT_STR="Done"
-        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR." "$logFile"
+        REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR."
+        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_REPORT_STR" "$logFile"
     else
         WriteLog "regressK8sLogProcessor.py not found." "$logFile"
     fi
