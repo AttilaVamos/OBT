@@ -26,7 +26,7 @@
                 \"Replicas\" : \"1\",
                 \"MaxActive\" : \"20\",
                 \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"\*\"
+                \"AllowedPipePrograms\" : \"*\"
             },
         },
         \"BuildSet\":{
@@ -41,7 +41,7 @@
             \"Documentation\" : \"N/A\",
             \"Unittest\" : \"N/A\",
             \"MLtest\" : \"N/A\",
-            \"Regression\" : \"$EXCLUSIONS\"
+            \"Regression\" : \"$RTE_EXCLUSIONS\"
         },
         \"Tasks\" : [
             {
@@ -105,13 +105,13 @@
                     \"Result\":\"$SETUP_RESULT_STR\",
                     \"hthor\":{
                         \"Elaps\":{
-                            \"Formatted\":\"$HTHOR_SETUP_TIME_STR\",
-                            \"RawSec\":\"$HTHOR_SETUP_TIME\"
+                            \"Formatted\":\"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
+                            \"RawSec\":\"${HTHOR_SETUP_TIME:-0}\"
                         },
                         \"Total\": ${HTHOR_SETUP_QUERIES:-0},
                         \"Pass\": ${HTHOR_SETUP_PASS:-0},
                         \"Fail\": ${HTHOR_SETUP_FAIL:-0},
-                        \"Result\":\"$HTHOR_SETUP_RESULT_STR\"
+                        \"Result\":\"${HTHOR_SETUP_RESULT_STR:-N/A}\"
                     },
                     \"thor\":{
                         \"Elaps\":{
@@ -130,7 +130,7 @@
                         },
                         \"Total\": ${ROXIE_SETUP_QUERIES:-0},
                         \"Pass\": ${ROXIE_SETUP_PASS:-0},
-                        \"Fail\": ${$ROXIE_SETUP_FAIL:-0},
+                        \"Fail\": ${ROXIE_SETUP_FAIL:-0},
                         \"Result\":\"$ROXIE_SETUP_RESULT_STR\"
                     }
                 }

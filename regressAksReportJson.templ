@@ -13,7 +13,7 @@
                 \"Replicas\":\"3\",
                 \"MaxActive\":\"4\",
                 \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"\*\"
+                \"AllowedPipePrograms\" : \"*\"
             },
             \"ThorConfig\":{
                 \"NumWorkers\":\"2\",
@@ -21,7 +21,7 @@
                 \"MaxGraph\" : \"2\",
                 \"MultiJobLinger\" : \"true\",
                 \"LingerPeriod\" : \"200\",
-                \"AllowedPipePrograms\" : \"\*\"
+                \"AllowedPipePrograms\" : \"*\"
             },
             \"RoxieWorkunitConfig\":{
                 \"Replicas\":\"1\",
@@ -106,15 +106,15 @@
             {
                 \"Setup\": {
                     \"Result\": \"$SETUP_RESULT_STR\",
-                    \"hthor\": {
-                        \"Elaps\": {
-                            \"Formatted\": \"$HTHOR_SETUP_TIME_STR\",
-                            \"RawSec\": \"$HTHOR_SETUP_TIME\"
+                    \"hthor\":{
+                        \"Elaps\":{
+                            \"Formatted\":\"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
+                            \"RawSec\":\"${HTHOR_SETUP_TIME:-0}\"
                         },
                         \"Total\": ${HTHOR_SETUP_QUERIES:-0},
                         \"Pass\": ${HTHOR_SETUP_PASS:-0},
                         \"Fail\": ${HTHOR_SETUP_FAIL:-0},
-                        \"Result\": \"$HTHOR_SETUP_RESULT_STR\"
+                        \"Result\":\"${HTHOR_SETUP_RESULT_STR:-N/A}\"
                     },
                     \"thor\": {
                         \"Elaps\": {

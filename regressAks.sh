@@ -373,7 +373,15 @@ else
         PKG_QRY_CMD="rpm -qa "
         PKG_REM_CMD="rpm -e --nodeps "
     fi
-    SYSTEM_ID="Ubuntu Docker Playground VM"
+    # Get system info 
+    SYSTEM_ID=$( cat /etc/*-release | egrep -i "^PRETTY_NAME" | cut -d= -f2 | tr -d '"' )
+    if [[ "${SYSTEM_ID}" == "" ]]
+    then
+        SYSTEM_ID=$( cat /etc/*-release | head -1 )
+    fi
+    SYSTEM_ID=${SYSTEM_ID// (*)/}
+    SYSTEM_ID=${SYSTEM_ID// /_}
+    SYSTEM_ID=${SYSTEM_ID//./_}
 fi    
 
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
