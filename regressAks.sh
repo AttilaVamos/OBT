@@ -54,6 +54,8 @@ ProcessLog()
     result="$1"
     local -n retString=$2
     local action="$3"
+    actionCap=${action,,}
+    actionCap=${actionCap^}
     #echo "result:$result"
     #echo "action:$action"
     #set -x
@@ -161,30 +163,30 @@ ProcessLog()
     unset errStr
     for item in ${hthorErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Hthor_${action}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Hthor${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n                ],\n            },\n")
     capEngine=HTHOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
     for item in ${thorErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Thor_${action}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Thor${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ],\n        },\n")
     capEngine=THOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
     for item in ${roxieErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Roxie_${action}\" :\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Roxie${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n}\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ],\n        }\n")
     capEngine=ROXIE_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
@@ -392,11 +394,14 @@ TERRAFORM_DIR=~/terraform-azurerm-hpcc
 RTE_CONFIG="./ecl-test-k8s.json"
 RTE_PQ="--pq 2"
 RTE_TIMEOUT="--timeout 1200"
-RTE_QUICK_TEST_SET='teststdlib*'
-RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+
 # Alternatives
+#RTE_QUICK_TEST_SET='teststdlib*'
+#RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
+RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_pke_lfn.ecl external.ecl'  # To generate errors as well
+
 
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
 
@@ -691,7 +696,7 @@ WriteLog "Upgrade terraform..." "$logFile"
 TIME_STAMP=$(date +%s)
 WriteLog "$(terraform init -upgrade 2>&1)" "$logFile"
 TERRAFORM_UPGRADE_TIME=$(( $(date +%s) - $TIME_STAMP ))
-TERRAFORM_UPGRADE_TIME_STR="$TERRAFORM_UPGRADE_TIME sec $(SecToTimeStr $TERRAFORM_UPGRADE_TIME)."
+TERRAFORM_UPGRADE_TIME_STR="$TERRAFORM_UPGRADE_TIME sec $(SecToTimeStr $TERRAFORM_UPGRADE_TIME)"
 TERRAFORM_UPGRADE_RESULT_STR="Done"
 TERRAFORM_VERSION=$(terraform --version | head -n 1)
 TERRAFORM_UPGRADE_RESULT_REPORT_STR="$TERRAFORM_UPGRADE_RESULT_STR in $TERRAFORM_UPGRADE_TIME_STR, version: $TERRAFORM_VERSION"

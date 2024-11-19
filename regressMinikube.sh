@@ -55,6 +55,8 @@ ProcessLog()
     result="$1"
     local -n retString=$2
     local action="$3"
+    actionCap=${action,,}
+    actionCap=${actionCap^}
     #echo "result:$result"
     #echo "action:$action"
     #set -x
@@ -160,33 +162,33 @@ ProcessLog()
     #echo "roxieErrors:${roxieErrors[@]}"
     #echo "................."
 
-    unset errStr
+        unset errStr
     for item in ${hthorErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Hthor_${action}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Hthor${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n                ],\n            },\n")
     capEngine=HTHOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
     for item in ${thorErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Thor_${action}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Thor${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n},\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ],\n        },\n")
     capEngine=THOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
     for item in ${roxieErrors[@]}
     do
-        [[ -z $errStr ]] && errStr="$( echo -e "{\n\"Roxie_${action}\" :\n")"
-        errStr=$( echo -e "${errStr}\n\"$item\",")
+        [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Roxie${actionCap}\" : [\n")"
+        errStr=$( echo -e "${errStr}\n                \"$item\",")
     done
-    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n],\n}\n")
+    [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ],\n        }\n")
     capEngine=ROXIE_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
@@ -254,10 +256,12 @@ fi
 RTE_CONFIG="./ecl-test-k8s.json"
 RTE_PQ="--pq 2"
 RTE_TIMEOUT="--timeout 1200"
-RTE_QUICK_TEST_SET='teststdlib*'
-RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+#RTE_QUICK_TEST_SET='teststdlib*'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
+#RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_pke_lfn.ecl external.ecl'  # To generate errors as well
+
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
 
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
