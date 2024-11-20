@@ -284,23 +284,46 @@ then
 
     WriteLog "Clean up and prepare..." "${PERF_TEST_LOG}"
 
-    if [ ! -d ${BUILD_DIR}/${RELEASE_TYPE} ]
+    if [ ! -d ${BUILD_DIR}/$RELEASE_TYPE ]
     then
-        mkdir -p ${BUILD_DIR}/${RELEASE_TYPE}
+        mkdir -p ${BUILD_DIR}/$RELEASE_TYPE
     fi
 
-    cd ${BUILD_DIR}/${RELEASE_TYPE}
+    WriteLog "PWD: $(pwd)" "${OBT_BUILD_LOG_FILE}"
 
-    WriteLog "$BUILD_TYPE build remove build dir. (CWD:$(pwd))" "${PERF_TEST_LOG}"
-
-    [[ -h build ]] && rm build || ( [[ -d build ]] && rm -rf build )
+    cd ${BUILD_DIR}/$RELEASE_TYPE
 
     buildTarget=build-${BRANCH_ID}-${LONG_DATE}
- 
-    WriteLog "Create symlink for build to ${buildTarget}." "${PERF_TEST_LOG}"
-    mkdir ${buildTarget}
-    ln -s ${buildTarget} build
-    WriteLog "Done." "${PERF_TEST_LOG}"
+
+    if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+    then
+        if [[ -d build ]]
+        then 
+            WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+            res=$( rm -rf build )
+            [[ $? -ne 0 ]] && WriteLog " 'rm -rf build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+        fi
+        if [[ -f build ]]
+        then
+            WriteLog "$BUILD_TYPE build remove link to build dir." "${OBT_BUILD_LOG_FILE}"
+            res=$( rm build )
+            [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+        fi
+        mkdir build
+        [[ -d build ]] && WriteLog " 'build' directory created." "${OBT_BUILD_LOG_FILE}"
+
+    else
+       # Use the old linked build directory structure
+        WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+        
+        res=$( rm  build )
+        [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+        
+        WriteLog "Create symlink for build to ${buildTarget}." "${OBT_BUILD_LOG_FILE}"
+        mkdir ${buildTarget}
+        
+        ln -s ${buildTarget} build
+    fi
 
     # Remove all build-* directory older than a week (?)
     #
@@ -329,7 +352,7 @@ then
         WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
 
         buildResult=FAILED
-    export buildResult
+        export buildResult
 
         exit -2
 
@@ -478,6 +501,23 @@ then
     #
 
     cd ${BUILD_HOME}
+    BASE_VERSION=${BRANCH_ID#candidate-}
+    BASE_VERSION=${BASE_VERSION%.*}
+    [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+    VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
+    WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$OBT_BUILD_LOG_FILE"
+
+    if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
+    then
+        WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
+        
+        res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+        
+        WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
+        WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+    else
+        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+    fi
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Start build at ${date}" "${PERF_TEST_LOG}"
@@ -550,7 +590,7 @@ then
     then
         WriteLog "Build failed: build has errors " "${PERF_TEST_LOG}"
         buildResult=FAILED
-    export buildResult
+        export buildResult
         exit 1
     else
         ls -l hpcc*${PKG_EXT} >/dev/null 2>&1
@@ -562,6 +602,63 @@ then
         else
             WriteLog "Build succeed" "${PERF_TEST_LOG}"
             buildResult=SUCCEED
+            if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
+            then
+                pushd ${BUILD_DIR}/$RELEASE_TYPE
+                WriteLog "Move 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
+                mv build $buildTarget
+                WriteLog "Create link as 'build'" "${OBT_BUILD_LOG_FILE}"
+                ln -s ${buildTarget} build
+                WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
+                popd
+            fi
+            
+            if [[ -d ${BUILD_HOME}/vcpkg_installed  ]]
+            then
+                BASE_VERSION=${BRANCH_ID#candidate-}
+                BASE_VERSION=${BASE_VERSION%.*}
+                [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+                WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
+                # We need relative paths to use this archive in Smoketest as well
+                pushd ${BUILD_HOME}
+                rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
+                changesInInstalled=1
+                changesInDownloads=1
+                if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
+                then
+                    cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
+                    changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
+                    WriteLog "Changes in installed: '$changesInInstalled'." "${OBT_BUILD_LOG_FILE}"
+                                    
+                    changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
+                    WriteLog "Changes in downloads: '$changesInDownloads'." "${OBT_BUILD_LOG_FILE}"
+                fi
+
+                if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
+                then
+                    # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
+                    # because it can contain older version of components along with the new one and
+                    # its size can grows more than necessary.
+                    WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+                    [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
+                    zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
+                    zip ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+                else
+                    WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+                fi
+                [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
+
+                WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Before: $(df -h . | egrep -v 'Files')" "${OBT_BUILD_LOG_FILE}"
+                for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp $RELEASE_TYPE
+                do
+                    WriteLog "rm -rf $d" "${OBT_BUILD_LOG_FILE}"
+                    rm -rf $d
+                    WriteLog "Res: $?" "${OBT_BUILD_LOG_FILE}"
+                done
+                WriteLog echo "After: $(df -h . | egrep -v 'Files')"
+                WriteLog "  Done." "${OBT_BUILD_LOG_FILE}"
+            fi
         fi
     fi
 
