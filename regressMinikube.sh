@@ -55,10 +55,13 @@ ProcessLog()
     result="$1"
     local -n retString=$2
     local action="$3"
+    local logFile=$4
     actionCap=${action,,}
     actionCap=${actionCap^}
-    #echo "result:$result"
-    #echo "action:$action"
+    [[ $DEBUG == 1 ]] && WriteLog "result   : $result" "$logFile"
+    [[ $DEBUG == 1 ]] && WriteLog "action   : $action" "$logFile"
+    [[ $DEBUG == 1 ]] && WriteLog "actionCap: $actionCap" "$logFile"
+    [[ $DEBUG == 1 ]] && WriteLog "logFile  : $logFile" "$logFile"
     #set -x
     engine=()
     engine+=( $(echo "$result" | sed -n "s/^.*[[:space:]]*Suite: \([^ ]*\).*/\1/p") )
@@ -78,17 +81,20 @@ ProcessLog()
     elapsed=()
     readarray -t elapsed < <( echo "$result" | egrep "Elapsed time:" |  awk '{ print $3" "$4" "$5 }' )
 
-    #echo "${engine[@]}"
-    #echo "................."
-    #echo "${total[@]}"
-    #echo "................."
-    #echo "${passed[@]}"
-    #echo "................."
-    #echo "${failed[@]}"
-    #echo "................."
-    #echo "${elapsed[@]}"
-    #echo "................."
-    
+    if [[ $DEBUG == 1 ]]
+    then
+        WriteLog "${engine[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "${total[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "${passed[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "${failed[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "${elapsed[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+    fi
+
     _retStr=$(printf "%-20s %s\t%s\t%s\t%s\n\n" "Engine" "Query" "Pass" "Fail" "Time")
     for i in "${!engine[@]}"
     do
@@ -102,7 +108,7 @@ ProcessLog()
         _retStr=$(echo -e "${_retStr}\n${_str}")
 
         capEngine=${eng^^}_${action}
-        #echo "capEngine: $capEngine"
+        [[ $DEBUG == 1 ]] && echo "capEngine: $capEngine"
         printf -v "$capEngine"_QUERIES  '%s' "${queries[$eng]}"
         #declare -g "${capEngine}_QUERIES"="${queries[$engine]}"    # An alternative
         printf -v "$capEngine"_PASS     '%s' "${passes[$eng]}"
@@ -155,14 +161,17 @@ ProcessLog()
         fi
     done
     
-    #echo "hthorErrors:${hthorErrors[@]}"
-    #echo "................."
-    #echo "thorErrors:${thorErrors[@]}"
-    #echo "................."
-    #echo "roxieErrors:${roxieErrors[@]}"
-    #echo "................."
+    if [[ $DEBUG == 1 ]]
+    then
+        WriteLog "hthorErrors:${hthorErrors[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "thorErrors:${thorErrors[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+        WriteLog "roxieErrors:${roxieErrors[@]}" "$logFile"
+        WriteLog "................." "$logFile"
+    fi
 
-        unset errStr
+    unset errStr
     for item in ${hthorErrors[@]}
     do
         [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Hthor${actionCap}\" : [\n")"
@@ -658,7 +667,7 @@ then
     declare -a engines=()
     SETUP_RESULT_REPORT_STR=''
     action="SETUP"
-    ProcessLog "$res" SETUP_RESULT_REPORT_STR $action
+    ProcessLog "$res" SETUP_RESULT_REPORT_STR $action  "$logFile"
     WriteLog "action: '$action'" "$logFile"
     WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
 
@@ -729,9 +738,9 @@ then
         fi
         
         action="REGRESS"
-        ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action
+        ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action  "$logFile"
         WriteLog "action: '$action'" "$logFile"
-        WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
+        [[ $DEBUG == 1 ]] && WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
     
     else
         WriteLog "Setup is failed, skip regression tessting." "$logFile"
