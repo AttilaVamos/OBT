@@ -872,7 +872,7 @@ then
 
         ./checkCoreGen.sh ecl >> "${PERF_TEST_LOG}" 2>&1
 
-        cd ${TEST_ENGINE_HOME}
+        cd ${REGRESSION_TEST_ENGINE_HOME}
 
         # Add Write permission to /var/lib/HPCCSystems and its subdiretories
         ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
@@ -934,7 +934,7 @@ then
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
     fi
     
-    cd ${TEST_ENGINE_HOME}
+    cd ${REGRESSION_TEST_ENGINE_HOME}
     
 
     #
@@ -1074,10 +1074,10 @@ then
     #
     WriteLog "Run performance tests on ${TARGET_PLATFORM} pwd:${myPwd}" "${PERF_TEST_LOG}"
     
-    cd ${TEST_ENGINE_HOME}    
+    cd ${REGRESSION_TEST_ENGINE_HOME}    
 
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
-    WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
+    WriteLog "TEST_ENGINE_HOME: ${REGRESSION_TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
@@ -1331,7 +1331,7 @@ then
         fi
     fi
     
-    cd ${TEST_ENGINE_HOME}
+    cd ${REGRESSION_TEST_ENGINE_HOME}
     
     #
     #----------------------------------------------------
@@ -1372,15 +1372,15 @@ then
     # Update Regression Test Engine config (ecl-test.json)
     #
     
-    ORIG_ESP_IP=$( egrep 'espIp' ${TEST_ENGINE_HOME}/ecl-test.json | tr -d '":,' | awk '{ print $2 }' )
+    ORIG_ESP_IP=$( egrep 'espIp' ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json | tr -d '":,' | awk '{ print $2 }' )
 
     if [[ -n ${ESP_IP} && ${ESP_IP} != "127.0.0.1" ]]
     then
         WriteLog "Replace original Regression Test Engine ESP IP ${ORIG_ESP_IP} with ${ESP_IP}" "${PERF_TEST_LOG}"
 
-        cp ${TEST_ENGINE_HOME}/ecl-test.json ${TEST_ENGINE_HOME}/ecl-test.json.bak
+        cp ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json.bak
 
-        sed -r -e 's/(\s*)"espIp"\s*:\s*"([0-9\.]*)",/\1"espIp" : "'${ESP_IP}'",/g' ${TEST_ENGINE_HOME}/ecl-test.json > temp.json && mv -f temp.json ${TEST_ENGINE_HOME}/ecl-test.json
+        sed -r -e 's/(\s*)"espIp"\s*:\s*"([0-9\.]*)",/\1"espIp" : "'${ESP_IP}'",/g' ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json > temp.json && mv -f temp.json ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json
 
     else
         WriteLog "Keep original Regression Test Engine ESP IP ${ORIG_ESP_IP}" "${PERF_TEST_LOG}"
@@ -1418,10 +1418,10 @@ then
     #
     WriteLog "Run performance tests setup on all platforms pwd:${myPwd}" "${PERF_TEST_LOG}"
     
-    cd ${TEST_ENGINE_HOME}    
+    cd ${REGRESSION_TEST_ENGINE_HOME}    
 
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
-    WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
+    WriteLog "TEST_ENGINE_HOME: ${REGRESSION_TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"
     
     CMD="./ecl-test setup --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -t thor,roxie --pq ${PERF_SETUP_PARALLEL_QUERIES} ${JOB_NAME_SUFFIX}"
 
@@ -1457,7 +1457,7 @@ then
     
     WriteLog "Run performance tests on ${TARGET_PLATFORM} (pwd:${myPwd})" "${PERF_TEST_LOG}"
     
-    cd ${TEST_ENGINE_HOME}
+    cd ${REGRESSION_TEST_ENGINE_HOME}
 
     if [[ -n "$PERF_QUERY_LIST" ]]
     then
@@ -1687,7 +1687,7 @@ then
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
     fi
     
-    cd ${TEST_ENGINE_HOME}
+    cd ${REGRESSION_TEST_ENGINE_HOME}
 
 
     #
@@ -1721,7 +1721,7 @@ then
     
     WriteLog "Run performance tests on ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
-    cd ${TEST_ENGINE_HOME}
+    cd ${REGRESSION_TEST_ENGINE_HOME}
 
     TIMEOUT=900
     
