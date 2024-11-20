@@ -289,7 +289,7 @@ then
         mkdir -p ${BUILD_DIR}/$RELEASE_TYPE
     fi
 
-    WriteLog "PWD: $(pwd)" "${OBT_BUILD_LOG_FILE}"
+    WriteLog "PWD: $(pwd)" "${PERF_TEST_LOG}"
 
     cd ${BUILD_DIR}/$RELEASE_TYPE
 
@@ -299,27 +299,27 @@ then
     then
         if [[ -d build ]]
         then 
-            WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "$BUILD_TYPE build remove build dir." "${PERF_TEST_LOG}"
             res=$( rm -rf build )
-            [[ $? -ne 0 ]] && WriteLog " 'rm -rf build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+            [[ $? -ne 0 ]] && WriteLog " 'rm -rf build' return with ${res}" "${PERF_TEST_LOG}"
         fi
         if [[ -f build ]]
         then
-            WriteLog "$BUILD_TYPE build remove link to build dir." "${OBT_BUILD_LOG_FILE}"
+            WriteLog "$BUILD_TYPE build remove link to build dir." "${PERF_TEST_LOG}"
             res=$( rm build )
-            [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+            [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${PERF_TEST_LOG}"
         fi
         mkdir build
-        [[ -d build ]] && WriteLog " 'build' directory created." "${OBT_BUILD_LOG_FILE}"
+        [[ -d build ]] && WriteLog " 'build' directory created." "${PERF_TEST_LOG}"
 
     else
        # Use the old linked build directory structure
-        WriteLog "$BUILD_TYPE build remove build dir." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "$BUILD_TYPE build remove build dir." "${PERF_TEST_LOG}"
         
         res=$( rm  build )
-        [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${OBT_BUILD_LOG_FILE}"
+        [[ $? -ne 0 ]] && WriteLog " 'rm build' return with ${res}" "${PERF_TEST_LOG}"
         
-        WriteLog "Create symlink for build to ${buildTarget}." "${OBT_BUILD_LOG_FILE}"
+        WriteLog "Create symlink for build to ${buildTarget}." "${PERF_TEST_LOG}"
         mkdir ${buildTarget}
         
         ln -s ${buildTarget} build
@@ -505,18 +505,18 @@ then
     BASE_VERSION=${BASE_VERSION%.*}
     [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
     VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
-    WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$OBT_BUILD_LOG_FILE"
+    WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$PERF_TEST_LOG"
 
     if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
     then
-        WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
+        WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$PERF_TEST_LOG"
         
         res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
         
-        WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
-        WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+        WriteLog "Res: $res" "$PERF_TEST_LOG"
+        WriteLog "   Done."  "$PERF_TEST_LOG"
     else
-        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$PERF_TEST_LOG"
     fi
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
@@ -605,11 +605,11 @@ then
             if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
             then
                 pushd ${BUILD_DIR}/$RELEASE_TYPE
-                WriteLog "Move 'build' to '$buildTarget' (PWD:$(pwd))." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Move 'build' to '$buildTarget' (PWD:$(pwd))." "${PERF_TEST_LOG}"
                 mv build $buildTarget
-                WriteLog "Create link as 'build'" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Create link as 'build'" "${PERF_TEST_LOG}"
                 ln -s ${buildTarget} build
-                WriteLog "  Done. (retCode: $?)'. " "${OBT_BUILD_LOG_FILE}"
+                WriteLog "  Done. (retCode: $?)'. " "${PERF_TEST_LOG}"
                 popd
             fi
             
@@ -618,7 +618,7 @@ then
                 BASE_VERSION=${BRANCH_ID#candidate-}
                 BASE_VERSION=${BASE_VERSION%.*}
                 [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-                WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${PERF_TEST_LOG}"
                 # We need relative paths to use this archive in Smoketest as well
                 pushd ${BUILD_HOME}
                 rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
@@ -628,10 +628,10 @@ then
                 then
                     cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
                     changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
-                    WriteLog "Changes in installed: '$changesInInstalled'." "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "Changes in installed: '$changesInInstalled'." "${PERF_TEST_LOG}"
                                     
                     changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
-                    WriteLog "Changes in downloads: '$changesInDownloads'." "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "Changes in downloads: '$changesInDownloads'." "${PERF_TEST_LOG}"
                 fi
 
                 if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
@@ -639,25 +639,25 @@ then
                     # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
                     # because it can contain older version of components along with the new one and
                     # its size can grows more than necessary.
-                    WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
-                    [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
+                    [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
                     zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
                     zip ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
                 else
-                    WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
                 fi
-                [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
+                [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
 
-                WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${OBT_BUILD_LOG_FILE}"
-                WriteLog "Before: $(df -h . | egrep -v 'Files')" "${OBT_BUILD_LOG_FILE}"
+                WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${PERF_TEST_LOG}"
+                WriteLog "Before: $(df -h . | egrep -v 'Files')" "${PERF_TEST_LOG}"
                 for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp $RELEASE_TYPE
                 do
-                    WriteLog "rm -rf $d" "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "rm -rf $d" "${PERF_TEST_LOG}"
                     rm -rf $d
-                    WriteLog "Res: $?" "${OBT_BUILD_LOG_FILE}"
+                    WriteLog "Res: $?" "${PERF_TEST_LOG}"
                 done
                 WriteLog echo "After: $(df -h . | egrep -v 'Files')"
-                WriteLog "  Done." "${OBT_BUILD_LOG_FILE}"
+                WriteLog "  Done." "${PERF_TEST_LOG}"
             fi
         fi
     fi
