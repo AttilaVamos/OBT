@@ -474,7 +474,7 @@ RUN_WUTOOL_TESTS=1
 #
 
 # Enable rebuild HPCC before execute Performance Suite
-PERF_BUILD=0
+PERF_BUILD=1
 PERF_BUILD_TYPE=RelWithDebInfo
 
 PERF_CONTROL_TBB=1
@@ -483,7 +483,7 @@ PERF_USE_TBBMALLOC=0
 
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=1
-PERF_RUN_THOR=1
+PERF_RUN_THOR=0
 PERF_RUN_ROXIE=0
 
 # To controll core generation and logging test
@@ -511,7 +511,7 @@ PERF_ROXIE_MEMSIZE_GB=4
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
 # 1 - execute RE to run Performance Suite
-EXECUTE_PERFORMANCE_SUITE_SETUP=0
+EXECUTE_PERFORMANCE_SUITE_SETUP=1
 
 # Control to Regression Engine
 # 0 - skip Regression Engine execution (dry run to test framework)
@@ -561,7 +561,7 @@ then
     PERF_TEST_MODE=$PERF_TEST_MODE"+${loop}L"
 fi
 
-PERF_ENABLE_CALCTREND=0
+PERF_ENABLE_CALCTREND=1
 PERF_CALCTREND_PARAMS=""
 
 #

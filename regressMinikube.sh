@@ -108,7 +108,7 @@ ProcessLog()
         _retStr=$(echo -e "${_retStr}\n${_str}")
 
         capEngine=${eng^^}_${action}
-        [[ $DEBUG == 1 ]] && echo "capEngine: $capEngine"
+        [[ $DEBUG == 1 ]] && WriteLog "capEngine: $capEngine" "$logFile"
         printf -v "$capEngine"_QUERIES  '%s' "${queries[$eng]}"
         #declare -g "${capEngine}_QUERIES"="${queries[$engine]}"    # An alternative
         printf -v "$capEngine"_PASS     '%s' "${passes[$eng]}"
