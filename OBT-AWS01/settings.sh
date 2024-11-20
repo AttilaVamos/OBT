@@ -544,7 +544,8 @@ PERF_EXCLUDE_CLASS="-e stress"
 #
 #PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
 #PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
-PERF_QUERY_LIST="02bb_sort*"
+#PERF_QUERY_LIST="02bb_sort*"
+PERF_QUERY_LIST=''
 
 # If empty disabled, if not see comment
 PERF_FLUSH_DISK_CACHE=""    # "--flushDiskCache --flushDiskCachePolicy 1 "
