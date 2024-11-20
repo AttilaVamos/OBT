@@ -263,6 +263,22 @@ else
     DeletePackage
 fi
 
+# Get RTE
+WriteLog "Get the latest Regression Test Engine..." "${OBT_BUILD_LOG_FILE}"
+[[ -d $REGRESSION_TEST_ENGINE_HOME ]] && rm -rf $REGRESSION_TEST_ENGINE_HOME
+    
+cres=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENGINE_HOME" )
+
+if [[ 0 -ne  $? ]]
+then
+    WriteLog "RTE clone failed ! Result is: ${cres}" "${OBT_BUILD_LOG_FILE}"
+    cd ${OBT_BIN_DIR}
+    ./archiveLogs.sh obt-build timestamp=${OBT_TIMESTAMP}
+    ExitEpilog "${OBT_BUILD_LOG_FILE}" "build.sh" "RTE clone failed ! Result is: ${cres}"
+else
+    WriteLog "RTE clone success !" "${OBT_BUILD_LOG_FILE}"
+fi
+
 #
 #--------------------------------------------------
 #
@@ -863,7 +879,7 @@ then
 
         WriteLog "Check ECL core generation with Regression Test Engine." "${PERF_TEST_LOG}"
 
-    CMD="./ecl-test run --suiteDir ${BIN_HOME} --timeout 15 -fthorConnectTimeout=36000 -t all"
+        CMD="./ecl-test run --suiteDir ${BIN_HOME} --timeout 15 -fthorConnectTimeout=36000 -t all"
 
         WriteLog "CMD: '${CMD}'" "${PERF_TEST_LOG}"
     
@@ -1021,7 +1037,7 @@ then
     #
     WriteLog "Run performance tests setup on all platforms pwd:${myPwd}" "${PERF_TEST_LOG}"
     
-    cd ${TEST_ENGINE_HOME}    
+    cd ${REGRESSION_TEST_ENGINE_HOME}    
 
     WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "${PERF_TEST_LOG}"
     WriteLog "TEST_ENGINE_HOME: ${TEST_ENGINE_HOME}" "${PERF_TEST_LOG}"

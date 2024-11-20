@@ -482,8 +482,8 @@ PERF_USE_TBB=0
 PERF_USE_TBBMALLOC=0
 
 # Control the Performance Suite target(s)
-PERF_RUN_HTHOR=1
-PERF_RUN_THOR=0
+PERF_RUN_HTHOR=0
+PERF_RUN_THOR=1
 PERF_RUN_ROXIE=0
 
 # To controll core generation and logging test
@@ -534,19 +534,24 @@ PERF_KEEP_HPCC_ALIVE=1
 # 1 - HPCC does wipe off
 PERF_WIPE_OFF_HPCC=0
 
-
 PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
 PERF_TEST_PARALLEL_QUERIES=1
 
-# Example:
-#PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
 PERF_EXCLUDE_CLASS="-e stress"
+
+# Example: for subset of queries
+# (If PERF_QUERY_LIST is empty or not defined the whole Performance suite will be excuted)
+#
+#PERF_QUERY_LIST="04ae_* 04cd_* 04cf_* 05bc_* 06bc_*"
 #PERF_QUERY_LIST="01ag_* 01ah_* 01ak_* 01al_* 02Ca_* 02cb_* 02cc_* 02cd_* 02de_* 02ea_* 02eb_* 04aac_* 04ec_* 11ac_* 12aa_* 80ab_* "
 PERF_QUERY_LIST="02bb_sort*"
 
+# If empty disabled, if not see comment
 PERF_FLUSH_DISK_CACHE=""    # "--flushDiskCache --flushDiskCachePolicy 1 "
+
 # Dont use this setting (yet)
 PERF_RUNCOUNT=""    # "--runcount 20"
+
 
 PERF_TEST_MODE="STD"
 
