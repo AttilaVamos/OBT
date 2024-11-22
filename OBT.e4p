@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-10-30, 12:52:42 -->
+<!-- Saved: 2024-11-21, 19:13:49 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -15,6 +15,7 @@
   <Sources>
     <Source>BuildNotification.ini</Source>
     <Source>BuildNotification.py</Source>
+    <Source>GistLogHandler.py</Source>
     <Source>OBT-001/settings.sh</Source>
     <Source>OBT-002/settings.sh</Source>
     <Source>OBT-003/settings.sh</Source>

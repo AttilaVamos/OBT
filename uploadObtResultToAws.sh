@@ -40,8 +40,11 @@ then
     thisMonth=$(date +%m)
     thisMonthYear=$(date +%y)
     thisMonthYearLong=$(date +%Y)
+
+    zipPar="-m"
+    [[ $OBT_ID == "OBT-AWS01" ]] && zipPar='-u'  # Keep files for a while
   
-    find . -iname 'perfstat-*-'$thisMonthYear$thisMonth'*.c*' -type f -print | zip -m perfstats-$thisMonthYearLong-$thisMonth.zip -@
+    find . -iname 'perfstat-*-'$thisMonthYear$thisMonth'*.c*' -type f -print | zip $zipPar perfstats-$thisMonthYearLong-$thisMonth.zip -@
     
     popd
     
