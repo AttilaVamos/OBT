@@ -126,8 +126,8 @@ class BuildNotificationConfig( object ):
             
     @property
     def obtLogDirectory( self ):
-        return  "{ObtLogDir}".format(
-            ObtLogDir=self.get( 'Environment', 'ObtLogDir'))            
+        return  os.path.expanduser("{ObtLogDir}".format(
+            ObtLogDir=self.get( 'Environment', 'ObtLogDir')))
 
     @property
     def gitBranch( self ):
@@ -160,7 +160,8 @@ class BuildNotificationConfig( object ):
         self._gitBranchDate = ''
         self._gitBranchCommit = ''
         try:
-            for line in open( self.gitLogFileSystem ).readlines( ):
+            gitLog = open( self.gitLogFileSystem )
+            for line in gitLog.readlines( ):
                m = p_branch.match( line )
                if m:
                   self._gitBranchName = m.group(1)
@@ -175,10 +176,14 @@ class BuildNotificationConfig( object ):
                if m:
                   self._gitBranchCommit = m.group(1) 
                   continue
-
-        except IOError:
-               print(("IOError in read '" + self.gitLogFileSystem + "'"))
-               pass
+        except:
+            print("Exception in git log file processing:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            print("line: %s" % (line))
+            print("Exception in user code:")
+            print('-'*60)
+            traceback.print_exc(file=sys.stdout)
+            print('-'*60)
+            
         finally:
             if self._gitBranchName == '':
                 self._gitBranchName = "NotFound"
@@ -186,6 +191,8 @@ class BuildNotificationConfig( object ):
         if self._gitBranchDate != '':
            self._gitBranchDate = self._gitBranchDate.replace(' +0000','') 
            gitBranchInfo += self._gitBranchDate
+        else:
+           self._gitBranchDate = self.today.ctime() 
 
         if self._gitBranchCommit != '':
            if gitBranchInfo != '':
