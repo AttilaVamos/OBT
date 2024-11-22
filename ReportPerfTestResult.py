@@ -618,6 +618,7 @@ class BuildNotification(object):
         statsSeq = ['testNum', 'Good', 'Bad', 'Ugly', 'Ugly and Bad', 'Neutral', 'Known']
         
         bTimeStr = self.logReport['gitBranchDate']
+        print("bTimeStr: %s" % (bTimeStr))
         if ('+' in bTimeStr) or ('-' in bTimeStr):
             # Remove time differece at the end of the time string
             bTimeStr = bTimeStr.rsplit(' ', 1)[0]
