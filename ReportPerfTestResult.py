@@ -35,10 +35,10 @@ finally:
     pass
 
 from email.mime.multipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-from email.MIMEText import MIMEText
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
-from email import Encoders
+from email import encoders as Encoders
 
 msgText = MIMEMultipart('alternative') 
 
@@ -592,17 +592,26 @@ class BuildNotification(object):
         pass
 
     def send(self): 
-       fromaddr= self.config.get( 'Email', 'Sender' )
-       toList = self.config.get( 'Email', 'Receivers' ).split(',')
-       server = self.config.get( 'Email', 'SMTPServer' )
-       try:
-           smtpObj = smtplib.SMTP( server, 25 )
-           smtpObj.set_debuglevel(0)
-           smtpObj.sendmail( fromaddr, toList, self.msg.as_string() )
-       except smtplib.SMTPException:
-           print( "Error: unable to send email" )
+        self.msg.attach( MIMEText( self.msgHTML, 'html' ))  
+        server = bnc.get( 'Email', 'SMTPServer' )
+        fromaddr= bnc.get( 'Email', 'Sender' )
+        
+        toList = self.msg['To'].split( ',' )
        
-       smtpObj.quit()
+        try:
+            if server == "smtp.ntlworld.com":
+                # My current dev env only supports SMTP on SSL
+                smtpObj = smtplib.SMTP_SSL( server, 465 )
+            else:
+                smtpObj = smtplib.SMTP( server, 25 )
+            
+            smtpObj.set_debuglevel(0)
+            smtpObj.sendmail( fromaddr, toList, self.msg.as_string() )
+            #print( self.msg.as_string() )
+        except smtplib.SMTPException:
+            print( "Error: unable to send email" )
+       
+       #smtpObj.quit()
        
     def storeLogRecord(self):
         sequence = ['buildDate', 'gitBranchName', 'testMode', 'thorConfig', 'status', 'gitBranchDate', 'gitBranchCommit', 'buildType', 'diagram', 'stats']
