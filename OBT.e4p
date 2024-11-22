@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-11-21, 19:13:49 -->
+<!-- Saved: 2024-11-22, 15:47:47 -->
 <!-- Copyright (C) 2024 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -30,6 +30,7 @@
     <Source>OBT-18/settings.sh</Source>
     <Source>OBT-24/settings.sh</Source>
     <Source>OBT-AWS01/BuildNotification.ini</Source>
+    <Source>OBT-AWS01/ReportPerfTestResult.ini</Source>
     <Source>OBT-AWS01/obtSequence.inc</Source>
     <Source>OBT-AWS01/settings.sh</Source>
     <Source>OBT-AWS02/BuildNotification.ini</Source>

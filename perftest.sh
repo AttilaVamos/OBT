@@ -1801,6 +1801,19 @@ cd ${OBT_BIN_DIR}
 #if [[ "$PERF_RESULT" == "PASS" ]]
 if [[ true ]]
 then
+    WriteLog "Check HPCC Systems ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+    NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
+    WriteLog "Number of HPCC components is: ${NUMBER_OF_HPCC_COMPONENTS} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    if [[ $hpccRunning -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
+    then
+        WriteLog "$hpccRunning componenets are running, start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        ${SUDO} service hpcc-init start
+    fi
+    
+    # give it some time
+    sleep 5
+    
     QUERY_STAT2_EXTRA='-v'
     [[ ( -n  ${JOB_NAME_SUFFIX}) && ( -n ${PERF_TEST_DATE} ) ]] &&  QUERY_STAT2_EXTRA=" ${JOB_NAME_SUFFIX} --dateTransform ${PERF_TEST_DATE}"
     WriteLog "Collect Performance Test results" "${PERF_TEST_LOG}"
