@@ -233,6 +233,7 @@ destroyResources()
     WriteLog "$msg" "$logFile"
     TIME_STAMP=$(date +%s)
     res=$(terraform destroy -var-file=obt-admin.tfvars -auto-approve 2>&1)
+    retCode=$?
     AKS_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
     if [[ $VERBOSE_AKS -ne 0 ]]
@@ -244,7 +245,7 @@ destroyResources()
     AKS_DESTROYED_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
     AKS_DESTROYED_NUM_OF_RESOURCES=$( echo $AKS_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     AKS_DESTROY_TIME_STR="$AKS_DESTROY_TIME sec $(SecToTimeStr $AKS_DESTROY_TIME)"
-    AKS_DESTROY_RESULT_STR="Done"
+    AKS_DESTROY_RESULT_STR="Done (retCode: $retCode)"
     AKS_DESTROY_RESULT_REPORT_STR="$AKS_DESTROY_RESULT_STR in $AKS_DESTROY_TIME_STR, $AKS_DESTROYED_NUM_OF_RESOURCES_STR."
     WriteLog "  $AKS_DESTROY_RESULT_REPORT_STR" "$logFile"
 
@@ -254,6 +255,7 @@ destroyResources()
         pushd modules/storage_accounts > /dev/null
         TIME_STAMP=$(date +%s)
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        retCode=$?
         STORAGE_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
         if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
@@ -265,7 +267,7 @@ destroyResources()
         STORAGE_DESTROYED_NUM_OF_RESOURCES=$( echo $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
         
         STORAGE_DESTROY_TIME_STR="$STORAGE_DESTROY_TIME sec $(SecToTimeStr $STORAGE_DESTROY_TIME)"
-        STORAGE_DESTROY_RESULT_STR="Done"
+        STORAGE_DESTROY_RESULT_STR="Done (retCode: $retCode)"
         STORAGE_DESTROY_RESULT_REPORT_STR="$STORAGE_DESTROY_RESULT_STR in $STORAGE_DESTROY_TIME_STR, $STORAGE_DESTROYED_NUM_OF_RESOURCES_STR."
         WriteLog "  $STORAGE_DESTROY_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
@@ -274,6 +276,7 @@ destroyResources()
         pushd modules/virtual_network > /dev/null
         TIME_STAMP=$(date +%s)
         res=$(terraform destroy -var-file=admin.tfvars -auto-approve 2>&1)
+        retCode=$?
         VNET_DESTROY_TIME=$(( $(date +%s) - $TIME_STAMP ))
         if [[ $VERBOSE_RESOURCES -ne 0 ]]
         then
@@ -285,7 +288,7 @@ destroyResources()
         VNET_DESTROYED_NUM_OF_RESOURCES=$( echo $VNET_DESTROYED_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
         
         VNET_DESTROY_TIME_STR="$VNET_DESTROY_TIME sec $(SecToTimeStr $VNET_DESTROY_TIME)"
-        VNET_DESTROY_RESULT_STR="Done"
+        VNET_DESTROY_RESULT_STR="Done (retCode: $retCode)"
         VNET_DESTROY_RESULT_REPORT_STR="$VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME_STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR."
         WriteLog "  $VNET_DESTROY_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
@@ -725,6 +728,7 @@ then
     pushd modules/virtual_network > /dev/null
     TIME_STAMP=$(date +%s)
     res=$(timeout  -s 15 --preserve-status $VNET_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    retCode=$?
     VNET_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
@@ -735,7 +739,7 @@ then
     VNET_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
     VNET_NUM_OF_RESOURCES=$( echo $VNET_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     VNET_START_TIME_STR="$VNET_START_TIME sec $(SecToTimeStr $VNET_START_TIME)"
-    VNET_START_RESULT_STR="Done"
+    VNET_START_RESULT_STR="Done (retCode: $retCode)"
     VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
     WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
     popd > /dev/null
@@ -744,6 +748,7 @@ then
     pushd modules/storage_accounts > /dev/null
     TIME_STAMP=$(date +%s)
     res=$(timeout  -s 15 --preserve-status $STORAGE_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
+    retCode=$?
     STORAGE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
     if [[ $VERBOSE -ne 0 ]]
     then 
@@ -754,7 +759,7 @@ then
     STORAGE_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
     STORAGE_NUM_OF_RESOURCES=$( echo $STORAGE_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     STORAGE_START_TIME__STR="$STORAGE_START_TIME sec $(SecToTimeStr $STORAGE_START_TIME)"
-    STORAGE_START_RESULT_STR="Done"
+    STORAGE_START_RESULT_STR="Done (retCode: $retCode)"
     STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
     WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
     popd > /dev/null
