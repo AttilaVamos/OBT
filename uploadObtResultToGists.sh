@@ -23,7 +23,7 @@ OBT_RESULT_DIR=$OBT_BIN_DIR
 
 case $OBT_ID in
 
-    VM-18_04) OBT_RESULT_DIR=~/shared/OBT-AWS03/
+    VM-18_04) OBT_RESULT_DIR=~/shared/OBT-AWS02/
                         ;;
                         
     UbuntuDockerPlaygroundVM)
@@ -61,7 +61,7 @@ echo "res : $res"
 
 cd gists
 
-res=$(rsync -va $OBT_RESULT_DIR/*.json . 2>&1)
+res=$(rsync -va $OBT_RESULT_DIR/[rO]*.json . 2>&1)
 retCode=$?
 
 echo "ret code: $retCode"
