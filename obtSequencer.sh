@@ -208,8 +208,12 @@ then
 
         echo "Upload regressMinikube-*.log, .report and .json as well ..."
         rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.[jlr]* centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
-        zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.[jlr]*
         
+        echo "Upload regressMinikube-*.json to a result gists in GitHub as well ..."
+        ./uploadObtResultToGists.sh
+
+        zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.[jlr]*
+
         pushd ~/
         zip -r HPCCSystems-regression-Minikube-$(date "+%Y-%m-%d") HPCCSystems-regression/
         echo "Upload HPCCSystems-regression-<date_stamp>.zip as well ..."
