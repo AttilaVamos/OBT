@@ -820,8 +820,14 @@ else
     REGRESS_RESULT_STR="$ECLWATCH_START_RESULT_STR"
     REGRESS_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
     
+    REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
+
     GenerateReports
     WriteLog "Exit." "$logFile"
+    END_TIME=$( date "+%H:%M:%S")
+    RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
+    RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
+    END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
     exit 1
 fi
 
@@ -1018,7 +1024,8 @@ then
         QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
         QUERIES_PUBLISH_TIME=0
         QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
-        QUERIES_PUBLISH_REPORT_STR="Skipped based on setup error"
+        QUERIES_PUBLISH_REPORT_STR=$QUERIES_PUBLISH_RESULT_STR
+        QUERIES_PUBLISH_RESULT_REPORT_STR=$QUERIES_PUBLISH_RESULT_STR
         
         REGRESS_START_TIME=$( date "+%H:%M:%S")
         REGRESS_RESULT_STR="Skipped based on setup error"
