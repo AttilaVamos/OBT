@@ -1063,28 +1063,6 @@ then
             ProcessLog "setup_thor"
             ProcessLog "setup_roxie"
         fi
-
-        # Publish queries to Roxie for SOAP calls
-        WriteLog "Publish queries to Roxie ..." "${PERF_TEST_LOG}"
-        # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
-        pushd ${PERF_TEST_HOME}/ecl
-        WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "${PERF_TEST_LOG}"
-        TIME_STAMP=$(date +%s)
-        while read query
-        do
-            WriteLog "Query: $query""${PERF_TEST_LOG}"
-            res=$( ecl publish -t roxie $query 2>&1 )
-            WriteLog "$res" "${PERF_TEST_LOG}"
-            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
-        done< <(egrep -l '\/\/publish' setup/*.ecl)
-
-        QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
-        QUERIES_PUBLISH_RESULT_STR="Done"
-        QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
-        QUERIES_PUBLISH_RESULT_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
-        WriteLog "  $QUERIES_PUBLISH_RESULT_REPORT_STR"  "${PERF_TEST_LOG}"
-        popd
     else
         WriteLog "Skip performance test setup execution!" "${PERF_TEST_LOG}"
         WriteLog "                                      " "${PERF_TEST_LOG}"        
