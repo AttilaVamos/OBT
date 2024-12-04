@@ -1063,7 +1063,7 @@ then
             ProcessLog "setup_thor"
             ProcessLog "setup_roxie"
         fi
-        
+
         # Publish queries to Roxie for SOAP calls
         WriteLog "Publish queries to Roxie ..." "${PERF_TEST_LOG}"
         # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
@@ -1077,7 +1077,7 @@ then
             WriteLog "$res" "${PERF_TEST_LOG}"
             NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
         done< <(egrep -l '\/\/publish' setup/*.ecl)
-        
+
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
         QUERIES_PUBLISH_RESULT_STR="Done"

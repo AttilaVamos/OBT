@@ -121,9 +121,10 @@ else
         
         pushd build
         res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+        retCode=$?
         popd
         
-        WriteLog "Res: $res" "$OBT_BUILD_LOG_FILE"
+        [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$OBT_BUILD_LOG_FILE"
         WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
     else
         WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
@@ -668,8 +669,9 @@ then
                 # its size can grows more than necessary.
                 WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
                 [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${OBT_BUILD_LOG_FILE}"
-                zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
-                zip ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+                res=$(zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* vcpkg_downloads/*  2>&1)
+                retCode=$?
+                [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$OBT_BUILD_LOG_FILE"
             else
                 WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${OBT_BUILD_LOG_FILE}"
             fi
