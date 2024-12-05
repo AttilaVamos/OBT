@@ -523,7 +523,7 @@ PERF_TIMEOUT=3600
 
 # 0 - HPCC unistalled after Performance Suite finished on hthor
 # 1 - performance test doesn't uninstall HPCC after executed tests
-PERF_KEEP_HPCC=1
+PERF_KEEP_HPCC=0
 
 # 0 - HPCC stopped after Performance Suite finished on hthor
 # 1 - Keep HPCC alive after executed tests
@@ -531,7 +531,7 @@ PERF_KEEP_HPCC_ALIVE=0
 
 # Use complete-uninstall.sh to wipe HPCC
 # 0 - HPCC doesn't wipe off
-# 1 - HPCC does wipe off
+# 1 - HPCC does wipe off (Uninstall and remove all data)
 PERF_WIPE_OFF_HPCC=1
 
 PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES

@@ -223,6 +223,11 @@ else
     WriteLog "No target selected. This is a dry run." "${PERF_TEST_LOG}"
 fi
 
+
+WriteLog "Set core file size to 100 blocks. It is enough to stack trace and \ncore file(s) doesn't consume the entirely disk space if something went wrong." "${PERF_TEST_LOG}"
+ulimit -c 100
+WriteLog "$(ulimit -a)" "${PERF_TEST_LOG}"
+
 #
 #---------------------------
 #
@@ -242,7 +247,6 @@ WriteLog "Clean system" "${PERF_TEST_LOG}"
 
 rm -rf ${PERF_TEST_ROOT}/*
 cd  ${PERF_TEST_ROOT}
-
  
 #
 #---------------------------
@@ -680,7 +684,7 @@ then
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Build end at ${date}" "${PERF_TEST_LOG}"
-
+ulimit
     HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )
     
     WriteLog " Default package: '${HPCC_PACKAGE}'." "${PERF_TEST_LOG}"
@@ -716,7 +720,7 @@ then
     
     #
     # --------------------------------------------------------------
-    # Install HPCC
+    # Install HPCCulimit
     #
 #    if [[ ${PERF_KEEP_HPCC} -eq 0 ]]
 #    then
@@ -755,7 +759,7 @@ then
         WriteLog "Error in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
         exit 1
     fi
-        
+        ulimit
     # Add Write permission to /var/lib/HPCCSystems and its subdiretories
 
     ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
