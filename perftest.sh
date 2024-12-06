@@ -684,7 +684,7 @@ then
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Build end at ${date}" "${PERF_TEST_LOG}"
-ulimit
+
     HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )
     
     WriteLog " Default package: '${HPCC_PACKAGE}'." "${PERF_TEST_LOG}"
@@ -720,7 +720,7 @@ then
     
     #
     # --------------------------------------------------------------
-    # Install HPCCulimit
+    # Install HPCC
     #
 #    if [[ ${PERF_KEEP_HPCC} -eq 0 ]]
 #    then
@@ -759,7 +759,7 @@ then
         WriteLog "Error in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
         exit 1
     fi
-        ulimit
+
     # Add Write permission to /var/lib/HPCCSystems and its subdiretories
 
     ${SUDO} chmod -R 0777 /var/lib/HPCCSystems
