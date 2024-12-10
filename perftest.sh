@@ -532,8 +532,9 @@ then
         WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$PERF_TEST_LOG"
         
         res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+        retCode=$?
         
-        WriteLog "Res: $res" "$PERF_TEST_LOG"
+        [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$PERF_TEST_LOG"
         WriteLog "   Done."  "$PERF_TEST_LOG"
     else
         WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$PERF_TEST_LOG"
@@ -661,8 +662,11 @@ then
                     # its size can grows more than necessary.
                     WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
                     [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
-                    zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/*
-                    zip ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/*
+
+                    res=$(zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* vcpkg_downloads/*  2>&1)
+                    retCode=$?
+                    [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "${PERF_TEST_LOG}"
+                    WriteLog "  Done." "${PERF_TEST_LOG}"
                 else
                     WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
                 fi
