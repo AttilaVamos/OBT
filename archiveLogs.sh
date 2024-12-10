@@ -401,7 +401,7 @@ then
         do 
             sudo chmod 0755 $core
 
-            coreSize=$( ls -l $core | awk '{ print $5}' )
+            coreSize=$( ls -lh $core | awk '{ print $5}' )
 
             WriteLog "$( printf %3d $coreIndex ). Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
             #base=$( dirname $core )
