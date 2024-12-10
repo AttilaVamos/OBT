@@ -410,7 +410,7 @@ then
 
             corename=${core##*/}; 
             comp=$( echo $corename | tr '_.' ' ' | awk '{print $2 }' ); 
-            compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print); 
+            compnamepart=$( find /opt/HPCCSystems/bin/ -iname "$comp*" -type f -print | head -n 1); 
             compname=${compnamepart##*/}
 
             WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "${ARCHIVE_LOG_DIR}"
