@@ -1265,12 +1265,12 @@ then
     #
     # Set Roxie core size
     #
-    isRoxieInLimits=$( egrep -c 'roxie' /etc/security/limit.conf)
+    isRoxieInLimits=$( egrep -c 'hpcc soft core 100' /etc/security/limit.conf)
     if [[ $isRoxieInLimits -eq 0 ]]
     then
-        WriteLog "Patch /etc/security/limit.conf to set Roxie core size to 100" "${PERF_TEST_LOG}"
-        echo -e "\nAdded by $0\nroxie soft core 100\nroxie hard core 100\n" | sudo tee -a  /etc/security/limit.conf
-        WriteLog "  Done\n$(egrep 'roxie' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
+        WriteLog "Patch /etc/security/limit.conf to set hpcc core size to 100" "${PERF_TEST_LOG}"
+        #sed -i 's/hpcc \([sh].*\) core unlimited/hpcc \1 core 100/g' /etc/security/limit.conf
+        WriteLog "  Done\n$(egrep 'hpcc' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
     else
         WriteLog "The /etc/security/limit.conf is already patched." "${PERF_TEST_LOG}"
     fi
