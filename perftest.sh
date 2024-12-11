@@ -117,7 +117,7 @@ PERF_TEST_REPO=https://github.com/hpcc-systems/PerformanceTesting.git
 
 TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
 TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/PerformanceTimeoutedTests.csv
-TIMEOUT_TAG="//timeout 900"
+TIMEOUT_TAG="//timeout 90"
 
 PARALLEL_QUERIES=0
 
@@ -1263,6 +1263,22 @@ then
     #
     #---------------------------
     #
+    # Set Roxie core size
+    #
+    isRoxieInLimits=$( egrep -c 'roxie' /etc/security/limit.conf)
+    if [[ $isRoxieInLimits -eq 0 ]]
+    then
+        WriteLog "Patch /etc/security/limit.conf to set Roxie core size to 100" "${PERF_TEST_LOG}"
+        echo -e "\nAdded by $0\nroxie soft core 100\nroxie hard core 100\n" | sudo tee -a  /etc/security/limit.conf
+        WriteLog "  Done\n$(egrep 'roxie' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
+    else
+        WriteLog "The /etc/security/limit.conf is already patched." "${PERF_TEST_LOG}"
+    fi
+    WriteLog "$(egrep 'roxie' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
+
+    #
+    #---------------------------
+    #
     # Check HPCC Systems
     #
     
@@ -1277,16 +1293,16 @@ then
     then
         WriteLog "Multinode cluster is enabled." "${PERF_TEST_LOG}"
 
-    # Push config file
+        # Push config file
         WriteLog "Push config file... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-    sudo /opt/HPCCSystems/sbin/hpcc-push.sh -s ${OBT_BIN_DIR}/multinode_perf_cluster.xml.work -t /etc/HPCCSystems/environment.xml
+        sudo /opt/HPCCSystems/sbin/hpcc-push.sh -s ${OBT_BIN_DIR}/multinode_perf_cluster.xml.work -t /etc/HPCCSystems/environment.xml
 
-    WriteLog "Start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        WriteLog "Start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
         # install  package to the nodes
         sudo /opt/HPCCSystems/sbin/install-cluster.sh ${BUILD_HOME}/${HPCC_PACKAGE}
 
-    # Start the cluster
-    sudo /opt/HPCCSystems/sbin/hpcc-run.sh -a hpcc-init start -n $PERF_NUM_OF_NODES
+        # Start the cluster
+        sudo /opt/HPCCSystems/sbin/hpcc-run.sh -a hpcc-init start -n $PERF_NUM_OF_NODES
 
     else
         
@@ -1314,6 +1330,8 @@ then
 
             exit -2
         fi
+
+        WriteLog "Roxie core settings:\n$(sudo cat /proc/$(pidof roxie)/linits | egrep 'Limit|core' " "${PERF_TEST_LOG}"
     
     fi
     #
