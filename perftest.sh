@@ -1331,7 +1331,7 @@ then
             exit -2
         fi
 
-        WriteLog "Roxie core settings:\n$(sudo cat /proc/$(pidof roxie)/linits | egrep 'Limit|core' " "${PERF_TEST_LOG}"
+        WriteLog "Roxie core settings:\n$(sudo cat /proc/$(pidof roxie)/limits | egrep 'Limit|core')" "${PERF_TEST_LOG}"
     
     fi
     #
