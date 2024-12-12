@@ -521,12 +521,12 @@ EXECUTE_PERFORMANCE_SUITE=1
 # timeout in seconds (>0) in Regression Engine
 PERF_TIMEOUT=3600
 
-# 0 - HPCC unistalled after Performance Suite finished on hthor
+# 0 - HPCC unistalled after Performance Suite finished on an engine
 # 1 - performance test doesn't uninstall HPCC after executed tests
-PERF_KEEP_HPCC=0
+PERF_KEEP_HPCC=1
 
-# 0 - HPCC stopped after Performance Suite finished on hthor
-# 1 - Keep HPCC alive after executed tests
+# 0 - HPCC stopped after Performance Suite finished on all selected engine
+# 1 - Keep HPCC alive after Perfromance testing done
 PERF_KEEP_HPCC_ALIVE=0
 
 # Use complete-uninstall.sh to wipe HPCC

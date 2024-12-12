@@ -1263,19 +1263,29 @@ then
     #
     #---------------------------
     #
-    # Set Roxie core size
+    # Set HPCC core size
     #
-    isRoxieInLimits=$( egrep -c 'hpcc soft core 100' /etc/security/limit.conf)
-    if [[ $isRoxieInLimits -eq 0 ]]
+    isHpccInLimits=$( egrep -c 'hpcc [sh].* core ' /etc/security/limit.conf)
+    if [[ $isHpccInLimits -eq 0 ]]
     then
         WriteLog "Patch /etc/security/limit.conf to set hpcc core size to 100" "${PERF_TEST_LOG}"
-        #sed -i 's/hpcc \([sh].*\) core unlimited/hpcc \1 core 100/g' /etc/security/limit.conf
-        WriteLog "  Done\n$(egrep 'hpcc' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
+        echo "# Patched by OBT Performance test" | sudo tee -a /etc/security/limit.conf
+        echo "hpcc soft core 100" | sudo tee -a /etc/security/limit.conf
+        echo "hpcc hard core 100" | sudo tee -a /etc/security/limit.conf
     else
-        WriteLog "The /etc/security/limit.conf is already patched." "${PERF_TEST_LOG}"
+        WriteLog "hpcc core settings are already exists in '/etc/security/limit.conf', change them to 100." "${PERF_TEST_LOG}"
+        sudo sed -i 's/hpcc \([sh].*\) core \(.*\)/hpcc \1 core 100/g' /etc/security/limit.conf
     fi
-    WriteLog "$(egrep 'roxie' /etc/security/limit.conf)" "${PERF_TEST_LOG}"
-
+    WriteLog "  Done\n$(egrep 'hpcc [sh].* core' /etc/security/limit.conf)" "${PERF_TEST_LOG}"        
+    
+    isHpccComonCoreUnlimited=$(egrep -c  'MIN_Hc_core="unlimited"' /opt/HPCCSystems/etc/init.d/hpcc_common 2>&1 )
+    if [[ ${isHpccComonCoreUnlimited} -eq 1 ]]
+    then
+        sudo sed -i 's/MIN_Hc_core="\(.*\)"/MIN_Hc_core="0"/g' /opt/HPCCSystems/etc/init.d/hpcc_common
+    else
+        WriteLog "The '/opt/HPCCSystems/etc/init.d/hpcc_common' is already patched." "${PERF_TEST_LOG}"
+    fi
+    WriteLog "  Done\n$(egrep 'MIN_Hc_core=' /opt/HPCCSystems/etc/init.d/hpcc_common)" "${PERF_TEST_LOG}" 
     #
     #---------------------------
     #
