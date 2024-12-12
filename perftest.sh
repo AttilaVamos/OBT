@@ -1265,18 +1265,18 @@ then
     #
     # Set HPCC core size
     #
-    isHpccInLimits=$( egrep -c 'hpcc [sh].* core ' /etc/security/limit.conf)
+    isHpccInLimits=$( egrep -c 'hpcc [sh].* core ' /etc/security/limits.conf)
     if [[ $isHpccInLimits -eq 0 ]]
     then
-        WriteLog "Patch /etc/security/limit.conf to set hpcc core size to 100" "${PERF_TEST_LOG}"
-        echo "# Patched by OBT Performance test" | sudo tee -a /etc/security/limit.conf
-        echo "hpcc soft core 100" | sudo tee -a /etc/security/limit.conf
-        echo "hpcc hard core 100" | sudo tee -a /etc/security/limit.conf
+        WriteLog "Patch /etc/security/limits.conf to set hpcc core size to 100" "${PERF_TEST_LOG}"
+        echo "# Patched by OBT Performance test" | sudo tee -a /etc/security/limits.conf
+        echo "hpcc soft core 100" | sudo tee -a /etc/security/limits.conf
+        echo "hpcc hard core 100" | sudo tee -a /etc/security/limits.conf
     else
-        WriteLog "hpcc core settings are already exists in '/etc/security/limit.conf', change them to 100." "${PERF_TEST_LOG}"
-        sudo sed -i 's/hpcc \([sh].*\) core \(.*\)/hpcc \1 core 100/g' /etc/security/limit.conf
+        WriteLog "hpcc core settings are already exists in '/etc/security/limits.conf', change them to 100." "${PERF_TEST_LOG}"
+        sudo sed -i 's/hpcc \([sh].*\) core \(.*\)/hpcc \1 core 100/g' /etc/security/limits.conf
     fi
-    WriteLog "  Done\n$(egrep 'hpcc [sh].* core' /etc/security/limit.conf)" "${PERF_TEST_LOG}"        
+    WriteLog "  Done\n$(egrep 'hpcc [sh].* core' /etc/security/limits.conf)" "${PERF_TEST_LOG}"        
     
     isHpccComonCoreUnlimited=$(egrep -c  'MIN_Hc_core="unlimited"' /opt/HPCCSystems/etc/init.d/hpcc_common 2>&1 )
     if [[ ${isHpccComonCoreUnlimited} -eq 1 ]]
@@ -1342,6 +1342,8 @@ then
         fi
 
         WriteLog "Roxie core settings:\n$(sudo cat /proc/$(pidof roxie)/limits | egrep 'Limit|core')" "${PERF_TEST_LOG}"
+        WriteLog "  limits.conf:\n$(egrep 'hpcc [sh].* core' /etc/security/limits.conf)" "${PERF_TEST_LOG}"   
+        WriteLog "  hpcc_common:\n$(egrep 'MIN_Hc_core=' /opt/HPCCSystems/etc/init.d/hpcc_common)" "${PERF_TEST_LOG}" 
     
     fi
     #
