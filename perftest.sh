@@ -742,7 +742,7 @@ then
 #        fi
 #    else
 #        WriteLog "Start HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-#        ${SUDO} service hpcc-init start
+#        ${SUDO} /etc/init.d/hpcc-init start
 #    fi
     #
     # --------------------------------------------------------------
@@ -844,18 +844,18 @@ then
 
     NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
     
-    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
 
     if [[ "$hpccRunning" -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
         WriteLog "Start HPCC System on ${TARGET_PLATFORM}..." "${PERF_TEST_LOG}"
-        ${SUDO} service hpcc-init start
+        ${SUDO} /etc/init.d/hpcc-init start
     fi
     
     # give it some time
     sleep 5
     
-    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
     if [[ "$hpccRunning" -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
         WriteLog "Unable start HPCC system!! Only ${hpccRunning} component is up on ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
@@ -1316,17 +1316,17 @@ then
 
     else
         
-        hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+        hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
         if [ $hpccRunning -ne ${NUMBER_OF_HPCC_COMPONENTS} ]
         then
             WriteLog "$hpccRunning componenets are running, start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-            ${SUDO} service hpcc-init start
+            ${SUDO} /etc/init.d/hpcc-init start
         fi
     
         # give it some time
         sleep 5
     
-        hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+        hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
         if [[ "$hpccRunning" -ne "${NUMBER_OF_HPCC_COMPONENTS}" ]]
         then
             WriteLog "Unable start HPCC system!! Only ${hpccRunning} component from $NUMBER_OF_HPCC_COMPONENTS is up. ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
@@ -1335,7 +1335,7 @@ then
 
             WriteLog "Msg netstat: ${msg} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
-            msg=$( ${SUDO} service hpcc-init status )
+            msg=$( ${SUDO} /etc/init.d/hpcc-init status )
             WriteLog "Msg hpcc status:\n${msg} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
             exit -2
@@ -1614,7 +1614,7 @@ then
         fi
 #    else
 #        WriteLog "Start HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-#        ${SUDO} service hpcc-init start
+#        ${SUDO} /etc/init.d/hpcc-init start
     fi
 
     # Add Write permission to /var/lib/HPCCSystems and its subdiretories
@@ -1662,17 +1662,17 @@ then
     WriteLog "Number of HPCC components is: ${NUMBER_OF_HPCC_COMPONENTS} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
     
-    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
     if [[ $hpccRunning -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
         WriteLog "$hpccRunning componenets are running, start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-        ${SUDO} service hpcc-init start
+        ${SUDO} /etc/init.d/hpcc-init start
     fi
     
     # give it some time
     sleep 5
     
-    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
     if [[ ${hpccRunning} -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
         WriteLog "Unable start HPCC system!! Only ${hpccRunning} component from $NUMBER_OF_HPCC_COMPONENTS is up. ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
@@ -1680,7 +1680,7 @@ then
         msg=$(  ${SUDO} netstat -tulnap | egrep ":20000*" )
         WriteLog "Msg netstat: ${msg} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
-        msg=$( ${SUDO} service hpcc-init status )
+        msg=$( ${SUDO} /etc/init.d/hpcc-init status )
         WriteLog "Msg hpcc status: ${msg} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
         exit -2
@@ -1841,11 +1841,11 @@ then
     WriteLog "Check HPCC Systems ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
     WriteLog "Number of HPCC components is: ${NUMBER_OF_HPCC_COMPONENTS} ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-    hpccRunning=$( ${SUDO} service hpcc-init status | grep -c "running")
+    hpccRunning=$( ${SUDO} /etc/init.d/hpcc-init status | grep -c "running")
     if [[ $hpccRunning -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
         WriteLog "$hpccRunning componenets are running, start HPCC System... ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-        ${SUDO} service hpcc-init start
+        ${SUDO} /etc/init.d/hpcc-init start
     fi
     
     # give it some time
