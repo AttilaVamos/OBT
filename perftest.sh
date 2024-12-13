@@ -223,9 +223,9 @@ else
     WriteLog "No target selected. This is a dry run." "${PERF_TEST_LOG}"
 fi
 
-
-WriteLog "Set core file size to 100 blocks. It is enough to stack trace and \ncore file(s) doesn't consume the entirely disk space if something went wrong." "${PERF_TEST_LOG}"
-ulimit -c 100
+CORE_LIMIT=$(( 256 * 1024 ))   # 256 MB (256kb * 1024b [blocksize])
+WriteLog "Set core file size to  ${CORE_LIMIT} blocks. It is enough to stack trace and \ncore file(s) doesn't consume the entirely disk space if something went wrong." "${PERF_TEST_LOG}"
+ulimit -c ${CORE_LIMIT}
 WriteLog "$(ulimit -a)" "${PERF_TEST_LOG}"
 
 #
@@ -1268,13 +1268,13 @@ then
     isHpccInLimits=$( egrep -c 'hpcc [sh].* core ' /etc/security/limits.conf)
     if [[ $isHpccInLimits -eq 0 ]]
     then
-        WriteLog "Patch /etc/security/limits.conf to set hpcc core size to 100" "${PERF_TEST_LOG}"
+        WriteLog "Patch /etc/security/limits.conf to set hpcc core size to  ${CORE_LIMIT}" "${PERF_TEST_LOG}"
         echo "# Patched by OBT Performance test" | sudo tee -a /etc/security/limits.conf
-        echo "hpcc soft core 100" | sudo tee -a /etc/security/limits.conf
-        echo "hpcc hard core 100" | sudo tee -a /etc/security/limits.conf
+        echo "hpcc soft core  ${CORE_LIMIT}" | sudo tee -a /etc/security/limits.conf
+        echo "hpcc hard core  ${CORE_LIMIT}" | sudo tee -a /etc/security/limits.conf
     else
-        WriteLog "hpcc core settings are already exists in '/etc/security/limits.conf', change them to 100." "${PERF_TEST_LOG}"
-        sudo sed -i 's/hpcc \([sh].*\) core \(.*\)/hpcc \1 core 100/g' /etc/security/limits.conf
+        WriteLog "hpcc core settings are already exists in '/etc/security/limits.conf', change them to  ${CORE_LIMIT}." "${PERF_TEST_LOG}"
+        sudo sed -i 's/hpcc \([sh].*\) core \(.*\)/hpcc \1 core '" ${CORE_LIMIT}"'/g' /etc/security/limits.conf
     fi
     WriteLog "  Done\n$(egrep 'hpcc [sh].* core' /etc/security/limits.conf)" "${PERF_TEST_LOG}"        
     
