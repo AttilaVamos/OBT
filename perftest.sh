@@ -223,7 +223,7 @@ else
     WriteLog "No target selected. This is a dry run." "${PERF_TEST_LOG}"
 fi
 
-CORE_LIMIT=$(( 256 * 1024 ))   # 256 MB (256kb * 1024b [blocksize])
+CORE_LIMIT='unlimited' #$(( 256 * 1024 ))   # 256 MB (256kb * 1024b [blocksize])
 WriteLog "Set core file size to  ${CORE_LIMIT} blocks. It is enough to stack trace and \ncore file(s) doesn't consume the entirely disk space if something went wrong." "${PERF_TEST_LOG}"
 ulimit -c ${CORE_LIMIT}
 WriteLog "$(ulimit -a)" "${PERF_TEST_LOG}"
