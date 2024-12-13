@@ -538,6 +538,7 @@ PERF_SETUP_PARALLEL_QUERIES=$SETUP_PARALLEL_QUERIES
 PERF_TEST_PARALLEL_QUERIES=1
 
 PERF_EXCLUDE_CLASS="-e stress --ef 15ab*.ecl,15b*.ecl"
+PERF_EXCLUDE_CLASS="-e stress --ef 15b*.ecl"
 #PERF_EXCLUDE_CLASS="-e stress"
 
 # Example: for subset of queries
