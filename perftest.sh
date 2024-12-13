@@ -1853,7 +1853,7 @@ then
     # give it some time
     sleep 5
     
-    QUERY_STAT2_EXTRA='-v'
+    QUERY_STAT2_EXTRA='-v --timestamp'
     [[ ( -n  ${JOB_NAME_SUFFIX}) && ( -n ${PERF_TEST_DATE} ) ]] &&  QUERY_STAT2_EXTRA=" ${JOB_NAME_SUFFIX} --dateTransform ${PERF_TEST_DATE}"
     WriteLog "Collect Performance Test results" "${PERF_TEST_LOG}"
     CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d ''  ${QUERY_STAT2_EXTRA}" 
