@@ -401,7 +401,8 @@ then
         do 
             sudo chmod 0755 $core
 
-            coreSize=$( ls -lh $core | awk '{ print $5}' )
+            coreSize=$( ls -l $core | awk '{ print $5}' )
+            coreSizeHuman=$( ls -lh $core | awk '{ print $5}' )
 
             WriteLog "$( printf %3d $coreIndex ). Generate backtrace for $core." "${ARCHIVE_LOG_DIR}"
             #base=$( dirname $core )
@@ -420,12 +421,12 @@ then
             zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} "/opt/HPCCSystems/bin/${comp}" >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
 
-            if [[ ${coreIndex} -le $maxNumberOfCoresStored ]]
+            if [[ (${coreIndex} -le $maxNumberOfCoresStored) && (${coreSize} -lt 1073741824 ]]      # <1GB
             then
-                WriteLog "Add $core (${coreSize} bytes) to archive" "${ARCHIVE_LOG_DIR}"
+                WriteLog "Add $core (${coreSizeHuman}) to archive" "${ARCHIVE_LOG_DIR}"
                 zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
             else
-                WriteLog "Skip to add $core (${coreSize} bytes) to archive" "${ARCHIVE_LOG_DIR}"
+                WriteLog "Skip to add $core (${coreSizeHuman}) to archive" "${ARCHIVE_LOG_DIR}"
             fi
             
             coreIndex=$(( $coreIndex + 1 ))

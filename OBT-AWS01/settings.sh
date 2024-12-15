@@ -229,7 +229,7 @@ ESP_IP=127.0.0.1
 
 LOCAL_IP_STR=$( ip -f inet -o addr | egrep -v 'lo ' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
 
-ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
+ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com,attila.vamos@lexisnexisrisk.com"
 
 QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
