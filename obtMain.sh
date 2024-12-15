@@ -1049,7 +1049,9 @@ then
 
             WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
             #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
-            python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+            retCode=$?
+            WriteLog "retCode:$retCode\nres:\n$res" "${OBT_LOG_FILE}"
 
             WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
 
@@ -1070,7 +1072,9 @@ then
 
         WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
 
-        ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} >> "${OBT_LOG_FILE}" 2>&1
+        res=$( ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} -v  2>&1)
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:\n$res" "${OBT_LOG_FILE}"
     else
         WriteLog "Build for performane test is failed." "${OBT_LOG_FILE}"
     fi
