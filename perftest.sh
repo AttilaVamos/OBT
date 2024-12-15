@@ -1289,6 +1289,13 @@ then
         WriteLog "The '/opt/HPCCSystems/etc/init.d/hpcc_common' is already patched." "${PERF_TEST_LOG}"
     fi
     WriteLog "  Done\n$(egrep 'MIN_Hc_core=' /opt/HPCCSystems/etc/init.d/hpcc_common)" "${PERF_TEST_LOG}" 
+
+    WriteLog "Core dump filter: $(sudo cat /proc/self/coredump_filter)" "${PERF_TEST_LOG}"
+    res=$( echo 0x13 | sudo tee /proc/self/coredump_filter 2>&1)
+    retCode=$?
+    WriteLog "res:$res\nretCode:${retCode}" "${PERF_TEST_LOG}"
+    WriteLog "Core dump filter: $(sudo cat /proc/self/coredump_filter)" "${PERF_TEST_LOG}"
+
     #
     #---------------------------
     #
@@ -1347,6 +1354,7 @@ then
         WriteLog "Roxie core settings:\n$(sudo cat /proc/$(pidof roxie)/limits | egrep 'Limit|core')" "${PERF_TEST_LOG}"
         WriteLog "  limits.conf:\n$(egrep 'hpcc [sh].* core' /etc/security/limits.conf)" "${PERF_TEST_LOG}"   
         WriteLog "  hpcc_common:\n$(egrep 'MIN_Hc_core=' /opt/HPCCSystems/etc/init.d/hpcc_common)" "${PERF_TEST_LOG}" 
+        WriteLog "  Core dump filter: $(sudo cat /proc/$(pidof roxie)/coredump_filter)" "${PERF_TEST_LOG}"
     
     fi
     #
