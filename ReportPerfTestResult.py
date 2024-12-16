@@ -466,15 +466,20 @@ class BuildNotification(object):
             print("Add summary graph")
             msgHTML += '<H3>Performance Test results trend analysis.</H3>\n'
             msgHTML += '<img src="cid:SummaryGraph" alt="Summary Graph"><br>\n'
-     
-            fp = open(summaryGraph[0], 'r')                                                    
-            img = MIMEImage(fp.read(), 'png')
-            fp.close()
-            img.add_header('Content-ID', '<{}>'.format('SummaryGraph'))
-            img.add_header('Content-Disposition', 'inline', filename='SummaryGraph.png')
-            
-            # Dont attach the image yet, store it and attach after the email body generated and attached
-            embeddedImages.append(img)
+            try:
+                fp = open(summaryGraph[0], 'r')
+                img = MIMEImage(fp.read(), 'png')
+                fp.close()
+                img.add_header('Content-ID', '<{}>'.format('SummaryGraph'))
+                img.add_header('Content-Disposition', 'inline', filename='SummaryGraph.png')
+
+                # Dont attach the image yet, store it and attach after the email body generated and attached
+                embeddedImages.append(img)
+            except:
+                print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+                traceback.print_stack()
+                msgHTML += 'Error in processing SummaryGraph.<br>\n'
+                pass
         else:
             print("Summary graph not found.")
         
@@ -513,16 +518,21 @@ class BuildNotification(object):
                 for image in sorted(images):
                     print("Image:'%s'" % (image))
                     msgHTML += '<img src="cid:image{}" alt="Image-{}"><br>\n'.format(index, index)
-         
-                    fp = open(image, 'r')                                                    
-                    img = MIMEImage(fp.read(), 'png')
-                    fp.close()
-                    img.add_header('Content-Type', 'image/png',  name='graph{}.png'.format(index))
-                    img.add_header('Content-ID', '<{}{}>'.format('image', index))
-                    img.add_header('Content-Disposition', 'inline', filename='graph{}.png'.format(index))
-                
-                    # Dont attach the image yet, store it and attach after the email body generated and attached
-                    embeddedImages.append(img)
+                    try:
+                        fp = open(image, 'r')
+                        img = MIMEImage(fp.read(), 'png')
+                        fp.close()
+                        img.add_header('Content-Type', 'image/png',  name='graph{}.png'.format(index))
+                        img.add_header('Content-ID', '<{}{}>'.format('image', index))
+                        img.add_header('Content-Disposition', 'inline', filename='graph{}.png'.format(index))
+
+                        # Dont attach the image yet, store it and attach after the email body generated and attached
+                        embeddedImages.append(img)
+                    except:
+                        print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+                        traceback.print_stack()
+                        msgHTML += 'Error in processing ' + image +'.<br>\n'
+                        pass
                 
                     index += 1
         
