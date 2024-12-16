@@ -34,7 +34,11 @@ try:
     from ReportedTestCasesHistory3 import ReportedTestCasesHistory
 except ImportError as e:
     print("Import error %s" % (repr(e)))
-    ReportedTestCasesHistory = None
+    try:
+        from ReportedTestCasesHistory import ReportedTestCasesHistory
+    except ImportError as e:
+        print("Import error %s" % (repr(e)))
+        ReportedTestCasesHistory = None
 
 debug = False
 smallDataSet = False
@@ -573,25 +577,29 @@ class TrendReport(object):
     
     def getTestInfo(self, cluster):
         retVal =  ''
-        paramString = self.clusterTrends[cluster]['testConfig'].get("Performance", "FlushDiskCache") + self.clusterTrends[cluster]['testConfig'].get("Performance", "RunCount")
-        params = paramString.strip().strip('"').split('--')
-        for param in params:
-            param = param.strip()
-            paramItems = param.split()
-            if len(paramItems) > 1:
-                if 'flushDiskCachePolicy' in param:
-                    if paramItems[1] == '1':
-                        retVal = retVal.strip().strip(',')
-                        retVal += " before each test, "
-                if 'runcount' in param:
-                    retVal += "execute each test in " + paramItems[1] + " times, "
-            else:
-                if 'flushDiskCache' in param:
-                    retVal += "clear disk cache, "
-            
-        retVal = retVal.strip().strip(',')
-        if len(retVal) > 0:
-            retVal = '\n(Parameters: ' + retVal + ')'
+        if cluster not in self.clusterTrends:
+            retVal = 'Unknow cluster'
+        else:
+            paramString = self.clusterTrends[cluster]['testConfig'].get("Performance", "FlushDiskCache") + self.clusterTrends[cluster]['testConfig'].get("Performance", "RunCount")
+            params = paramString.strip().strip('"').split('--')
+            for param in params:
+                param = param.strip()
+                paramItems = param.split()
+                if len(paramItems) > 1:
+                    if 'flushDiskCachePolicy' in param:
+                        if paramItems[1] == '1':
+                            retVal = retVal.strip().strip(',')
+                            retVal += " before each test, "
+                    if 'runcount' in param:
+                        retVal += "execute each test in " + paramItems[1] + " times, "
+                else:
+                    if 'flushDiskCache' in param:
+                        retVal += "clear disk cache, "
+
+            retVal = retVal.strip().strip(',')
+            if len(retVal) > 0:
+                retVal = '\n(Parameters: ' + retVal + ')'
+
         return retVal
     
     def manageTestCase(self, cluster, test, tag):
@@ -956,13 +964,19 @@ class TrendReport(object):
         summaryFile = open(summaryFileName,  "w")
         summaryFile.write("# cluster, time, twoDaysTredValue, twoDaysTred, twoDaysTredPercentage, fiveDaysTredValue, fiveDaysTred, fiveDaysTredPercentage, TredValue, Tred, TredPercentage\n")
         for cluster in sorted(self.clusterTrends):
-            summaryFile.write("%s" % (cluster ))
-            summaryFile.write(",%0.2f" % (self.clusterTrends[cluster]['Totals'][-1] ))
-            if 'twoDays' in self.clusterTrends[cluster]:
-                summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['twoDays']['alpha'],  self.clusterTrends[cluster]['twoDays']['direction'],  self.clusterTrends[cluster]['twoDays']['percentage'] ))
-            if 'fiveDays' in self.clusterTrends[cluster]:
-                summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['fiveDays']['alpha'],  self.clusterTrends[cluster]['fiveDays']['direction'],  self.clusterTrends[cluster]['fiveDays']['percentage'] ))
-            summaryFile.write(",%0.2f,%s,%0.2f\n" % (self.clusterTrends[cluster]['thirtyDays']['alpha'],  self.clusterTrends[cluster]['thirtyDays']['direction'],  self.clusterTrends[cluster]['thirtyDays']['percentage'] ))
+            try:
+                summaryFile.write("%s" % (cluster ))
+                summaryFile.write(",%0.2f" % (self.clusterTrends[cluster]['Totals'][-1] ))
+                if 'twoDays' in self.clusterTrends[cluster]:
+                    summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['twoDays']['alpha'],  self.clusterTrends[cluster]['twoDays']['direction'],  self.clusterTrends[cluster]['twoDays']['percentage'] ))
+                if 'fiveDays' in self.clusterTrends[cluster]:
+                    summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['fiveDays']['alpha'],  self.clusterTrends[cluster]['fiveDays']['direction'],  self.clusterTrends[cluster]['fiveDays']['percentage'] ))
+                summaryFile.write(",%0.2f,%s,%0.2f\n" % (self.clusterTrends[cluster]['thirtyDays']['alpha'],  self.clusterTrends[cluster]['thirtyDays']['direction'],  self.clusterTrends[cluster]['thirtyDays']['percentage'] ))
+            except  Exception as e:
+                PrintException(repr(e) + " Unexpected error")
+                #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+                traceback.print_stack()
+                pass
         
         summaryFile.close()
         
@@ -991,6 +1005,7 @@ class TrendReport(object):
             ax = fig.add_subplot(111)
             clusterColors = { 'hthor': 'blue', 'thor': 'red', 'roxie': 'magenta'}
             dataPoints = 0
+            cluster = ''
             for cluster in sorted(self.clusterTrends):
                 # Plot the data
                 dataPoints = min(self.numOfRuns[cluster],  thirtyDays)
@@ -999,29 +1014,39 @@ class TrendReport(object):
 
                 dates2 = self.createDateSeries(self.clusterTrends[cluster]['Dates'][-dataPoints:], dataPoints)
                 dataPoints = len(dates2)
-                dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
-                ax.plot_date(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
-                
-                # plot the trend
-                clusterTrendLabel = '%s-trend (%0.3f sec/day, alpha:%0.3f, beta:%0.3f)' % ( cluster,  self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['beta'])
-                x1 = [dates2[0],  dates2[-1]]
-                y1 = [self.clusterTrends[cluster]['thirtyDays']['beta'], self.clusterTrends[cluster]['thirtyDays']['alpha'] * (len(dates2) - 1) + self.clusterTrends[cluster]['thirtyDays']['beta'] ]
-                ax.plot(x1, y1, label=clusterTrendLabel, marker ='.', linestyle = '-', color=clusterColors[cluster])
-                
-                # X axis tick and format
-                dateFmt = mpl.dates.DateFormatter('%Y-%m-%d')
-                ax.xaxis.set_major_formatter(dateFmt)
-                daysLoc = mpl.dates.DayLocator()
-                hoursLoc = mpl.dates.HourLocator(interval=6)
-                ax.xaxis.set_major_locator(daysLoc)
-                ax.xaxis.set_minor_locator(hoursLoc)
-                fig.autofmt_xdate(bottom=0.18) # adjust for date labels display
-                fig.subplots_adjust(left=0.18)
-                
-                # Y axis  ticks
-                ml =  mpl.ticker.AutoMinorLocator()
-                ax.yaxis.set_minor_locator(ml)
-                
+                if dataPoints > 0:
+                    dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
+                    ax.plot_date(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
+
+                    try:
+                        # plot the trend
+                        clusterTrendLabel = '%s-trend (%0.3f sec/day, alpha:%0.3f, beta:%0.3f)' % ( cluster,  self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['beta'])
+                        x1 = [dates2[0],  dates2[-1]]
+                        y1 = [self.clusterTrends[cluster]['thirtyDays']['beta'], self.clusterTrends[cluster]['thirtyDays']['alpha'] * (len(dates2) - 1) + self.clusterTrends[cluster]['thirtyDays']['beta'] ]
+                        ax.plot(x1, y1, label=clusterTrendLabel, marker ='.', linestyle = '-', color=clusterColors[cluster])
+
+                        # X axis tick and format
+                        dateFmt = mpl.dates.DateFormatter('%Y-%m-%d')
+                        ax.xaxis.set_major_formatter(dateFmt)
+                        daysLoc = mpl.dates.DayLocator()
+                        hoursLoc = mpl.dates.HourLocator(interval=6)
+                        ax.xaxis.set_major_locator(daysLoc)
+                        ax.xaxis.set_minor_locator(hoursLoc)
+                        fig.autofmt_xdate(bottom=0.18) # adjust for date labels display
+                        fig.subplots_adjust(left=0.18)
+
+                        # Y axis  ticks
+                        ml =  mpl.ticker.AutoMinorLocator()
+                        ax.yaxis.set_minor_locator(ml)
+                    except  Exception as e:
+                        PrintException(repr(e) + " Unexpected error")
+                        #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+                        traceback.print_stack()
+                    pass
+                else:
+                    print("No data for %s." % (cluster) )
+                    pass
+
             ax.grid(True, which='both')
             myTitle = 'Performance Suite execution time trends on ' +  self.hpccVersion +' in the last '+ str(dataPoints) +' days'
             myTitle += self.getTestInfo(cluster)
@@ -1106,7 +1131,7 @@ if __name__ == "__main__":
                       help="Data file path. Default is './'", metavar="DATA_PATH")
                       
     parser.add_option("-r", "--reportpath", dest="reportPath",  default = './',  type="string", 
-                      help="Path to store formance report. Default is './'", metavar="TARGET_PATH")
+                      help="Path to store performance report. Default is './'", metavar="TARGET_PATH")
                       
     parser.add_option("-t", "--threshold", dest="threshold", default=5.0, type="float", 
                       help="Trend threshold to determine significant increasing/decreasing trend. Default is 5.0%"

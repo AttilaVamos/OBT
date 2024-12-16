@@ -1051,7 +1051,7 @@ then
             #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
             res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
             retCode=$?
-            WriteLog "retCode:$retCode\nres:\n$res" "${OBT_LOG_FILE}"
+            WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
 
             WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
 
@@ -1074,9 +1074,9 @@ then
 
         res=$( ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} -v  2>&1)
         retCode=$?
-        WriteLog "retCode:$retCode\nres:\n$res" "${OBT_LOG_FILE}"
+        WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
     else
-        WriteLog "Build for performane test is failed." "${OBT_LOG_FILE}"
+        WriteLog "Build for performance test is failed." "${OBT_LOG_FILE}"
     fi
     WriteLog "Performance test done." "${OBT_LOG_FILE}"
 

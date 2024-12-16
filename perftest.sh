@@ -534,7 +534,7 @@ then
         res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
         retCode=$?
         
-        [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$PERF_TEST_LOG"
+        [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "$PERF_TEST_LOG"
         WriteLog "   Done."  "$PERF_TEST_LOG"
     else
         WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$PERF_TEST_LOG"
@@ -668,7 +668,7 @@ then
 
                     res=$(zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* vcpkg_downloads/*  2>&1)
                     retCode=$?
-                    [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "${PERF_TEST_LOG}"
+                    [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "${PERF_TEST_LOG}"
                     WriteLog "  Done." "${PERF_TEST_LOG}"
                 else
                     WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
@@ -1293,7 +1293,7 @@ then
     WriteLog "Core dump filter: $(sudo cat /proc/self/coredump_filter)" "${PERF_TEST_LOG}"
     res=$( echo 0x13 | sudo tee /proc/self/coredump_filter 2>&1)
     retCode=$?
-    WriteLog "res:$res\nretCode:${retCode}" "${PERF_TEST_LOG}"
+    WriteLog "retCode:${retCode}\nres:$res" "${PERF_TEST_LOG}"
     WriteLog "Core dump filter: $(sudo cat /proc/self/coredump_filter)" "${PERF_TEST_LOG}"
 
     #

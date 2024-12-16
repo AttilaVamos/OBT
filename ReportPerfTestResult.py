@@ -467,7 +467,7 @@ class BuildNotification(object):
             msgHTML += '<H3>Performance Test results trend analysis.</H3>\n'
             msgHTML += '<img src="cid:SummaryGraph" alt="Summary Graph"><br>\n'
             try:
-                fp = open(summaryGraph[0], 'r')
+                fp = open(summaryGraph[0], 'rb')
                 img = MIMEImage(fp.read(), 'png')
                 fp.close()
                 img.add_header('Content-ID', '<{}>'.format('SummaryGraph'))
@@ -519,7 +519,7 @@ class BuildNotification(object):
                     print("Image:'%s'" % (image))
                     msgHTML += '<img src="cid:image{}" alt="Image-{}"><br>\n'.format(index, index)
                     try:
-                        fp = open(image, 'r')
+                        fp = open(image, 'rb')
                         img = MIMEImage(fp.read(), 'png')
                         fp.close()
                         img.add_header('Content-Type', 'image/png',  name='graph{}.png'.format(index))
