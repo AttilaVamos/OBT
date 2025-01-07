@@ -7,6 +7,7 @@ SSH_KEYFILE="~/hpcc_keypair.pem"
 SSH_OPTIONS="-oConnectionAttempts=5 -oConnectTimeout=20 -oStrictHostKeyChecking=no"
 SSH_TARGET="10.224.20.53"   #OpenStack Region 8 Rocky 8
 SSH_USER="rocky"
+DEBUG=0
 
 # If any of those SSH_* parameter is overridden in settings.sh then use them
 [[ -f ./settings.sh ]] && . ./settings.sh
@@ -68,3 +69,44 @@ then
     popd
 fi
 
+#
+# ZIP all  archiveLogs-*.log files older than ARCHIVE_LOGS_DAYS_TO_KEEP
+#
+ARCHIVE_LOGS_DAYS_TO_KEEP=7
+
+while read fileName
+do
+    fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+    dateStamp=$(echo "$fName" | awk -F '-' '{ print $2"-"$3 }' )
+    [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+
+    res=$( zip -m archiveLogs-${dateStamp}.zip $fileName 2>&1)
+    retCode=$?
+    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 ]] && echo "res: $res"
+
+done< <( find . -iname 'arch*.log' -mtime +${ARCHIVE_LOGS_DAYS_TO_KEEP} -type f -print )
+
+
+
+#
+# ZIP all  *.json files older than JSON_RESULTS_DAYS_TO_KEEP
+#
+JSON_RESULTS_DAYS_TO_KEEP=1
+
+while read fileName
+do
+    fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+    fName=${fName//candidate-/}         # Delete 'candidate-' to make filenames uniform
+    source=$(echo "$fName" | cut -d'-' -f1,2)
+    [[ $DEBUG -ne 0 ]] && printf "%30s, %20s," "$fName" "$source"
+
+    dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
+    [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+
+    res=$( zip -m ${source}-results-${dateStamp}.zip $fileName 2>&1)
+    retCode=$?
+    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 ]] && echo "res: $res"
+
+done< <( find . -iname '*.json' -mtime +${JSON_RESULTS_DAYS_TO_KEEP} -type f -print )
