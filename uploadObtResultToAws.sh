@@ -72,7 +72,7 @@ fi
 #
 # ZIP all  archiveLogs-*.log files older than ARCHIVE_LOGS_DAYS_TO_KEEP
 #
-ARCHIVE_LOGS_DAYS_TO_KEEP=7
+ARCHIVE_LOGS_DAYS_TO_KEEP=1
 
 while read fileName
 do
