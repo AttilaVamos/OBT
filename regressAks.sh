@@ -955,14 +955,15 @@ then
         pushd $SUITEDIR/ecl
         WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
         TIME_STAMP=$(date +%s)
-        while read query
-        do
-            WriteLog "Query: $query" "$logFile"
-            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
-            WriteLog "$res" "$logFile"
-            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
-        done< <(egrep -l '\/\/publish' setup/*.ecl)
-        
+        # New RTE deploys queries to roxie
+#        while read query
+#        do
+#           WriteLog "Query: $query" "$logFile"
+#            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
+#            WriteLog "$res" "$logFile"
+#            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
+#        done< <(egrep -l '\/\/publish' setup/*.ecl)
+#        
         QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
         popd
         WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
