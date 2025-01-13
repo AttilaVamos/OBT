@@ -629,6 +629,22 @@ fi
 # Use that version for get the lates tag of the latest branch
 res=$( git checkout $tagToTest  2>&1 )
 WriteLog "checkout $tagToTest\nres: $res" "$logFile"
+
+# Patch all aaa*.ecl setup ecl with '//library' tag.
+WriteLog "Path setup library files with '//library' tag ..." "$logFile"
+while read fn
+do
+    WrteLog "  $fn" "$logFile"
+    res=$( sed -i 's/\(\/\/publish\)/\1\n\/\/library\n/g' $fn 2>&1)
+    retCode=$?
+    [[ $retCode -ne 0 ]] && WriteLog "    retCode: $retCode\n   res:$res" "$logFile"
+
+    res=$( egrep -A1 '\/\/publish'; )
+    retCode=$?
+    WriteLog "    retCode: $retCode,\nres: '$res'" "$logFile"
+done< <(find testing/regress/ecl/setup -iname 'aaa*.ecl' -type f )
+WriteLog "  Done." "$logFile"
+
 popd > /dev/null
 
 base=$tag
