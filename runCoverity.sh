@@ -20,8 +20,8 @@ then
 fi
 
 WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
-#COVERITY_BIN_DIR=~/cov-analysis-linux64-2022.6.0/bin
-COVERITY_BIN_DIR=~/cov-analysis-linux64-2023.6.2/bin
+#COVERITY_BIN_DIR=~/cov-analysis-linux64-2023.6.2/bin
+COVERITY_BIN_DIR=~/cov-analysis-linux64-2024.6.1/bin
 
 # Set it to 1 if you want to test runCoverity.sh without execute Coverity build and upload.
 DRY_RUN=0
