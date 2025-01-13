@@ -475,7 +475,7 @@ WriteLog "checkout $tagToTest\nres: $res" "$logFile"
 WriteLog "Path setup library files with '//library' tag..." "$logFile"
 while read fn
 do
-    WrteLog "  $fn" "$logFile"
+    WriteLog "  $fn" "$logFile"
     res=$( sed -i 's/\(\/\/publish\)/\1\n\/\/library\n/g' $fn 2>&1)
     retCode=$?
     [[ $retCode -ne 0 ]] && WriteLog "    retCode: $retCode\n   res:$res" "$logFile"
