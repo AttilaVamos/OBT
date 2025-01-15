@@ -631,7 +631,7 @@ res=$( git checkout $tagToTest  2>&1 )
 WriteLog "checkout $tagToTest\nres: $res" "$logFile"
 
 # Patch all aaa*.ecl setup ecl with '//library' tag.
-WriteLog "Path setup library files with '//library' tag ..." "$logFile"
+WriteLog "Patch setup library files with '//library' tag ..." "$logFile"
 while read fn
 do
     WriteLog "  $fn" "$logFile"
@@ -831,19 +831,22 @@ else
     SETUP_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
     
     QUERIES_PUBLISH_RESULT_STR="$ECLWATCH_START_RESULT_STR"
-    QUERIES_PUBLISH_REPORT_STR="$ECLWATCH_START_RESULT_STR"
+    QUERIES_PUBLISH_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
 
+    REGRESS_START_TIME=$( date "+%H:%M:%S")
     REGRESS_RESULT_STR="$ECLWATCH_START_RESULT_STR"
     REGRESS_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
     
+    QUERY_STAT2_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
     REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR"
 
-    GenerateReports
-    WriteLog "Exit." "$logFile"
     END_TIME=$( date "+%H:%M:%S")
     RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
     RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
     END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
+    
+    GenerateReports
+    WriteLog "Exit." "$logFile"
     exit 1
 fi
 
