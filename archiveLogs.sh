@@ -421,7 +421,7 @@ then
             zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} "/opt/HPCCSystems/bin/${comp}" >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log
 
 
-            if [[ (${coreIndex} -le $maxNumberOfCoresStored) && (${coreSize} -lt 1073741824 ]]      # <1GB
+            if [[ (${coreIndex} -le $maxNumberOfCoresStored) && (${coreSize} -lt 1073741824) ]]      # <1GB
             then
                 WriteLog "Add $core (${coreSizeHuman}) to archive" "${ARCHIVE_LOG_DIR}"
                 zip ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME} $core >> ${FULL_ARCHIVE_TARGET_DIR}/${ARCHIVE_NAME}.log

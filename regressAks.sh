@@ -844,7 +844,7 @@ else
     RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
     RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
     END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
-    
+
     GenerateReports
     WriteLog "Exit." "$logFile"
     exit 1

@@ -16,7 +16,7 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 START_TIME=$( date "+%H:%M:%S")
 START_TIME_SEC=$(date +%s)
 START_CMD="$0 $*"
-DEBUG=0
+DEBUG=1
 
 echo "Start..."
 
