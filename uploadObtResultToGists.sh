@@ -132,10 +132,16 @@ do
     fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
     fName=${fName//candidate-/}         # Delete 'candidate-' to make filenames uniform
     source=$(echo "$fName" | cut -d'-' -f1)
-    [[ $DEBUG -ne 0 ]] && printf "%30s, %20s," "$fName" "$source"
+    [[ $DEBUG -ne 0 ]] && printf "fName: '%30s', source: '%20s', " "$fName" "$source"
     
-    dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
-    [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+    if [[ "$source" =~ "regress" ]]
+    then
+        # For AKS and Minikube results
+        dateStamp=$(echo "$fName" | awk -F '-' '{ print $2"-"$3 }' )
+    else
+        dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
+    fi
+    [[ $DEBUG -ne 0 ]] && printf "dateStamp: '%s'\n" "$dateStamp"
     
     res=$( zip -m results-${dateStamp}.zip $fileName 2>&1)
     retCode=$?
@@ -206,7 +212,7 @@ then
 else
     echo "  No file found to archive."
 fi
-   
+
 popd > /dev/null
 
 ELAPS_TIME=$(( $(date +%s) - $START_TIME_SEC ))
