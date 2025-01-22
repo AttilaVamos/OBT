@@ -123,7 +123,11 @@ else
     echo "  No new file added."
 fi
 
+TODAY=$(date +%s)
 DAYS_TO_KEEP=60
+DAYS_TO_KEEP_IN_SEC=$(( $DAYS_TO_KEEP * 24 * 60 * 60 )); 
+OLDEST_DAY_IN_SEC=$(( $TODAY - $DAYS_TO_KEEP_IN_SEC )); 
+
 echo "Check if there is any older than $DAYS_TO_KEEP days file."
 FILES_ARCHIVED=0
 
@@ -137,25 +141,36 @@ do
     if [[ "$source" =~ "regress" ]]
     then
         # For AKS and Minikube results
-        dateStamp=$(echo "$fName" | awk -F '-' '{ print $2"-"$3 }' )
+        dateStamp=$(echo "$fName" | tr '_' '-' | awk -F '-' '{ print $2"-"$3"-"$4 }' );
+        zipDateStamp=$(echo "$fName" | awk -F '-' '{ print $2"-"$3 }' )
     else
-        dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
+        dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5"-"$6 }' );
+        ziDateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
     fi
-    [[ $DEBUG -ne 0 ]] && printf "dateStamp: '%s'\n" "$dateStamp"
+    secStamp=$(date -d $dateStamp +%s)
+    [[ $DEBUG -ne 0 ]] && printf "dateStamp: '%s', secStamp: $s\n" "$dateStamp" "$secStamp"
     
-    res=$( zip -m results-${dateStamp}.zip $fileName 2>&1)
-    retCode=$?
-    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
-    [[ $DEBUG -ne 0 ]] && echo "res: $res"
-    
-    FILES_ARCHIVED=$(( FILES_ARCHIVED + 1 ))
-    
-    res=$( git rm $fileName 2>&1)
-    retCode=$?
-    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
-    [[ $DEBUG -ne 0 ]] && echo "res: $res"
+    if [[ $secStamp -lt $OLDEST_DAY_IN_SEC ]]
+    then
+        
+        res=$( zip -m results-${ziDateStamp}.zip $fileName 2>&1)
+        retCode=$?
+        [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+        [[ $DEBUG -ne 0 ]] && echo "res: $res"
+        
+        FILES_ARCHIVED=$(( FILES_ARCHIVED + 1 ))
+        
+        res=$( git rm $fileName 2>&1)
+        retCode=$?
+        [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+        [[ $DEBUG -ne 0 ]] && echo "res: $res"
+    fi
 
-done< <( find . -iname '*.json' -mtime +${DAYS_TO_KEEP} -type f -print )
+done< <( find . -iname '*.json' -type f -print )
+
+# Better to find old files
+# today=$(date +%s); days=60; DaysInSec=$(( $days * 24 * 60 * 60 )); oldestDay=$(( $today - $DaysInSec )); while read fn; do echo $fn; dateStamp=$(echo "$fn" | awk -F '-' '{ print $5"-"$6"-"$7 }' ); sec=$(date -d $dateStamp +%s); echo "datestamp: $dateStamp, sec: $sec old:$( [[ $sec -lt $oldestDay ]] && echo 'yes' || echo 'no')"; done< <(find gists/ -iname 'OBT-*.json' -type f -print)
+
 
 echo "$CURRENT_README" > README.rst
 if [[ $FILES_ARCHIVED -ne 0 ]]
