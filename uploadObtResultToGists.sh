@@ -73,6 +73,7 @@ retCode=$?
 [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
+echo "Git status ..."
 res=$(git status 2>&1)
 retCode=$?
 
@@ -84,13 +85,13 @@ CURRENT_README=''
 if [[ "$res" =~ "Untracked files" ]]
 then
     echo "  Add new result file(s) to gist"
-   
     res=$(git add . 2>&1)
     retCode=$?
 
     [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
     [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
+    [[ $DEBUG -ne 0 ]] && echo "git status ..."
     res=$(git status 2>&1)
     retCode=$?
 
@@ -100,7 +101,7 @@ then
     numOfNewFiles=$( echo "$res" | egrep 'new file' | wc -l )
 
     # Update README.rst
-    echo "Updated on: $(date)." >  README.rst
+    echo "  Updated on: $(date)." >  README.rst
     echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
 
     [[ $DEBUG -ne 0 ]] && echo ""
@@ -136,7 +137,7 @@ do
     fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
     fName=${fName//candidate-/}         # Delete 'candidate-' to make filenames uniform
     source=$(echo "$fName" | cut -d'-' -f1)
-    [[ $DEBUG -ne 0 ]] && printf "fName: '%30s', source: '%20s', " "$fName" "$source"
+    [[ $DEBUG -ne 0 ]] && printf "fName: '%35s', source: '%20s', " "$fName" "$source"
     
     if [[ "$source" =~ "regress" ]]
     then
@@ -145,21 +146,22 @@ do
         zipDateStamp=$(echo "$fName" | awk -F '-' '{ print $2"-"$3 }' )
     else
         dateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5"-"$6 }' );
-        ziDateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
+        zipDateStamp=$(echo "$fName" | awk -F '-' '{ print $4"-"$5 }' )
     fi
     secStamp=$(date -d $dateStamp +%s)
-    [[ $DEBUG -ne 0 ]] && printf "dateStamp: '%s', secStamp: $s\n" "$dateStamp" "$secStamp"
+    [[ $DEBUG -ne 0 ]] && printf "dateStamp: '%s', secStamp: %s, zipDateStamp: %s\n" "$dateStamp" "$secStamp" "$zipDateStamp"
     
     if [[ $secStamp -lt $OLDEST_DAY_IN_SEC ]]
     then
-        
-        res=$( zip -m results-${ziDateStamp}.zip $fileName 2>&1)
+        [[ $DEBUG -ne 0 ]] && echo "Add $fileName to results-${zipDateStamp}.zip"
+        res=$( zip -m results-${zipDateStamp}.zip $fileName 2>&1)
         retCode=$?
         [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
         [[ $DEBUG -ne 0 ]] && echo "res: $res"
         
         FILES_ARCHIVED=$(( FILES_ARCHIVED + 1 ))
         
+        [[ $DEBUG -ne 0 ]] && echo "git rm $fileName"
         res=$( git rm $fileName 2>&1)
         retCode=$?
         [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
@@ -167,9 +169,6 @@ do
     fi
 
 done< <( find . -iname '*.json' -type f -print )
-
-# Better to find old files
-# today=$(date +%s); days=60; DaysInSec=$(( $days * 24 * 60 * 60 )); oldestDay=$(( $today - $DaysInSec )); while read fn; do echo $fn; dateStamp=$(echo "$fn" | awk -F '-' '{ print $5"-"$6"-"$7 }' ); sec=$(date -d $dateStamp +%s); echo "datestamp: $dateStamp, sec: $sec old:$( [[ $sec -lt $oldestDay ]] && echo 'yes' || echo 'no')"; done< <(find gists/ -iname 'OBT-*.json' -type f -print)
 
 
 echo "$CURRENT_README" > README.rst
