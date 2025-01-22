@@ -73,7 +73,7 @@ retCode=$?
 [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
-echo "Git status ..."
+[[ $DEBUG -ne 0 ]] && echo "Git status ..."
 res=$(git status 2>&1)
 retCode=$?
 
@@ -137,7 +137,7 @@ do
     fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
     fName=${fName//candidate-/}         # Delete 'candidate-' to make filenames uniform
     source=$(echo "$fName" | cut -d'-' -f1)
-    [[ $DEBUG -ne 0 ]] && printf "fName: '%35s', source: '%20s', " "$fName" "$source"
+    [[ $DEBUG -ne 0 ]] && printf "fName: '%50s', source: '%-15s', " "$fName" "$source"
     
     if [[ "$source" =~ "regress" ]]
     then
@@ -153,7 +153,7 @@ do
     
     if [[ $secStamp -lt $OLDEST_DAY_IN_SEC ]]
     then
-        [[ $DEBUG -ne 0 ]] && echo "Add $fileName to results-${zipDateStamp}.zip"
+        echo "  Add $fileName to results-${zipDateStamp}.zip"
         res=$( zip -m results-${zipDateStamp}.zip $fileName 2>&1)
         retCode=$?
         [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
