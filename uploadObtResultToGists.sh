@@ -84,13 +84,16 @@ CURRENT_README=''
 
 if [[ "$res" =~ "Untracked files" ]]
 then
-    echo "  Add new result file(s) to gist"
+    echo "  Add $(echo "$res" | egrep '*.json' | wc -l) new result file(s) to gist"
+    echo "  $(echo "$res" | egrep '*.json' )"
     res=$(git add . 2>&1)
     retCode=$?
 
     [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
     [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
+    echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' 
+    
     [[ $DEBUG -ne 0 ]] && echo "git status ..."
     res=$(git status 2>&1)
     retCode=$?
@@ -129,7 +132,7 @@ DAYS_TO_KEEP=60
 DAYS_TO_KEEP_IN_SEC=$(( $DAYS_TO_KEEP * 24 * 60 * 60 )); 
 OLDEST_DAY_IN_SEC=$(( $TODAY - $DAYS_TO_KEEP_IN_SEC )); 
 
-echo "Check if there is any older than $DAYS_TO_KEEP days file."
+echo "Check if there is any file older than $DAYS_TO_KEEP days."
 FILES_ARCHIVED=0
 
 while read fileName
@@ -168,7 +171,7 @@ do
         [[ $DEBUG -ne 0 ]] && echo "res: $res"
     fi
 
-done< <( find . -iname '*.json' -type f -print )
+done< <( find . -iname '*.json' -type f -print | sort )
 
 
 echo "$CURRENT_README" > README.rst
