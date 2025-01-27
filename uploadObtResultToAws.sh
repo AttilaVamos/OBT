@@ -17,7 +17,7 @@ echo "OBT id: '$OBT_ID'"
 echo "User  : '$SSH_USER'"
 echo "Target: '$SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/'"
 
-rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/build/bin/OBT-*.txt ~/build/bin/OBT-*.[rj]* $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
+rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/build/bin/OBT-*.[jrtz]* $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 
 date >> ~/diskState.log
 df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
