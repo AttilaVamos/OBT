@@ -294,11 +294,11 @@ destroyResources()
         popd > /dev/null
     else
         # Resources already deployed, keep them
-        STORAGE_DESTROY_RESULT_STR="Skip destroying resource."
-        STORAGE_DESTROY_RESULT_REPORT_STR=$STORAGE_START_RESULT_STR
+        STORAGE_DESTROY_RESULT_STR="Skip destroying resource. They were deployed outside this test."
+        STORAGE_DESTROY_RESULT_REPORT_STR=$STORAGE_DESTROY_RESULT_STR
 
-        VNET_DESTROY_RESULT_STR="Skip destroying resource."
-        VNET_DESTROY_RESULT_REPORT_STR=$VNET_START_RESULT_STR
+        VNET_DESTROY_RESULT_STR="Skip destroying resource. They were deployed outside this test."
+        VNET_DESTROY_RESULT_REPORT_STR=$VNET_DESTROY_RESULT_STR
     fi
 
 }
