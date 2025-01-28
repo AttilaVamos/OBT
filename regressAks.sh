@@ -292,6 +292,13 @@ destroyResources()
         VNET_DESTROY_RESULT_REPORT_STR="$VNET_DESTROY_RESULT_STR in $VNET_DESTROY_TIME_STR, $VNET_DESTROYED_NUM_OF_RESOURCES_STR."
         WriteLog "  $VNET_DESTROY_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
+    else
+        # Resources already deployed, keep them
+        STORAGE_DESTROY_RESULT_STR="Skip destroying resource."
+        STORAGE_DESTROY_RESULT_REPORT_STR=$STORAGE_START_RESULT_STR
+
+        VNET_DESTROY_RESULT_STR="Skip destroying resource."
+        VNET_DESTROY_RESULT_REPORT_STR=$VNET_START_RESULT_STR
     fi
 
 }
@@ -768,7 +775,13 @@ then
     STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
     WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
     popd > /dev/null
+else
+    # Resources already deployed
+    VNET_START_RESULT_STR="Resource already deployed."
+    VNET_START_RESULT_REPORT_STR=$VNET_START_RESULT_STR
 
+    STORAGE_START_RESULT_STR="Resource already deployed."
+    STORAGE_START_RESULT_REPORT_STR=$STORAGE_START_RESULT_STR
 fi
 
 
