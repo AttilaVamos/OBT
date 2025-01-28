@@ -8,9 +8,7 @@ tags = { "justification" = "testing"
          "owner_email"   = "attila.vamos@lexisnexisrisk.com"
 }
 
-#resource_group = {
-#  unique_name = true
-#}
+subscription_id = "ec0ba952-4ae9-4f69-b61c-4b96ff470038"
 
 rbac = {
   enabled = false
@@ -29,14 +27,14 @@ node_pools = {
   system = {
     vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
     node_count                   = 1
-    #enable_auto_scaling          = true  #problem on 2024.08.27
+    auto_scaling_enabled          = true
     only_critical_addons_enabled = true
     min_count                    = 1
     max_count                    = 1
     availability_zones           = []
     subnet                       = "public"
-    #enable_host_encryption       = false  #problem on 2024.08.27
-    #enable_node_public_ip        = false  #problem on 2024.08.27
+    host_encryption_enabled       = false
+    node_public_ip_enabled        = false
     os_disk_type                 = "Managed"
     type                         = "VirtualMachineScaleSets"
     # max_pods             = 10
@@ -49,7 +47,7 @@ node_pools = {
 
   addpool1 = {
     vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
-    #enable_auto_scaling          = true  #problem on 2024.08.27
+    auto_scaling_enabled          = true
     node_count                   = 2
     min_count                    = 1
     max_count                    = 2
@@ -60,8 +58,8 @@ node_pools = {
     max_surge                    = "1"
     os_type                      = "Linux"
     priority                     = "Regular"
-    #enable_host_encryption       = false  #problem on 2024.08.27
-    #enable_node_public_ip        = false  #problem on 2024.08.27
+    host_encryption_enabled       = false
+    node_public_ip_enabled        = false
     only_critical_addons_enabled = false
     os_disk_type                 = "Managed"
     type                         = "VirtualMachineScaleSets"
@@ -78,7 +76,7 @@ node_pools = {
 
   addpool2 = {
     vm_size                      = "Standard_D16s_v4"  # "Standard_D4s_v4"
-    #enable_auto_scaling          = true  #problem on 2024.08.27
+    auto_scaling_enabled          = true
     node_count                   = 2
     min_count                    = 1
     max_count                    = 2
@@ -89,8 +87,8 @@ node_pools = {
     max_surge                    = "1"
     os_type                      = "Linux"
     priority                     = "Regular"
-    #enable_host_encryption       = false  #problem on 2024.08.27
-    #enable_node_public_ip        = false  #problem on 2024.08.27
+    host_encryption_enabled       = false
+    node_public_ip_enabled        = false
     only_critical_addons_enabled = false
     os_disk_type                 = "Managed"
     type                         = "VirtualMachineScaleSets"
@@ -111,11 +109,11 @@ node_pools = {
 
 hpcc = {
   name                       = "obthpcck8s"
-  version = "9.6.10"
+  version = "9.10.0-rc3"
   # This necessary only for custom image
-  image_version = "9.6.10"
+  image_version = "9.10.0-rc3"
   expose_eclwatch            = true
-  atomic                     = true
+  atomic                     = false #true
   recreate_pods              = false
   reuse_values               = false
   reset_values               = false
@@ -140,7 +138,7 @@ hpcc = {
 
 storage = {
   default                    = false
-  atomic                     = true
+  atomic                     = false #true
   recreate_pods              = false
   reuse_values               = false
   reset_values               = false
@@ -230,7 +228,7 @@ elastic4hpcclogs = {
   enable                     = false #true
   expose                     = true
   name                       = "myelastic4hpcclogs"
-  atomic                     = true
+  atomic                     = false #true
   recreate_pods              = false
   reuse_values               = false
   reset_values               = false

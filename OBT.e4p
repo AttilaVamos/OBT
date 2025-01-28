@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2024-11-25, 20:27:04 -->
-<!-- Copyright (C) 2024 ,  -->
+<!-- Saved: 2025-01-28, 10:46:55 -->
+<!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
   <Hash>f274b6863986045b4ecab998a5c85377e17be9f7</Hash>
@@ -85,7 +85,9 @@
     <Source>myInfo.sh</Source>
     <Source>obt-admin.tfvars</Source>
     <Source>obt-aks-values.yaml</Source>
+    <Source>obt-storage-admin.tfvars</Source>
     <Source>obt-values.yaml</Source>
+    <Source>obt-vnet-admin.tfvars</Source>
     <Source>obtDigest.sh</Source>
     <Source>obtMain.sh</Source>
     <Source>obtSequencer.sh</Source>
@@ -136,6 +138,7 @@
   </Sources>
   <Others>
     <Other>.gitignore</Other>
+    <Other>obt-vnet-admin.tfvars</Other>
     <Other>regressAksReport.templ</Other>
     <Other>regressMinikubeReport.templ</Other>
   </Others>

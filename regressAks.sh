@@ -392,7 +392,8 @@ fi
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-aks
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
-TERRAFORM_DIR=~/terraform-azurerm-hpcc
+TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-29
+#TERRAFORM_DIR=~/terraform-azurerm-hpcc
 
 RTE_CONFIG="./ecl-test-k8s.json"
 RTE_PQ="--pq 2"
@@ -687,6 +688,9 @@ fi
 
 WriteLog "Update obt-admin.tfvars..." "$logFile"
 pushd $TERRAFORM_DIR > /dev/null
+
+WriteLog "$(cp -vf $OBT_DIR/obt-vnet-admin.tfvars modules/virtual_network/admin.tfvars 2>&1)" "$logFile"
+WriteLog "$(cp -vf $OBT_DIR/obt-storage-admin.tfvars modules/storage_accounts/admin.tfvars 2>&1)" "$logFile"
 
 WriteLog "$(cp -vf $OBT_DIR/obt-admin.tfvars . 2>&1)" "$logFile"
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
