@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-01-28, 10:46:55 -->
+<!-- Saved: 2025-01-31, 21:30:58 -->
 <!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -49,8 +49,10 @@
     <Source>ReportedTestCasesHistory.py</Source>
     <Source>UninstallHPCC.sh</Source>
     <Source>WatchDog.py</Source>
+    <Source>archiveJson.sh</Source>
     <Source>archiveLogs.sh</Source>
     <Source>archivePerfStat.sh</Source>
+    <Source>archiveResults.sh</Source>
     <Source>autoGenerateTestSequence.sh</Source>
     <Source>build.sh</Source>
     <Source>build_ct.sh</Source>
@@ -77,6 +79,7 @@
     <Source>clean_builds.sh</Source>
     <Source>cloneRepo.sh</Source>
     <Source>coverage.sh</Source>
+    <Source>fixJson.sh</Source>
     <Source>gitlog.sh</Source>
     <Source>individualCoverage.sh</Source>
     <Source>install-cluster.sh</Source>

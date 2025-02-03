@@ -29,28 +29,46 @@ rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  $SSH_USER@
 
 if [[ -d ~/Perfstat ]]
 then
-    # Archive previous month's perfstat files into 'perfstats-YYYY-MM.zip' file
+    #
+    # ZIP all  archiveLogs-*.log files older than ARCHIVE_LOGS_DAYS_TO_KEEP
+    #
     pushd ~/Perfstat
     
-    prevMonth=$(date --date "$today - 1month" +%m)
-    prevMonthYear=$(date --date "$today - 1month" +%y)
-    prevMonthYearLong=$(date --date "$today - 1month" +%Y)
+    # Add all perfstat files to monthly zip file
+    while read fileName
+    do
+        fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+        dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
+        dateStamp="${dateStamp:0:2}-${dateStamp:2:2}"
+        [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
 
-    find . -iname 'perfstat-*-'$prevMonthYear$prevMonth'*.c*' -type f -print | zip -m perfstats-$prevMonthYearLong-$prevMonth.zip -@
-    
-    # Same for this month's perfstat files into 'perfstats-YYYY-MM.zip' file
-    thisMonth=$(date +%m)
-    thisMonthYear=$(date +%y)
-    thisMonthYearLong=$(date +%Y)
+        res=$( zip -u perfstats-${dateStamp}.zip $fileName 2>&1)
+        retCode=$?
+        [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+        [[ $DEBUG -ne 0 ]] && echo "res: $res"
 
-    zipPar="-m"
-    [[ $OBT_ID == "OBT-AWS01" ]] && zipPar='-u'  # Keep files for a while
-  
-    find . -iname 'perfstat-*-'$thisMonthYear$thisMonth'*.c*' -type f -print | zip $zipPar perfstats-$thisMonthYearLong-$thisMonth.zip -@
+    done< <( find . -iname 'perfstat-*.c*' -type f -print )
     
+    # Move file older than PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive
+    PERFSTAT_DAYS_TO_KEEP=32
+
+    while read fileName
+    do
+        fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+        dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
+        dateStamp="${dateStamp:0:2}-${dateStamp:2:2}"
+        [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+
+        res=$( zip -m perfstats-${dateStamp}.zip $fileName 2>&1)
+        retCode=$?
+        [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+        [[ $DEBUG -ne 0 ]] && echo "res: $res"
+
+    done< <( find . -iname 'perfstat-*.c*' -mtime +${PERFSTAT_DAYS_TO_KEEP} -type f -print )
+
     popd
     
-    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/Perfstat/
+    rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*.zip  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/Perfstat/
 
 fi
 

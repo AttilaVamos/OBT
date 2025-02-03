@@ -1,5 +1,14 @@
 #!/usr/bin/bash
 
+
+CHECK_PATH="$HOME/gists/"
+if [[ "$1." != "." ]]
+then
+    CHECK_PATH="$1"
+fi
+
+echo "Checking files in '$CHECK_PATH'."
+
 FILES_CHECKED=0
 FILES_FIXED=0
 
@@ -28,7 +37,7 @@ do
         printf "%-70s -> OK\n" "$fn" 
     fi
         
-done< <(find ~/gists/ -iname '*2025-*.json' -type f)
+done< <(find $CHECK_PATH -iname '*2025-*.json' -type f)
 
-printf "End.\n  %5d file(s) checked, %5d file(s) fixed.\n" "$FILES_CHECKED" "$FILES_FIXED"
+printf "End.\n  In %s directory %d file(s) checked and %d file(s) fixed.\n" "$CHECK_PATH" "$FILES_CHECKED" "$FILES_FIXED"
 
