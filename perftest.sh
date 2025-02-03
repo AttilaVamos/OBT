@@ -1886,6 +1886,15 @@ then
     popd
     WriteLog "res: ${res}" "${PERF_TEST_LOG}" 
     fi
+    
+    coreFiles=$(find /var/lib/HPCCSystems/ /opt/HPCCSystems/ -iname 'core_*.[0-9]*' -type f -print )
+    echo "Number of core files found: ${#coreFiles[@]}" > coreFiles.summary 2>&1
+    [[ ${#coreFiles[@]} -gt 0 ]] && echo "${coreFiles[@]}" >>  coreFiles.summary
+
+    WriteLog "Copy coreFiles.summary " "${PERF_TEST_LOG}"
+    res=$(cp -v coreFiles.summary  ${TARGET_DIR}/test/  2>&1)
+    retCode=$?
+    WriteLog "$res\nretCode: $retCode" "${PERF_TEST_LOG}"
 
 else
     WriteLog "Performance Test failed, skip collecting results" "${PERF_TEST_LOG}"

@@ -857,6 +857,17 @@ then
 fi
 
 cd ${BIN_ROOT}
+
+coreFiles=$(find /var/lib/HPCCSystems/ /opt/HPCCSystems/ -iname 'core_*.[0-9]*' -type f -print )
+echo "Number of core files found: ${#coreFiles[@]}" > coreFiles.summary 2>&1
+[[ ${#coreFiles[@]} -gt 0 ]] && echo "${coreFiles[@]}" >>  coreFiles.summary
+
+WriteLog "Copy coreFiles.summary " "${REGRESS_LOG_FILE}"
+res=$(cp -v coreFiles.summary  ${TARGET_DIR}/test/  2>&1)
+retCode=$?
+WriteLog "$res\nretCode: $retCode" "${REGRESS_LOG_FILE}"
+
+
 WriteLog "Send Email notification about Regression test" "${REGRESS_LOG_FILE}"
 
 # Email Notify
