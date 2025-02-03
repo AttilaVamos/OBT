@@ -63,8 +63,8 @@ then
         FILE_COUNT=$(( FILE_COUNT + 1 ))
         fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
         dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
-        dateStamp="${dateStamp:0:2}-${dateStamp:2:2}"
-        [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+        dateStamp="${dStamp:0:2}-${dStamp:2:2}"
+        [[ $DEBUG -ne 0 ]] && printf "fName: %-40s, dateStamp: %-10s\n" "$fName" "$dateStamp"
 
         res=$( zip -m perfstats-${dateStamp}.zip $fileName 2>&1)
         retCode=$?
