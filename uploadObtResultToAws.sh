@@ -24,23 +24,26 @@ df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
 echo "==============================================" >> ~/diskState.log
 
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
-
+./fixJson.sh . fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
 ./uploadObtResultToGists.sh >uploadObtResultToGists-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
 
 if [[ -d ~/Perfstat ]]
 then
     #
-    # ZIP all  archiveLogs-*.log files older than ARCHIVE_LOGS_DAYS_TO_KEEP
+    # ZIP all  perfstat-*.c* files into teir corresonding monthly zip file
     #
     pushd ~/Perfstat
     
-    # Add all perfstat files to monthly zip file
+    FILE_COUNT=0
+    echo " "
+    echo "Add all perfstat files to monthly zip file."
     while read fileName
     do
+        FILE_COUNT=$(( FILE_COUNT + 1 ))
         fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
         dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
-        dateStamp="${dateStamp:0:2}-${dateStamp:2:2}"
-        [[ $DEBUG -ne 0 ]] && printf "%s\n" "$dateStamp"
+        dateStamp="${dStamp:0:2}-${dStamp:2:2}"
+        [[ $DEBUG -ne 0 ]] && printf "fName: %-40s, dateStamp: %-10s\n" "$fName" "$dateStamp"
 
         res=$( zip -u perfstats-${dateStamp}.zip $fileName 2>&1)
         retCode=$?
@@ -48,12 +51,16 @@ then
         [[ $DEBUG -ne 0 ]] && echo "res: $res"
 
     done< <( find . -iname 'perfstat-*.c*' -type f -print )
+    echo "Done, $FILE_COUNT file(s) archived."
+    echo " "
     
-    # Move file older than PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive
+    echo "Move file older than PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
     PERFSTAT_DAYS_TO_KEEP=32
+    FILE_COUNT=0
 
     while read fileName
     do
+        FILE_COUNT=$(( FILE_COUNT + 1 ))
         fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
         dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
         dateStamp="${dateStamp:0:2}-${dateStamp:2:2}"
@@ -65,7 +72,8 @@ then
         [[ $DEBUG -ne 0 ]] && echo "res: $res"
 
     done< <( find . -iname 'perfstat-*.c*' -mtime +${PERFSTAT_DAYS_TO_KEEP} -type f -print )
-
+    echo "Done, $FILE_COUNT file(s) moved."
+    echo " "
     popd
     
     rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/Perfstat/*.zip  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/Perfstat/
