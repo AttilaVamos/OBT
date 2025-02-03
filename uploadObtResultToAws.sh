@@ -54,7 +54,7 @@ then
     echo "Done, $FILE_COUNT file(s) archived."
     echo " "
     
-    echo "Move file older than PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
+    echo "Move file older than $PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
     PERFSTAT_DAYS_TO_KEEP=32
     FILE_COUNT=0
 
