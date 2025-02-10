@@ -9,40 +9,40 @@
             \"System\" : \"AKS\",
             \"VmSize\" : \"Standard_D16s_v4\",
             \"Hardware\": \"CPU/Cores: 16, RAM: 64 GB\",
-            \"HthorConfig\":{
-                \"Replicas\":\"3\",
-                \"MaxActive\":\"4\",
+            \"HthorConfig\": {
+                \"Replicas\": \"3\",
+                \"MaxActive\": \"4\",
                 \"UseChildProcesses\" : \"true\",
                 \"AllowedPipePrograms\" : \"*\"
             },
             \"ThorConfig\":{
-                \"NumWorkers\":\"2\",
-                \"MaxJobs\":\"4\",
+                \"NumWorkers\": \"2\",
+                \"MaxJobs\": \"4\",
                 \"MaxGraph\" : \"2\",
                 \"MultiJobLinger\" : \"true\",
                 \"LingerPeriod\" : \"200\",
                 \"AllowedPipePrograms\" : \"*\"
             },
-            \"RoxieWorkunitConfig\":{
-                \"Replicas\":\"1\",
+            \"RoxieWorkunitConfig\": {
+                \"Replicas\": \"1\",
                 \"MaxActive\":\"20\",
                 \"UseChildProcesses\" : \"true\",
                 \"AllowedPipePrograms\" : \"*\"
-            },
+            }
         },
         \"BuildSet\": {
             \"Branch\": \"$TAG_TO_TEST\",
-            \"BranchDate\":\"N/A\",
-            \"BranchSHA\":\"N/A\",
-            \"BuildType\":\"Release\",
+            \"BranchDate\": \"N/A\",
+            \"BranchSHA\": \"N/A\",
+            \"BuildType\": \"Release\",
             \"Target\": \"K8s\"
         },
         \"Exclusion\": {
-            \"Build\":\"N/A\",
-            \"Documentation\":\"N/A\",
-            \"Unittest\":\"N/A\",
-            \"MLtest\":\"N/A\",
-            \"Regression\":\"$RTE_EXCLUSIONS\"
+            \"Build\": \"N/A\",
+            \"Documentation\": \"N/A\",
+            \"Unittest\": \"N/A\",
+            \"MLtest\": \"N/A\",
+            \"Regression\": \"$RTE_EXCLUSIONS\"
         },
         \"Tasks\": [
             {
@@ -51,7 +51,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$HELM_UPDATE_TIME_STR\",
                         \"RawSec\": \"$HELM_UPDATE_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -61,7 +61,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$TERRAFORM_UPGRADE_TIME_STR\",
                         \"RawSec\": \"$TERRAFORM_UPGRADE_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -71,7 +71,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$VNET_START_TIME_STR\",
                         \"RawSec\": \"$VNET_START_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -81,7 +81,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$STORAGE_START_TIME__STR\",
                         \"RawSec\": \"$STORAGE_START_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -91,30 +91,30 @@
                     \"Elaps\": {
                         \"Formatted\": \"$AKS_START_TIME_STR\",
                         \"RawSec\": \"$AKS_START_TIME\"
-                    },
+                    }
                 }
             },
             {
                 \"ECLWatchAnnotation\": {
-                    \"Result\" : \"$ECLWATCH_START_RESULT_STR\",
+                    \"Result\": \"$ECLWATCH_START_RESULT_STR\",
                     \"Elaps\": {
                         \"Formatted\": \"$ECLWATCH_START_TIME_STR\",
                         \"RawSec\": \"$ECLWATCH_START_TIME\"
-                    },
+                    }
                 }
             },
             {
                 \"Setup\": {
                     \"Result\": \"$SETUP_RESULT_STR\",
-                    \"hthor\":{
-                        \"Elaps\":{
-                            \"Formatted\":\"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
-                            \"RawSec\":\"${HTHOR_SETUP_TIME:-0}\"
+                    \"hthor\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
+                            \"RawSec\": \"${HTHOR_SETUP_TIME:-0}\"
                         },
                         \"Total\": ${HTHOR_SETUP_QUERIES:-0},
                         \"Pass\": ${HTHOR_SETUP_PASS:-0},
                         \"Fail\": ${HTHOR_SETUP_FAIL:-0},
-                        \"Result\":\"${HTHOR_SETUP_RESULT_STR:-N/A}\"
+                        \"Result\": \"${HTHOR_SETUP_RESULT_STR:-N/A}\"
                     },
                     \"thor\": {
                         \"Elaps\": {
@@ -145,7 +145,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$QUERIES_PUBLISH_TIME_STR\",
                         \"RawSec\": \"$QUERIES_PUBLISH_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -189,7 +189,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$QUERY_STAT2_TIME_STR\",
                         \"RawSec\": \"$QUERY_STAT2_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -198,7 +198,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$COLLECT_POD_LOGS_TIME_STR\",
                         \"RawSec\": \"$COLLECT_POD_LOGS_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -208,7 +208,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$AKS_DESTROY_TIME_STR\",
                         \"RawSec\": \"$AKS_DESTROY_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -218,7 +218,7 @@
                     \"Elaps\": {
                         \"Formatted\": \"$STORAGE_DESTROY_TIME_STR\",
                         \"RawSec\": \"$STORAGE_DESTROY_TIME\"
-                    },
+                    }
                 }
             },
             {
@@ -228,18 +228,18 @@
                     \"Elaps\": {
                         \"Formatted\": \"$VNET_DESTROY_TIME_STR\",
                         \"RawSec\": \"$VNET_DESTROY_TIME\"
-                    },
+                    }
                 }
             },
             {
                 \"RunLogProcessor\": {
-                   \"Result\" : \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
+                   \"Result\": \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
                     \"Elaps\": {
                         \"Formatted\": \"$REGRESS_LOG_PROCESSING_TIME_STR\",
                         \"RawSec\": \"$REGRESS_LOG_PROCESSING_TIME\"
-                    },
+                    }
                 }
-            },
+            }
         ],
         \"Errors\": [
             $HTHOR_SETUP_ERROR_STR
