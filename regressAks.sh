@@ -161,30 +161,51 @@ ProcessLog()
     #echo "................."
 
     unset errStr
+    firstLine=1
     for item in ${hthorErrors[@]}
     do
         [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Hthor${actionCap}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n                \"$item\",")
+        if [[ $firstLine -eq 1 ]]
+        then
+            firstLine=0
+            errStr=$( echo -e "${errStr}\n                \"$item\"")
+        else
+            errStr=$( echo -e "${errStr},\n                \"$item\"")
+        fi
     done
     [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n                ]\n            },\n")
     capEngine=HTHOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
+    firstLine=1
     for item in ${thorErrors[@]}
     do
         [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Thor${actionCap}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n                \"$item\",")
+        if [[ $firstLine -eq 1 ]]
+        then
+            firstLine=0
+            errStr=$( echo -e "${errStr}\n                \"$item\"")
+        else
+            errStr=$( echo -e "${errStr},\n                \"$item\"")
+        fi
     done
     [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ]\n        },\n")
     capEngine=THOR_${action}
     printf -v "$capEngine"_ERROR_STR '%s' "${errStr}"
 
     unset errStr
+    firstLine=1
     for item in ${roxieErrors[@]}
     do
         [[ -z $errStr ]] && errStr="$( echo -e "{\n            \"Roxie${actionCap}\" : [\n")"
-        errStr=$( echo -e "${errStr}\n                \"$item\",")
+        if [[ $firstLine -eq 1 ]]
+        then
+            firstLine=0
+            errStr=$( echo -e "${errStr}\n                \"$item\"")
+        else
+            errStr=$( echo -e "${errStr},\n                \"$item\"")
+        fi
     done
     [[ -n $errStr ]] && errStr=$( echo -e "${errStr}\n            ]\n        }\n")
     capEngine=ROXIE_${action}
