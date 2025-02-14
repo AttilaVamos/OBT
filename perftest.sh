@@ -192,6 +192,7 @@ DeletePackage()
 addTlsToRoxie()
 {
     pushd $OBT_BIN_DIR
+
     addFarmProcess=1
     if  [[ -f private.pem ]]
     then 
@@ -239,7 +240,7 @@ addTlsToRoxie()
     else
         WriteLog "Skip to add Roxie farm process, based on something is missing." "${PERF_TEST_LOG}"
     fi
-    
+
     popd
 }
 
@@ -813,7 +814,7 @@ then
     then
         WriteLog "Remove environment.xml to ensure clean, out-of-box environmnet." "${PERF_TEST_LOG}"
         sudo rm /etc/HPCCSystems/environment.xml
-    fiaddTlsToRoxie
+    fi
 
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
