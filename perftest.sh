@@ -199,10 +199,9 @@ addTlsToRoxie()
         WriteLog "Copy private.pem into $HOME." "${PERF_TEST_LOG}"
         res=$(sudo cp -v private.pem ~/ 2>&1 )
         retCode=$?
-        if [[ $retCode -ne 0 ]]
+        if [[ $retCode -eq 0 ]]
         then
             WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
-            #sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/private.pem
             WriteLog "  $(ls -l ~/private.pem)" "${PERF_TEST_LOG}"
         else
             WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
@@ -218,10 +217,9 @@ addTlsToRoxie()
         WriteLog "Copy 'certificate.crt' into $HOME." "${PERF_TEST_LOG}"
         res=$(sudo cp -v certificate.crt ~/ 2>&1 )
         retCode=$?
-        if [[ $retCode -ne 0 ]]
+        if [[ $retCode -eq 0 ]]
         then
             WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
-            #sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/certificate.crt
             WriteLog "  $(ls -l ~/certificate.crt)" "${PERF_TEST_LOG}"
         else
             WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
