@@ -196,12 +196,18 @@ addTlsToRoxie()
     addFarmProcess=1
     if  [[ -f private.pem ]]
     then 
-        WriteLog "Copy private.pem into myroxie." "${PERF_TEST_LOG}"
-        res=$(sudo cp -v private.pem /var/lib/HPCCSystems/myroxie/ 2>&1 )
+        WriteLog "Copy private.pem into $HOME." "${PERF_TEST_LOG}"
+        res=$(sudo cp -v private.pem ~/ 2>&1 )
         retCode=$?
-        WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
-        sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/private.pem
-        WriteLog "  $(ls -l /var/lib/HPCCSystems/myroxie/private.pem)" "${PERF_TEST_LOG}"
+        if [[ $retCode -ne 0 ]]
+        then
+            WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+            #sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/private.pem
+            WriteLog "  $(ls -l ~/private.pem)" "${PERF_TEST_LOG}"
+        else
+            WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+            addFarmProcess=0
+        fi
     else
         WriteLog "private.pem not found." "${PERF_TEST_LOG}"
         addFarmProcess=0
@@ -209,12 +215,18 @@ addTlsToRoxie()
 
     if [[ -f certificate.crt ]] 
     then 
-        WriteLog "Copy 'certificate.crt' into myroxie." "${PERF_TEST_LOG}"
-        res=$(sudo cp -v certificate.crt /var/lib/HPCCSystems/myroxie/ 2>&1 )
+        WriteLog "Copy 'certificate.crt' into $HOME." "${PERF_TEST_LOG}"
+        res=$(sudo cp -v certificate.crt ~/ 2>&1 )
         retCode=$?
-        WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
-        sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/certificate.crt
-        WriteLog "  $(ls -l /var/lib/HPCCSystems/myroxie/certificate.crt)" "${PERF_TEST_LOG}"
+        if [[ $retCode -ne 0 ]]
+        then
+            WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+            #sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/certificate.crt
+            WriteLog "  $(ls -l ~/certificate.crt)" "${PERF_TEST_LOG}"
+        else
+            WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+            addFarmProcess=0
+        fi            
     else
         WriteLog "'certificate.crt' not found." "${PERF_TEST_LOG}"
         addFarmProcess=0
@@ -233,8 +245,8 @@ addTlsToRoxie()
             -i //RoxieFarmProcessTMP -t attr -n "numThreads" -v "30" \
             -i //RoxieFarmProcessTMP -t attr -n "port" -v "19876" \
             -i //RoxieFarmProcessTMP -t attr -n "protocol" -v "ssl" \
-            -i //RoxieFarmProcessTMP -t attr -n "certificateFileName" -v "certificate.crt" \
-            -i //RoxieFarmProcessTMP -t attr -n "privateKeyFileName" -v "private.pem" \
+            -i //RoxieFarmProcessTMP -t attr -n "certificateFileName" -v "${HOME}/certificate.crt" \
+            -i //RoxieFarmProcessTMP -t attr -n "privateKeyFileName" -v "${HOME}/private.pem" \
             -i //RoxieFarmProcessTMP -t attr -n "passphrase" -v "" \
             -i //RoxieFarmProcessTMP -t attr -n "requestArrayThreads" -v "5" \
             -r //RoxieFarmProcessTMP -v RoxieFarmProcess \
