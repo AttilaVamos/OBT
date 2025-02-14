@@ -854,7 +854,7 @@ then
                    "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
     WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
-    addTlsToRoxie()
+    addTlsToRoxie
     
     #
     #----------------------------------------------------
@@ -1322,7 +1322,7 @@ then
 
     
     WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
-    addTlsToRoxie()
+    addTlsToRoxie
 
     #
     #---------------------------
@@ -1723,7 +1723,7 @@ then
     ${SUDO} sed -e 's/totalMemoryLimit="1073741824"/totalMemoryLimit="'${MEMSIZE}'"/g' -e 's/defaultMemoryLimit="0"/defaultMemoryLimit="'${MEMSIZE}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
     
     WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
-    addTlsToRoxie()
+    addTlsToRoxie
 
     #
     #---------------------------
