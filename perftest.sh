@@ -187,6 +187,60 @@ DeletePackage()
 }
 
 #
+#----------------------------------------------
+# Enable TLS/SSl on Roxie
+addTlsToRoxie()
+{
+    addFarmProcess=1
+    if  [[ -f private.pem ]]
+    then 
+        WriteLog "Copy private.pem into myroxie." "${PERF_TEST_LOG}"
+        res=$(sudo cp -v private.pem /var/lib/HPCCSystems/myroxie/ 2>&1 )
+        retCode=$?
+        WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+    else
+        WriteLog "private.pem not found." "${PERF_TEST_LOG}"
+        addFarmProcess=0
+    fi
+
+    if [[ -f certificate.crt ]] 
+    then 
+        WriteLog "Copy 'certificate.crt' into myroxie." "${PERF_TEST_LOG}"
+        res=$(sudo cp -v certificate.crt /vr/lib/HPCCSystems/myroxie/ 2>&1 )
+        retCode=$?
+        WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+    else
+        WriteLog "'certificate.crt' not found." "${PERF_TEST_LOG}"
+        addFarmProcess=0
+    fi
+    
+    if [[ $addFarmProcess -eq 1 ]]
+    then
+        if [ -n "$(xmlstarlet sel -T -t -v "/Environment/Software/RoxieCluster/RoxieFarmProcess[@name='farmSsl']/@name" /etc/HPCCSystems/environment.xml)" ]; then
+          WriteLog "RoxieFarmProcess farmSsl already defined in environment.xml" "${PERF_TEST_LOG}"
+        else
+          WriteLog "Adding RoxieFarmProcess farmSsl to <RoxieCluster> in environment.xml" "${PERF_TEST_LOG}"
+          sudo xmlstarlet ed -P -S -L -s /Environment/Software/RoxieCluster -t elem -n RoxieFarmProcessTMP -v "" \
+            -i //RoxieFarmProcessTMP -t attr -n "aclName" -v "" \
+            -i //RoxieFarmProcessTMP -t attr -n "listenQueue" -v "200" \
+            -i //RoxieFarmProcessTMP -t attr -n "name" -v "farmSsl" \
+            -i //RoxieFarmProcessTMP -t attr -n "numThreads" -v "30" \
+            -i //RoxieFarmProcessTMP -t attr -n "port" -v "19876" \
+            -i //RoxieFarmProcessTMP -t attr -n "protocol" -v "ssl" \
+            -i //RoxieFarmProcessTMP -t attr -n "certificateFileName" -v "certificate.crt" \
+            -i //RoxieFarmProcessTMP -t attr -n "privateKeyFileName" -v "private.pem" \
+            -i //RoxieFarmProcessTMP -t attr -n "passphrase" -v "" \
+            -i //RoxieFarmProcessTMP -t attr -n "requestArrayThreads" -v "5" \
+            -r //RoxieFarmProcessTMP -v RoxieFarmProcess \
+            /etc/HPCCSystems/environment.xml
+            WriteLog "  Done. ( $(xmlstarlet sel -T -t -v "/Environment/Software/RoxieCluster/RoxieFarmProcess[@name='farmSsl']/@name" /etc/HPCCSystems/environment.xml) )" "${PERF_TEST_LOG}"
+        fi
+    else
+        WriteLog "Skip to add Roxie farm process, based on something is missing." "${PERF_TEST_LOG}"
+    fi
+}
+
+#
 #----------------------------------------------------
 #
 # Start Performance Test process
@@ -710,6 +764,7 @@ else
 
 fi
 
+
 TARGET_PLATFORM="hthor"
 
 if [[ "$PERF_RUN_HTHOR" -eq 1 ]]
@@ -798,6 +853,8 @@ then
                 -e 's/localThorPortInc="\(.*\)"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
                    "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
+    WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
+    addTlsToRoxie()
     
     #
     #----------------------------------------------------
@@ -1263,6 +1320,10 @@ then
                 -e 's/localThorPortInc="\(.*\)"/localThorPortInc="'${PERF_THOR_LOCAL_THOR_PORT_INC}'"/g' \
                    "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
+    
+    WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
+    addTlsToRoxie()
+
     #
     #---------------------------
     #
@@ -1661,7 +1722,9 @@ then
     ${SUDO} cp /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak
     ${SUDO} sed -e 's/totalMemoryLimit="1073741824"/totalMemoryLimit="'${MEMSIZE}'"/g' -e 's/defaultMemoryLimit="0"/defaultMemoryLimit="'${MEMSIZE}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && ${SUDO} mv -f temp.xml "/etc/HPCCSystems/environment.xml"
     
-    
+    WriteLog "Add 'farmSsl' Roxie Farm Process to environment.xml" "${PERF_TEST_LOG}"
+    addTlsToRoxie()
+
     #
     #---------------------------
     #
