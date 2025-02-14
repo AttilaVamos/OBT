@@ -200,6 +200,8 @@ addTlsToRoxie()
         res=$(sudo cp -v private.pem /var/lib/HPCCSystems/myroxie/ 2>&1 )
         retCode=$?
         WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+        sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/private.pem
+        WriteLog "  $(ls -l /var/lib/HPCCSystems/myroxie/private.pem)" "${PERF_TEST_LOG}"
     else
         WriteLog "private.pem not found." "${PERF_TEST_LOG}"
         addFarmProcess=0
@@ -208,9 +210,11 @@ addTlsToRoxie()
     if [[ -f certificate.crt ]] 
     then 
         WriteLog "Copy 'certificate.crt' into myroxie." "${PERF_TEST_LOG}"
-        res=$(sudo cp -v certificate.crt /vr/lib/HPCCSystems/myroxie/ 2>&1 )
+        res=$(sudo cp -v certificate.crt /var/lib/HPCCSystems/myroxie/ 2>&1 )
         retCode=$?
         WriteLog "  ret code: $retCode, res:\n  $res" "${PERF_TEST_LOG}"
+        sudo chown hpcc:hpcc /var/lib/HPCCSystems/myroxie/certificate.crt
+        WriteLog "  $(ls -l /var/lib/HPCCSystems/myroxie/certificate.crt)" "${PERF_TEST_LOG}"
     else
         WriteLog "'certificate.crt' not found." "${PERF_TEST_LOG}"
         addFarmProcess=0
