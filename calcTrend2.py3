@@ -25,7 +25,7 @@ try:
     mpl.use('Agg')           # use a non-interactive backend
     import matplotlib.pyplot as plt
 except ImportError as e:
-    print(("Error in import matplotlib: %s" % (repr(e)) ))
+    print("Error in import matplotlib: %s" % (repr(e)) )
     plt = None
 finally:
     pass
@@ -52,7 +52,7 @@ def PrintException(msg = ''):
     filename = f.f_code.co_filename
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
-    print(('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg)))
+    print ('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
 
 class TrendReport(object):
     # To decide time consumption is increased (>threshold), unaltered (-threshold< <threshold) 
@@ -65,7 +65,7 @@ class TrendReport(object):
     def myPrint(self, Msg, *Args):
         if self.verbose:
             format=''.join(['%s']*(len(Args)+1)) 
-            print(( format % tuple([Msg]+list(map(str,Args))) ))
+            print( format % tuple([Msg]+list(map(str,Args))) )
     
     def __init__(self, options):
         if options.dataPath.startswith('~/'):
@@ -76,7 +76,7 @@ class TrendReport(object):
         if not self.dataPath.endswith('/'):
             self.dataPath += '/'
         if not os.path.exists(self.dataPath):
-            print(("Fatal error: %s report path doesn't exist." % (self.dataPath)))
+            print("Fatal error: %s report path doesn't exist." % (self.dataPath))
             exit()
         
         if options.reportPath.startswith('~/'):
@@ -88,7 +88,7 @@ class TrendReport(object):
             self.reportPath += '/'
         
         if not os.path.exists(self.reportPath):
-            print(("Fatal error: %s report path doesn't exist." % (self.reportPath)))
+            print("Fatal error: %s report path doesn't exist." % (self.reportPath))
             exit()
             
         self.enablePdfReport = True
@@ -120,12 +120,12 @@ class TrendReport(object):
         self.useAllData = True
         
         if self.verbose:
-            print(("self.dataPath       :%s" % (self.dataPath)))
-            print(("self.reportPath     :%s" % (self.reportPath)))
-            print(("self.enablePdfReport:%s" % (str(self.enablePdfReport))))
-            print(("self.badThreshold   :%3.0f %%" % (self.badThreshold)))
-            print(("self.goodThreshold  :%3.0f %%" % (self.goodThreshold)))
-            print(("self.maxDatapoints  :%3d " % (self.maxDatapoints)))
+            print("self.dataPath       :%s" % (self.dataPath))
+            print("self.reportPath     :%s" % (self.reportPath))
+            print("self.enablePdfReport:%s" % (str(self.enablePdfReport)))
+            print("self.badThreshold   :%3.0f %%" % (self.badThreshold))
+            print("self.goodThreshold  :%3.0f %%" % (self.goodThreshold))
+            print("self.maxDatapoints  :%3d " % (self.maxDatapoints))
         
         self.defaultHeaderData = [
                 ['Test case','Last two run',  '', '', 'Last five run',  '', '',  'All runs', '' , '' ], 
@@ -253,7 +253,7 @@ class TrendReport(object):
         allFiles.sort(reverse = True)
         files = self.filterOutOldDatafiles(allFiles)
         for fileName in files:
-            print(("File name: " + fileName))
+            print("File name: " + fileName)
             nameItems = fileName.replace('./', '').replace('OBT-', 'OBT_').replace('.csv', '').split('-')
             if len(nameItems) < 3:
                 print("Wrong file name!")
@@ -323,10 +323,10 @@ class TrendReport(object):
             try:
                 self.clusterTrends[cluster]['testConfig'] = configparser.ConfigParser()
                 self.clusterTrends[cluster]['testConfig'].read(self.clusterTrends[cluster]['ConfigName'])
-                print(("%s FlushDiskCache :'%s'" % (cluster, self.clusterTrends[cluster]['testConfig'].get("Performance", "FlushDiskCache") )))
+                print("%s FlushDiskCache :'%s'" % (cluster, self.clusterTrends[cluster]['testConfig'].get("Performance", "FlushDiskCache") ))
                 pass
             except:
-                print(("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" ))
+                print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
                 traceback.print_stack()
                 pass
         
@@ -418,7 +418,7 @@ class TrendReport(object):
         # Dump Results pro cluster
         for cluster in sorted(self.results2):
             resultFileName= self.reportPath+ "results-" + cluster + "-"  + self.hpccVersion +".csv"
-            print(("resultFileName:" + resultFileName))
+            print("resultFileName:" + resultFileName)
             resultFile = open(resultFileName,  "w")
             resultFile.write("Testcase,avg,sigma,alpha,beta,numOfTests\n")
             for test in sorted(self.results2[cluster]):
@@ -500,7 +500,7 @@ class TrendReport(object):
             direction = "decreased"
             
         if self.verbose:
-            print(("\t\ty = %.4f * x %+.4f --> %s (%.4f %%)") % (alpha, beta, direction, percentage))
+            print("\t\ty = %.4f * x %+.4f --> %s (%.4f %%)") % (alpha, beta, direction, percentage)
         return {'alpha':alpha,  'beta': beta,  'direction':direction,  'percentage': percentage}
         
     def calcTrendTest(self):
@@ -604,12 +604,12 @@ class TrendReport(object):
     
     def manageTestCase(self, cluster, test, tag):
         if tag in self.markTags:
-            print(("\tIt is %s so marked marked now." % (tag)))
+            print("\tIt is %s so marked marked now." % (tag))
             if test not in self.newIssues:
                 self.newIssues[test] = {}
             self.newIssues[test][cluster] = {'tag': tag, 'known': False}
         else:
-            print(("\tIt is %s." % (tag)))
+            print("\tIt is %s." % (tag))
             
         if self.enableTestPlotGeneration:
             self.createPlot(cluster, test, tag)
@@ -763,7 +763,7 @@ class TrendReport(object):
             plt.savefig(diagramFileName)
             fig.clear()
             plt.close(fig)
-            print(("\t %s created." % (diagramFileName)))
+            print("\t %s created." % (diagramFileName))
             pass
         except Exception as e:
             PrintException(repr(e) + " No diagram generated for %s" %(diagramFileName))
@@ -774,7 +774,7 @@ class TrendReport(object):
     def processResults(self):
         
         if self.enablePdfReport:
-            from .pdfPerfReportGen import PdfPerfReportGen
+            from pdfPerfReportGen import PdfPerfReportGen
             pdfReport = PdfPerfReportGen()
             pdfShortReport = PdfPerfReportGen()
             
@@ -786,7 +786,7 @@ class TrendReport(object):
         dateStr = today.strftime("%y%m%d")
         pageBreak = False
         for cluster in sorted(self.results2):
-            print(("Cluster:" + cluster + ' (' +str(self.numOfRuns[cluster]) + ' datasets )'))
+            print ("Cluster:" + cluster + ' (' +str(self.numOfRuns[cluster]) + ' datasets )')
             if self.enablePdfReport:
                 pdfReport.startNewSection("Performance test result on cluster " + cluster + " on " + today.strftime("%d/%m/%y"),  pageBreak)
                 pdfShortReport.startNewSection("Performance test short result on cluster " + cluster + " on " + today.strftime("%d/%m/%y"),  pageBreak)
@@ -881,21 +881,21 @@ class TrendReport(object):
 #                        break
                         
                     if (self.results2[cluster][test]['all']['alpha'] > self.badThreshold / 100.0) and (fluctuation >= 1.0):
-                        print(("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha'])))
+                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfUglyBadTests += 1
                         averageTimeOfUglyBadTests += self.results2[cluster][test]['avg']
                         if plt:
                             self.manageTestCase(cluster, test, self.uglyAndBadTag)
                             
                     elif self.results2[cluster][test]['all']['alpha'] > self.badThreshold / 100.0:
-                        print(("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha'])))
+                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfBadTests += 1
                         averageTimeOfBadTests += self.results2[cluster][test]['avg']
                         if plt:
                             self.manageTestCase(cluster,  test,  self.badTag)
                             
                     elif fluctuation >= 1.0:
-                        print(("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha'])))
+                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfFluctTests += 1
                         averageTimeOfFlucTests += self.results2[cluster][test]['avg']
                         if plt:
@@ -905,11 +905,11 @@ class TrendReport(object):
 #                    elif test.startswith('05bc') or test.startswith('06bc'):
 #                        pass
                     elif self.results2[cluster][test]['all']['alpha'] < self.goodThreshold / 100.0:
-                        print(("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha'])))
+                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         if plt and self.enableReportGood:
                             self.manageTestCase(cluster,  test,  self.goodTag)
                     elif enableGood:
-                        print(("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha'])))
+                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         if plt and self.enableReportGood:
                             self.manageTestCase(cluster,  test, self.neutralTag)
 
@@ -946,13 +946,13 @@ class TrendReport(object):
             pass
             
             if numOfUglyBadTests > 0:
-                print(("num of ugly (fluctuating) and bad (increasing) tests:%d, average time of them:%f\n" % (numOfUglyBadTests, averageTimeOfFlucTests)))
+                print("num of ugly (fluctuating) and bad (increasing) tests:%d, average time of them:%f\n" % (numOfUglyBadTests, averageTimeOfFlucTests))
                 
             if numOfFluctTests > 0:
-                print(("num of ugly (fluctuating) tests:%d, average time of them:%f\n" % (numOfFluctTests, averageTimeOfFlucTests)))
+                print("num of ugly (fluctuating) tests:%d, average time of them:%f\n" % (numOfFluctTests, averageTimeOfFlucTests))
                 
             if numOfBadTests > 0:
-                print(("num of bad (increasing) tests:%d, average time of them:%f\n" % (numOfBadTests, averageTimeOfBadTests)))
+                print("num of bad (increasing) tests:%d, average time of them:%f\n" % (numOfBadTests, averageTimeOfBadTests))
            
         if self.enablePdfReport:
             pdfReport.create_pdfdoc(self.reportPath + 'PerformanceTestReport-' + self.hpccVersion  + "-" + today.strftime("%y-%m-%d") +'.pdf')
@@ -1063,13 +1063,13 @@ class TrendReport(object):
     
     def handleIssues(self):
         if os.path.exists(self.issueFileName):
-            print(("Remove old issue file '%s'" % (self.issueFileName)))
+            print("Remove old issue file '%s'" % (self.issueFileName))
             os.unlink(self.issueFileName)
         
         print("Current issues")
         for test in sorted(self.currentIssues):
             for cluster in sorted(self.currentIssues[test]):
-                print(("%s, %s, %s, %s" % (test, cluster, self.currentIssues[test][cluster]['tag'], str(self.currentIssues[test][cluster]['known'])) ))
+                print ("%s, %s, %s, %s" % (test, cluster, self.currentIssues[test][cluster]['tag'], str(self.currentIssues[test][cluster]['known'])) )
 
         if len(self.newIssues) > 0:
             file = open(self.issueFileName,  "w")
@@ -1078,7 +1078,7 @@ class TrendReport(object):
         newRecord = []
         for test in sorted(self.newIssues):
             for cluster in sorted(self.newIssues[test]):
-                print(("%s, %s, %s, %s" % (test, cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])) ))
+                print ("%s, %s, %s, %s" % (test, cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])) )
             
                 # Back up if it is known issue
                 if test in self.currentIssues:
@@ -1099,7 +1099,7 @@ class TrendReport(object):
                 today = dt.datetime.today()
                 dateStr = today.strftime("%y-%m-%d_%H-%M-%S")
                 dstFile = self.issueFileName.replace('.csv', '-'+ dateStr + '.csv')
-                print(("Copy issue file '%s' to '%s'" % (self.issueFileName,  dstFile)))
+                print("Copy issue file '%s' to '%s'" % (self.issueFileName,  dstFile))
                 copyfile(self.issueFileName, dstFile)
                 
                 try:
@@ -1108,7 +1108,7 @@ class TrendReport(object):
                     rtch = ReportedTestCasesHistory(allFile)
                     newDate = today.strftime("%Y-%m-%d")
                     newRecordStr = ','.join(newRecord)
-                    print(("Add a new record with date:%s to file %s" % (str(newDate),  allFile)))
+                    print("Add a new record with date:%s to file %s" % (str(newDate),  allFile))
                     rtch.updateHistoryFile(newDate, newRecordStr)
                 except Exception as e:
                     PrintException(repr(e) + " Add new record to PerformanceIssues-all.csv" )
