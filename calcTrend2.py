@@ -12,6 +12,7 @@ from optparse import OptionParser
 import datetime as dt
 import numpy
 from shutil import copyfile
+from operator import add, sub
 
 import sys
 import inspect
@@ -83,14 +84,29 @@ class TrendReport(object):
             self.reportPath = options.reportPath.replace('~', os.environ['HOME'])
         else:
             self.reportPath = os.path.abspath(options.reportPath)
-            
+
         if not self.reportPath.endswith('/'):
             self.reportPath += '/'
-        
+
+        if not os.path.exists(self.reportPath):
+            os.mkdir(self.reportPath)
+
+        if not os.path.exists(self.reportPath + 'Bad'):
+            os.mkdir(self.reportPath + 'Bad')
+
+        if not os.path.exists(self.reportPath + 'Good'):
+            os.mkdir(self.reportPath + 'Good')
+
+        if not os.path.exists(self.reportPath + 'Ugly'):
+            os.mkdir(self.reportPath + 'Ugly')
+
+        if not os.path.exists(self.reportPath + 'Neutral'):
+            os.mkdir(self.reportPath + 'Neutral')
+
         if not os.path.exists(self.reportPath):
             print("Fatal error: %s report path doesn't exist." % (self.reportPath))
             exit()
-            
+
         self.enablePdfReport = True
         self.enablePdfReport = options.pdfReport
             
@@ -456,7 +472,7 @@ class TrendReport(object):
             data = _data[~numpy.isnan(_data)]
         except TypeError as e:
             # It is possible the _data is not a numpy array, so it can't convert with numpy functions
-            PrintException(repr(e) + " The _data is %s not a numpy array" % (repr(type(_data))) )
+            PrintException(repr(e) + " The _data is %s not a numpy array, use it as is" % (repr(type(_data))) )
             data = _data
            
         n = len(data)
@@ -500,7 +516,7 @@ class TrendReport(object):
             direction = "decreased"
             
         if self.verbose:
-            print("\t\ty = %.4f * x %+.4f --> %s (%.4f %%)") % (alpha, beta, direction, percentage)
+            print("\t\ty = %.4f * x + %.4f --> %s (%.4f %%)" % (alpha, beta, direction, percentage))
         return {'alpha':alpha,  'beta': beta,  'direction':direction,  'percentage': percentage}
         
     def calcTrendTest(self):
@@ -508,14 +524,14 @@ class TrendReport(object):
         self.CalcTrend(data1)
     
     def calcMovingAverage(self, numberOfDays, data):
-        self.myPrint("\t\t number of days:%d" % (numberOfDays))
+        self.myPrint("\t\t calcMovingAverage with number of days:%d" % (numberOfDays))
         self.myPrint("\t\t",  data)
         n = len(data)
         if n == 0:
             print("Not enough data!")
             return []
-        
-        retArray = []    
+
+        retArray = []
         for i in range(0,  n):
             endIndex = i + 1
             startIndex = max (endIndex - numberOfDays, 0)
@@ -523,6 +539,25 @@ class TrendReport(object):
             dataSlice = numpy.append(dataSlice, data[startIndex:endIndex]) 
             movingMean =  dataSlice.mean()
             retArray.append(movingMean)
+        pass
+        return retArray
+
+    def calcMovingStdDev(self, numberOfDays, data):
+        self.myPrint("\t\t calcMovingStdDev with number of days:%d" % (numberOfDays))
+        self.myPrint("\t\t",  data)
+        n = len(data)
+        if n == 0:
+            print("Not enough data!")
+            return []
+
+        retArray = []
+        for i in range(0,  n):
+            endIndex = i + 1
+            startIndex = max (endIndex - numberOfDays, 0)
+            dataSlice = numpy.array([])
+            dataSlice = numpy.append(dataSlice, data[startIndex:endIndex]) 
+            movingStdDev =  numpy.std(dataSlice)
+            retArray.append(movingStdDev)
         pass
         return retArray
         
@@ -685,16 +720,27 @@ class TrendReport(object):
                 ax.plot(x1, y1, label=clusterTrendLabel, marker ='.', linestyle = '-', color=diagramColors['trend'] )
             
             # plot the moving average 1 (default: on 7 days)
-            if not self.disableMovingAverage1:
+            if not self.disableMovingAverage1 and False:
                 movingAverage1Label = 'Moving average with %d days window' % (self.movingAverageWindow1)
                 movingAverages = self.calcMovingAverage(self.movingAverageWindow1, self.results2[cluster][test]['Values2'][-dataPoints:])
                 ax.plot_date(dates2, movingAverages, label=movingAverage1Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage1'])
-            
+
             # plot the moving average 2 (default: on 30 days)
             if not self.disableMovingAverage2:
                 movingAverage2Label = 'Moving average with %d days window' % (self.movingAverageWindow2)
                 movingAverages = self.calcMovingAverage(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:])
                 ax.plot_date(dates2, movingAverages, label=movingAverage2Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage2'])
+
+            # plot the moving std dev 2 (default: on 30 days)
+            if True:
+                movingStdDev2Label = 'Moving stddev with %d days window' % (self.movingAverageWindow2)
+                movingStdDevs = self.calcMovingStdDev(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:])
+                movingStdDevsPositive = list( map(add, movingStdDevs, movingAverages) ) # Add movingStdDevs and movingAverages by elements 
+                ax.plot_date(dates2, movingStdDevsPositive, label=movingStdDev2Label, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
+
+                movingStdDevsNegative = list( map(sub, movingAverages, movingStdDevs) ) # Substract movingStdDevs from movingAverages by elements 
+                ax.plot_date(dates2, movingStdDevsNegative, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
+
 
             # Plot the min values
             if self.enableMin:
@@ -759,7 +805,7 @@ class TrendReport(object):
                 ax.legend(loc = 'best')
                 
             #plt.show()
-            diagramFileName = self.reportPath + test +"-" + cluster + '-' + self.dateStr + ".png"
+            diagramFileName = self.reportPath  + tag +'/' + test +"-" + cluster + '-' + self.dateStr + ".png"
             plt.savefig(diagramFileName)
             fig.clear()
             plt.close(fig)
@@ -812,7 +858,7 @@ class TrendReport(object):
             testIndex = 0
             
             reportFileName = self.reportPath+ "perfreport-" + cluster + "-" + self.hpccVersion + "-" + dateStr + ".csv"
-            print(("reportFileName:" + reportFileName))
+            print("reportFileName:" + reportFileName)
             reportFile = open(reportFileName,  "w")
             reportFile.write("Testcase,twoDaysTredValue,twoDaysTred,twoDaysTredPercentage,fiveDaysTredValue,fiveDaysTred,fiveDaysTredPercentage,TredValue,Tred,TredPercentage,avg,sigma,fluctuation\n")
             for test in sorted(self.results2[cluster]):
@@ -867,7 +913,7 @@ class TrendReport(object):
                         fluctuation = self.results2[cluster][test]['sigma'] / self.results2[cluster][test]['avg'] 
                     
                     #print("%3d/%3d: cluster:%s, test:%s, mean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (testIndex, numberOfTests, cluster, test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
-                    print(("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster)), end=' ')
+                    print("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster), end=' ')
                     
 #                    # Only for generate example diagram
 #                    if test.startswith('01da'):
@@ -960,13 +1006,16 @@ class TrendReport(object):
 
         # Write out Performance Test summary file
         summaryFileName = self.reportPath + "perftest-" + self.hpccVersion  + "-" + dateStr + ".summary"
-        print(("summaryFileName:" + summaryFileName))
+        print("summaryFileName:" + summaryFileName)
         summaryFile = open(summaryFileName,  "w")
         summaryFile.write("# cluster, time, twoDaysTredValue, twoDaysTred, twoDaysTredPercentage, fiveDaysTredValue, fiveDaysTred, fiveDaysTredPercentage, TredValue, Tred, TredPercentage\n")
         for cluster in sorted(self.clusterTrends):
             try:
                 summaryFile.write("%s" % (cluster ))
-                summaryFile.write(",%0.2f" % (self.clusterTrends[cluster]['Totals'][-1] ))
+                total = 0.0
+                if len(self.clusterTrends[cluster]['Totals']) > 0:
+                    total = self.clusterTrends[cluster]['Totals'][-1]
+                summaryFile.write(",%0.2f" % (total ))
                 if 'twoDays' in self.clusterTrends[cluster]:
                     summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['twoDays']['alpha'],  self.clusterTrends[cluster]['twoDays']['direction'],  self.clusterTrends[cluster]['twoDays']['percentage'] ))
                 if 'fiveDays' in self.clusterTrends[cluster]:
@@ -983,7 +1032,7 @@ class TrendReport(object):
         # Write out Performance Test totals
         try:
             totalsFileName = self.reportPath + "perftest-totals" + "-" + self.hpccVersion  + "-" + dateStr + ".csv"
-            print(("totalsFileName:" + totalsFileName))
+            print("totalsFileName:" + totalsFileName)
             totalsFile = open(totalsFileName,  "w")
             totalsFile.write("# cluster, date, time\n")
             for cluster in sorted(self.clusterTrends):

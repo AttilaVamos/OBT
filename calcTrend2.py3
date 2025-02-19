@@ -456,7 +456,7 @@ class TrendReport(object):
             data = _data[~numpy.isnan(_data)]
         except TypeError as e:
             # It is possible the _data is not a numpy array, so it can't convert with numpy functions
-            PrintException(repr(e) + " The _data is %s not a numpy array" % (repr(type(_data))) )
+            PrintException(repr(e) + " The _data is %s not a numpy array, use it as is" % (repr(type(_data))) )
             data = _data
            
         n = len(data)
@@ -500,7 +500,7 @@ class TrendReport(object):
             direction = "decreased"
             
         if self.verbose:
-            print("\t\ty = %.4f * x %+.4f --> %s (%.4f %%)") % (alpha, beta, direction, percentage)
+            print("\t\ty = %.4f * x + %.4f --> %s (%.4f %%)" % (alpha, beta, direction, percentage))
         return {'alpha':alpha,  'beta': beta,  'direction':direction,  'percentage': percentage}
         
     def calcTrendTest(self):
@@ -812,7 +812,7 @@ class TrendReport(object):
             testIndex = 0
             
             reportFileName = self.reportPath+ "perfreport-" + cluster + "-" + self.hpccVersion + "-" + dateStr + ".csv"
-            print(("reportFileName:" + reportFileName))
+            print("reportFileName:" + reportFileName)
             reportFile = open(reportFileName,  "w")
             reportFile.write("Testcase,twoDaysTredValue,twoDaysTred,twoDaysTredPercentage,fiveDaysTredValue,fiveDaysTred,fiveDaysTredPercentage,TredValue,Tred,TredPercentage,avg,sigma,fluctuation\n")
             for test in sorted(self.results2[cluster]):
@@ -867,7 +867,7 @@ class TrendReport(object):
                         fluctuation = self.results2[cluster][test]['sigma'] / self.results2[cluster][test]['avg'] 
                     
                     #print("%3d/%3d: cluster:%s, test:%s, mean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (testIndex, numberOfTests, cluster, test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
-                    print(("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster)), end=' ')
+                    print("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster), end=' ')
                     
 #                    # Only for generate example diagram
 #                    if test.startswith('01da'):
@@ -960,13 +960,16 @@ class TrendReport(object):
 
         # Write out Performance Test summary file
         summaryFileName = self.reportPath + "perftest-" + self.hpccVersion  + "-" + dateStr + ".summary"
-        print(("summaryFileName:" + summaryFileName))
+        print("summaryFileName:" + summaryFileName)
         summaryFile = open(summaryFileName,  "w")
         summaryFile.write("# cluster, time, twoDaysTredValue, twoDaysTred, twoDaysTredPercentage, fiveDaysTredValue, fiveDaysTred, fiveDaysTredPercentage, TredValue, Tred, TredPercentage\n")
         for cluster in sorted(self.clusterTrends):
             try:
                 summaryFile.write("%s" % (cluster ))
-                summaryFile.write(",%0.2f" % (self.clusterTrends[cluster]['Totals'][-1] ))
+                total = 0.0
+                if len(self.clusterTrends[cluster]['Totals']) > 0:
+                    total = self.clusterTrends[cluster]['Totals'][-1]
+                summaryFile.write(",%0.2f" % (total ))
                 if 'twoDays' in self.clusterTrends[cluster]:
                     summaryFile.write(",%0.2f,%s,%0.2f" % (self.clusterTrends[cluster]['twoDays']['alpha'],  self.clusterTrends[cluster]['twoDays']['direction'],  self.clusterTrends[cluster]['twoDays']['percentage'] ))
                 if 'fiveDays' in self.clusterTrends[cluster]:
@@ -983,7 +986,7 @@ class TrendReport(object):
         # Write out Performance Test totals
         try:
             totalsFileName = self.reportPath + "perftest-totals" + "-" + self.hpccVersion  + "-" + dateStr + ".csv"
-            print(("totalsFileName:" + totalsFileName))
+            print("totalsFileName:" + totalsFileName)
             totalsFile = open(totalsFileName,  "w")
             totalsFile.write("# cluster, date, time\n")
             for cluster in sorted(self.clusterTrends):
