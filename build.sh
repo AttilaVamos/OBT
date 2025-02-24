@@ -326,39 +326,39 @@ else
     WriteLog "Keep the original py3embed CMakeLists.txt" "${OBT_BUILD_LOG_FILE}"
 fi
 
-if [[ -f  ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp ]]
-then
-    # Try to pull Richard;s PR-18603 top of the master only
-    if [[ "$BRANCH_ID" == "master" ]]
-    then
-        WriteLog "As an experiment pull PR-18603 to check if it fix the stresstext problem." "${OBT_BUILD_LOG_FILE}"
-        WriteLog "  $(pushd $SOURCE_HOME )" "${OBT_BUILD_LOG_FILE}"
-        WriteLog "  Add git upstream..." "${OBT_BUILD_LOG_FILE}"
-        res=$(git remote add upstream https://github.com/hpcc-systems/HPCC-Platform.git 2>&1)
-        WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
-        res=$(git remote -v 2>&1)
-        WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
-        res=$( git pull -ff --no-edit upstream pull/18603/head  2>&1)
-        retCode=$?
-        WriteLog "  retCode: $retCode\n  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
-        if [[ $retCode -eq 0 ]]
-        then
-            res=$(git diff HEAD^ 2>&1)
-            WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
-        fi
-        
-        WriteLog "  $(popd )" "${OBT_BUILD_LOG_FILE}"
-        WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
-    fi
-
-    WriteLog "Patch roxie/ccd/ccdmain.cpp with 'unsigned packetAcknowledgeTimeout = 60000;' \nto check if stresstext(multi=true) is fail or not." "${OBT_BUILD_LOG_FILE}"
-    WriteLog "Before: '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
-    sed -i -e 's/unsigned packetAcknowledgeTimeout = 100;/unsigned packetAcknowledgeTimeout = 60000;/g' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp
-    WriteLog "After : '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
-    WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
-else
-   WriteLog "The roxie/ccd/ccdmain.cpp not found." "${OBT_BUILD_LOG_FILE}"
-fi
+#if [[ -f  ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp ]]
+#then
+#    # Try to pull Richard;s PR-18603 top of the master only
+#    if [[ "$BRANCH_ID" == "master" ]]
+#    then
+#        WriteLog "As an experiment pull PR-18603 to check if it fix the stresstext problem." "${OBT_BUILD_LOG_FILE}"
+#        WriteLog "  $(pushd $SOURCE_HOME )" "${OBT_BUILD_LOG_FILE}"
+#        WriteLog "  Add git upstream..." "${OBT_BUILD_LOG_FILE}"
+#        res=$(git remote add upstream https://github.com/hpcc-systems/HPCC-Platform.git 2>&1)
+#        WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+#        res=$(git remote -v 2>&1)
+#        WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+#        res=$( git pull -ff --no-edit upstream pull/18603/head  2>&1)
+#        retCode=$?
+#        WriteLog "  retCode: $retCode\n  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+#        if [[ $retCode -eq 0 ]]
+#        then
+#            res=$(git diff HEAD^ 2>&1)
+#            WriteLog "  Res: '$res'" "${OBT_BUILD_LOG_FILE}"
+#        fi
+#        
+#        WriteLog "  $(popd )" "${OBT_BUILD_LOG_FILE}"
+#        WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
+#    fi
+#
+#    WriteLog "Patch roxie/ccd/ccdmain.cpp with 'unsigned packetAcknowledgeTimeout = 60000;' \nto check if stresstext(multi=true) is fail or not." "${OBT_BUILD_LOG_FILE}"
+#    WriteLog "Before: '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
+#    sed -i -e 's/unsigned packetAcknowledgeTimeout = 100;/unsigned packetAcknowledgeTimeout = 60000;/g' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp
+#    WriteLog "After : '$(egrep 'unsigned packetAcknowledgeTimeout' ${SOURCE_HOME}/roxie/ccd/ccdmain.cpp )'" "${OBT_BUILD_LOG_FILE}"
+#    WriteLog "Done." "${OBT_BUILD_LOG_FILE}"
+#else
+#   WriteLog "The roxie/ccd/ccdmain.cpp not found." "${OBT_BUILD_LOG_FILE}"
+#fi
 
 
 

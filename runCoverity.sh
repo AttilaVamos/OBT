@@ -102,7 +102,7 @@ then
                 find . -name *.ccfxprep -delete
             
                 cp -v ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
-                [[ -f applied-annotations.csv ]] && cp -v  applied-annotations.csv  ${COVERITY_REPORT_PATH}/.
+                find . -iname 'applied-annotations.csv' -type f  -exec  cp -v  {}  ${COVERITY_REPORT_PATH}/  \;
 
                 # To upload
                 # When you upload the build can you also include the commit SHA in the version (Gavin)
