@@ -326,6 +326,29 @@ destroyResources()
 
 GenerateReports()
 {
+    if [[ -n "$QUERY_STAT2_DIR" ]]
+    then
+        WriteLog "Start log processor..." "$logFile"
+        pushd $QUERY_STAT2_DIR > /dev/null
+        if [ -f regressK8sLogProcessor.py ]
+        then
+            TIME_STAMP=$(date +%s)
+            res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
+            WriteLog "${res}" "$logFile"
+            WriteLog "  End." "$logFile"
+            REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
+            REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(SecToTimeStr $REGRESS_LOG_PROCESSING_TIME)."
+            REGRESS_LOG_PROCESSING_RESULT_STR="Done"
+            REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR."
+            WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_REPORT_STR" "$logFile"
+        else
+            WriteLog "regressK8sLogProcessor.py not found." "$logFile"
+        fi
+        popd > /dev/null
+    else
+        WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
+    fi
+    
     WriteLog "Generate reports..." "$logFile"
     cd $OBT_DIR
     TIME_STAMP=$(date +%s)
@@ -342,6 +365,62 @@ GenerateReports()
     REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(SecToTimeStr $REPORT_GENERATION_TIME)."
     WriteLog "  Report generation is done in $REPORT_GENERATION_TIME_STR." "$logFile"
 }
+
+MyExit()
+{
+    REASON=$1
+    REASON=${REASON//-/}
+    REASON=${REASON^^}
+    
+    ERROR_MSG=$2 #"Skipped based on error in deploy Storage accounts."
+    
+    case $REASON in 
+    
+        VNET)          STORAGE_START_RESULT_STR="$ERROR_MSG"
+                            STORAGE_START_RESULT_REPORT_STR="$ERROR_MSG"
+                            ;&
+        
+        STORAGE)    AKS_START_RESULT_STR="$ERROR_MSG"
+                            AKS_START_RESULT_REPORT_STR="$ERROR_MSG"
+                            ;&
+    
+        AKS)            ECLWATCH_START_RESULT_STR="$ERROR_MSG"
+                            ECLWATCH_START_RESULT_REPORT_STR="$ERROR_MSG"
+                            
+                            COLLECT_POD_LOGS_RESULT_STR="$ERROR_MSG"
+                            COLLECT_POD_LOGS_RESULT_REPORT_STR="$ERROR_MSG"
+                            ;&
+        
+        ECLWATCH)  SETUP_RESULT_STR="$ERROR_MSG"
+                            SETUP_RESULT_REPORT_STR="$ERROR_MSG"
+                            QUERY_STAT2_RESULT_STR="$ERROR_MSG"
+                            QUERY_STAT2_RESULT_REPORT_STR="$ERROR_MSG"
+                            ;&
+
+        SETUP)        QUERIES_PUBLISH_RESULT_STR="$ERROR_MSG"
+                            QUERIES_PUBLISH_RESULT_REPORT_STR="$ERROR_MSG"
+                            ;&
+
+        QUERIES)     REGRESS_START_TIME=$( date "+%H:%M:%S")
+                            REGRESS_RESULT_STR="$ERROR_MSG"
+
+                            REGRESS_RESULT_REPORT_STR="$ERROR_MSG"
+        
+                            QUERY_STAT2_RESULT_REPORT_STR="$ERROR_MSG"
+                            REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$ERROR_MSG"
+                            
+    esac
+    
+    END_TIME=$( date "+%H:%M:%S")
+    RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
+    RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
+    END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
+
+    GenerateReports
+    WriteLog "Exit." "$logFile"
+    exit 2
+}
+
 
 PrintSetting()
 {
@@ -783,7 +862,7 @@ then
     res=$(timeout  -s 15 --preserve-status $STORAGE_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
     retCode=$?
     STORAGE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    if [[ $VERBOSE -ne 0 ]]
+    if [[ ($VERBOSE -ne 0) || ($retCode -ne 0) ]]
     then 
         WriteLog "res:$res" "$logFile"
     else
@@ -792,10 +871,51 @@ then
     STORAGE_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
     STORAGE_NUM_OF_RESOURCES=$( echo $STORAGE_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     STORAGE_START_TIME__STR="$STORAGE_START_TIME sec $(SecToTimeStr $STORAGE_START_TIME)"
-    STORAGE_START_RESULT_STR="Done (retCode: $retCode)"
-    STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
-    WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
-    popd > /dev/null
+    if [[ $retCode -eq 0 ]]
+    then
+        STORAGE_START_RESULT_STR="Done (retCode: $retCode)"
+        STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
+        WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
+        popd > /dev/null
+    else
+        STORAGE_START_RESULT_STR="Storage account deployment failed(retCode: $retCode)."
+        STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
+        WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
+        popd > /dev/null
+        
+        destroyResources "$logFile" "Destroy resources to remove leftovers ..." "1" 
+        
+        ERROR_MSG="Skipped based on error in deploy Storage accounts."
+        MyExit "STORAGE" "$ERROR_MSG"
+#        
+#        AKS_START_RESULT_STR="$ERROR_MSG"
+#        AKS_START_RESULT_REPORT_STR="$ERROR_MSG"
+#    
+#        ECLWATCH_START_RESULT_STR="$ERROR_MSG"
+#        ECLWATCH_START_RESULT_REPORT_STR="$ERROR_MSG"
+#        
+#        SETUP_RESULT_STR="$ERROR_MSG"
+#        SETUP_RESULT_REPORT_STR="$ERROR_MSG"
+#        
+#        QUERIES_PUBLISH_RESULT_STR="$ERROR_MSG"
+#        QUERIES_PUBLISH_RESULT_REPORT_STR="$ERROR_MSG"
+#
+#        REGRESS_START_TIME=$( date "+%H:%M:%S")
+#        REGRESS_RESULT_STR="$ERROR_MSG"
+#        REGRESS_RESULT_REPORT_STR="$ERROR_MSG"
+#        
+#        QUERY_STAT2_RESULT_REPORT_STR="$ERROR_MSG"
+#        REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$ERROR_MSG"
+#
+#        END_TIME=$( date "+%H:%M:%S")
+#        RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
+#        RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
+#        END_TIME_STR="$END_TIME, run time: $RUN_TIME_STR"
+#
+#        GenerateReports
+#        WriteLog "Exit." "$logFile"
+#        exit 2
+    fi
 else
     # Resources already deployed
     VNET_START_RESULT_STR="Resource already deployed."
@@ -1151,28 +1271,28 @@ fi
 DESTROY_AKS_TIME=$(( $(date +%s) - $TIME_STAMP ))
 WriteLog "  Done in $DESTROY_AKS_TIME sec $(SecToTimeStr $DESTROY_AKS_TIME)." "$logFile"
 
-if [[ -n "$QUERY_STAT2_DIR" ]]
-then
-    WriteLog "Start log processor..." "$logFile"
-    pushd $QUERY_STAT2_DIR > /dev/null
-    if [ -f regressK8sLogProcessor.py ]
-    then
-        TIME_STAMP=$(date +%s)
-        res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
-        WriteLog "${res}" "$logFile"
-        WriteLog "  End." "$logFile"
-        REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(SecToTimeStr $REGRESS_LOG_PROCESSING_TIME)."
-        REGRESS_LOG_PROCESSING_RESULT_STR="Done"
-        REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR."
-        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_REPORT_STR" "$logFile"
-    else
-        WriteLog "regressK8sLogProcessor.py not found." "$logFile"
-    fi
-    popd > /dev/null
-else
-    WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
-fi
+#if [[ -n "$QUERY_STAT2_DIR" ]]
+#then
+#    WriteLog "Start log processor..." "$logFile"
+#    pushd $QUERY_STAT2_DIR > /dev/null
+#    if [ -f regressK8sLogProcessor.py ]
+#    then
+#        TIME_STAMP=$(date +%s)
+#        res=$( ./regressK8sLogProcessor.py --path ./  2>&1 )
+#        WriteLog "${res}" "$logFile"
+#        WriteLog "  End." "$logFile"
+#        REGRESS_LOG_PROCESSING_TIME=$(( $(date +%s) - $TIME_STAMP ))
+#        REGRESS_LOG_PROCESSING_TIME_STR="$REGRESS_LOG_PROCESSING_TIME sec $(SecToTimeStr $REGRESS_LOG_PROCESSING_TIME)."
+#        REGRESS_LOG_PROCESSING_RESULT_STR="Done"
+#        REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$REGRESS_LOG_PROCESSING_RESULT_STR in $REGRESS_LOG_PROCESSING_TIME_STR."
+#        WriteLog "  $REGRESS_LOG_PROCESSING_RESULT_REPORT_STR" "$logFile"
+#    else
+#        WriteLog "regressK8sLogProcessor.py not found." "$logFile"
+#    fi
+#    popd > /dev/null
+#else
+#    WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
+#fi
 
 trap 2
 

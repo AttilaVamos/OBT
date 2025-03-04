@@ -12,6 +12,8 @@ import sys
 import inspect
 import traceback
 
+import json
+
 # Handle different Dev and Op environments for RegressionLogProcessor class
 try:
     from regressionLogProcessor import RegressionLogProcessor
@@ -64,7 +66,10 @@ class BuildNotificationConfig( object ):
                 print("Unrecognised time format. Ignored and use current time")
                 self._buildTime =  self.today.strftime("%H:%M:%S")
                 self._buildTimeAsPathMemeber = self.today.strftime("%H-%M-%S")
-                
+
+        if options.iniFile != None:
+            iniFile = options.iniFile
+
         self.config = configparser.ConfigParser()
         self.config.read( iniFile )
         self._gitBranch = 'master'
@@ -201,6 +206,7 @@ class BuildNotificationConfig( object ):
            gitBranchInfo +=  'sha:'+self._gitBranchCommit
 
         self._gitBranch += self._gitBranchName +' (' + gitBranchInfo + ')'
+        self._hostAddress = None
     
     @property
     def gitBranchCommitHtml( self ):
@@ -227,7 +233,13 @@ class BuildNotificationConfig( object ):
         return "{testMode}".format(
                     testMode=self.get( 'Performance', 'TestMode'))
                     
-                    
+    @property
+    def hostAddress(self):
+        if self._hostAddress == None:
+             self._hostAddress = socket.gethostbyname(socket.gethostname())
+        
+        return self._hostAddress
+     
 class PerformanceSummary( object ):
     
     def __init__( self, config ):
@@ -309,6 +321,7 @@ class BuildNotification(object):
        self.logFiles=[]
        self.buildTaskIndex = 0
        self.logReport = {}
+       self.jsonReport = { "OBTResult" : { "Env" : {},  "BuildSet" :{},  "Exclusion": {}, "ThorConfig": {}, "Tasks":[],  "Errors":[] } }
     
     def appendWithDelimiter(self, target,  text,  delimiter = ', '):
         retVal = ''
@@ -344,7 +357,7 @@ class BuildNotification(object):
         msgHTML += "<tr><td>Build date:</td><td><b>" + self.config.buildDate + "</b></td></tr>\n"
         msgHTML += "<tr><td>Build system:</td><td>" + self.config.get('Environment', 'BuildSystem') + "</td></tr>\n"
         msgHTML += "<tr><td>Hardware:</td><td>" + self.config.get('OBT', 'ObtSystemHw').replace('"', '') + "</td></tr>\n"
-        msgHTML += "<tr><td>IP Address:</td><td>" + socket.gethostbyname(socket.gethostname()) + " (" + self.config.reportObtSystem + ")</td></tr>\n"
+        msgHTML += "<tr><td>IP Address:</td><td>" + self.config.hostAddress + " (" + self.config.reportObtSystem + ")</td></tr>\n"
         msgHTML += "<tr><td align=\"right\">Build on git branch:</td><td><b>" + self.config.gitBranchName + "</b></td></tr>\n"
         msgHTML += "<tr><td align=\"right\">Date:</td><td>" + self.config.gitBranchDate + "</td></tr>\n" 
         msgHTML += "<tr><td align=\"right\">SHA:</td><td>" + self.config.gitBranchCommitHtml + "</td></tr>\n"
@@ -366,6 +379,19 @@ class BuildNotification(object):
         self.logReport['thorConfig'] = 'T: ' +  self.config.thorSlaves + 's/' + self.config.thorChannelsPerSlave + 'c'
         self.logReport['diagram'] = '-'
         self.logReport['stats'] = {}
+
+        self.jsonReport["OBTResult"]["Env"]["BuildSystem"] = self.config.get('Environment', 'BuildSystem')
+        self.jsonReport["OBTResult"]["Env"]["Hardware"] =  self.config.get('OBT', 'ObtSystemHw').replace('"', '') 
+        self.jsonReport["OBTResult"]["Env"]["IPAddress"] = self.config.hostAddress + " (" + self.config.reportObtSystem + ")"
+        
+        self.jsonReport["OBTResult"]["BuildSet"]["Branch"] =  self.config.gitBranchName
+        self.jsonReport["OBTResult"]["BuildSet"]["BranchDate"] = self.config.gitBranchDate
+        self.jsonReport["OBTResult"]["BuildSet"]["BranchSHA"] =  self.config.gitBranchCommit[0:8].upper()
+        self.jsonReport["OBTResult"]["BuildSet"]["BuildType"] =  self.config.buildType
+        self.jsonReport["OBTResult"]["BuildSet"]["Target"] = "BM/VM"
+        
+        self.jsonReport["OBTResult"]["ThorConfig"]["Slaves"] =  self.config.thorSlaves
+        self.jsonReport["OBTResult"]["ThorConfig"]["Channels"] =  self.config.thorChannelsPerSlave
 
         msgHTML += "<table width=\"600\" cellspacing=\"0\" cellpadding=\"0\" border=\"1\">\n"
         msgHTML += "<TR style=\"background-color:#CEE3F6\"><TH>Target</TH><TH>Status</TH><TH>Log</TH></TR>\n"
@@ -669,6 +695,10 @@ class BuildNotification(object):
         finally:
             logRecordFile.close()
 
+    def storeJsonResult(self):
+        with open(self.config.reportObtSystem +'-' + self.config.gitBranchName +'-'+self.config.buildDate+'-'+self.config.buildTime.replace(':',  '-')+'.json',  'w') as outfile:
+               json.dump( self.jsonReport, outfile, indent=4)
+        
 #
 #----------------------------------------------------------
 #
@@ -686,6 +716,10 @@ if __name__ == "__main__":
     parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", 
                       help="Show more info. Default is False"
                       , metavar="VERBOSE")
+                      
+    parser.add_option("--config", dest="iniFile", default=None, type='string', 
+                      help="Name and path of the INI file. Default is: ./ReportPerfTestResult.ini"
+                      , metavar="CONFIG")
 
     (options, args) = parser.parse_args()
     
@@ -694,5 +728,6 @@ if __name__ == "__main__":
     bn.createMsg()
     bn.send()
     bn.storeLogRecord()
+    bn.storeJsonResult()
     print("Report sent. End.")
 
