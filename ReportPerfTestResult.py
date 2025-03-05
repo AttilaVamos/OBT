@@ -232,14 +232,14 @@ class BuildNotificationConfig( object ):
     def testMode(self):
         return "{testMode}".format(
                     testMode=self.get( 'Performance', 'TestMode'))
-                    
+
     @property
     def hostAddress(self):
         if self._hostAddress == None:
              self._hostAddress = socket.gethostbyname(socket.gethostname())
-        
+
         return self._hostAddress
-     
+
 class PerformanceSummary( object ):
     
     def __init__( self, config ):
@@ -381,15 +381,15 @@ class BuildNotification(object):
         self.logReport['stats'] = {}
 
         self.jsonReport["OBTResult"]["Env"]["BuildSystem"] = self.config.get('Environment', 'BuildSystem')
-        self.jsonReport["OBTResult"]["Env"]["Hardware"] =  self.config.get('OBT', 'ObtSystemHw').replace('"', '') 
+        self.jsonReport["OBTResult"]["Env"]["Hardware"] =  self.config.get('OBT', 'ObtSystemHw').replace('"', '')
         self.jsonReport["OBTResult"]["Env"]["IPAddress"] = self.config.hostAddress + " (" + self.config.reportObtSystem + ")"
-        
+
         self.jsonReport["OBTResult"]["BuildSet"]["Branch"] =  self.config.gitBranchName
         self.jsonReport["OBTResult"]["BuildSet"]["BranchDate"] = self.config.gitBranchDate
         self.jsonReport["OBTResult"]["BuildSet"]["BranchSHA"] =  self.config.gitBranchCommit[0:8].upper()
         self.jsonReport["OBTResult"]["BuildSet"]["BuildType"] =  self.config.buildType
         self.jsonReport["OBTResult"]["BuildSet"]["Target"] = "BM/VM"
-        
+
         self.jsonReport["OBTResult"]["ThorConfig"]["Slaves"] =  self.config.thorSlaves
         self.jsonReport["OBTResult"]["ThorConfig"]["Channels"] =  self.config.thorChannelsPerSlave
 
@@ -698,7 +698,7 @@ class BuildNotification(object):
     def storeJsonResult(self):
         with open(self.config.reportObtSystem +'-' + self.config.gitBranchName +'-'+self.config.buildDate+'-'+self.config.buildTime.replace(':',  '-')+'.json',  'w') as outfile:
                json.dump( self.jsonReport, outfile, indent=4)
-        
+
 #
 #----------------------------------------------------------
 #
@@ -716,7 +716,7 @@ if __name__ == "__main__":
     parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", 
                       help="Show more info. Default is False"
                       , metavar="VERBOSE")
-                      
+
     parser.add_option("--config", dest="iniFile", default=None, type='string', 
                       help="Name and path of the INI file. Default is: ./ReportPerfTestResult.ini"
                       , metavar="CONFIG")

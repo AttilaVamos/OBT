@@ -348,7 +348,7 @@ GenerateReports()
     else
         WriteLog "Missing OBT binary directory, skip Minikube test log processing." "$logFile"
     fi
-    
+
     WriteLog "Generate reports..." "$logFile"
     cd $OBT_DIR
     TIME_STAMP=$(date +%s)
@@ -371,26 +371,26 @@ MyExit()
     REASON=$1
     REASON=${REASON//-/}
     REASON=${REASON^^}
-    
+
     ERROR_MSG=$2 #"Skipped based on error in deploy Storage accounts."
-    
-    case $REASON in 
-    
+
+    case $REASON in
+
         VNET)          STORAGE_START_RESULT_STR="$ERROR_MSG"
                             STORAGE_START_RESULT_REPORT_STR="$ERROR_MSG"
                             ;&
-        
+
         STORAGE)    AKS_START_RESULT_STR="$ERROR_MSG"
                             AKS_START_RESULT_REPORT_STR="$ERROR_MSG"
                             ;&
-    
+
         AKS)            ECLWATCH_START_RESULT_STR="$ERROR_MSG"
                             ECLWATCH_START_RESULT_REPORT_STR="$ERROR_MSG"
-                            
+
                             COLLECT_POD_LOGS_RESULT_STR="$ERROR_MSG"
                             COLLECT_POD_LOGS_RESULT_REPORT_STR="$ERROR_MSG"
                             ;&
-        
+
         ECLWATCH)  SETUP_RESULT_STR="$ERROR_MSG"
                             SETUP_RESULT_REPORT_STR="$ERROR_MSG"
                             QUERY_STAT2_RESULT_STR="$ERROR_MSG"
@@ -405,12 +405,12 @@ MyExit()
                             REGRESS_RESULT_STR="$ERROR_MSG"
 
                             REGRESS_RESULT_REPORT_STR="$ERROR_MSG"
-        
+
                             QUERY_STAT2_RESULT_REPORT_STR="$ERROR_MSG"
                             REGRESS_LOG_PROCESSING_RESULT_REPORT_STR="$ERROR_MSG"
-                            
+
     esac
-    
+
     END_TIME=$( date "+%H:%M:%S")
     RUN_TIME=$((  $(date +%s) - $START_TIME_SEC ))
     RUN_TIME_STR="$RUN_TIME sec $(SecToTimeStr $RUN_TIME)"
@@ -882,9 +882,9 @@ then
         STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
         WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
-        
+
         destroyResources "$logFile" "Destroy resources to remove leftovers ..." "1" 
-        
+
         ERROR_MSG="Skipped based on error in deploy Storage accounts."
         MyExit "STORAGE" "$ERROR_MSG"
 #        
