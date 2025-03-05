@@ -1274,7 +1274,7 @@ then
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
     # TO-DO Should check if it is already installed
-    ${SUDO} ${PKG_INST_CMD} --force ${BUILD_HOME}/${HPCC_PACKAGE}
+    ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE}
     
     if [ $? -ne 0 ]
     then
