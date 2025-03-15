@@ -1064,6 +1064,10 @@ then
             cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
             cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
             cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+            [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
+            pushd ${TARGET_DIR}/test
+            zip ~/diagrams.zip diagrams/
+            popd
         else
              WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
         fi

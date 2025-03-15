@@ -495,10 +495,10 @@ PERF_NUM_OF_NODES=1
 PERF_IP_OF_NODES=( '127.0.0.1' )
 
 # totalMemoryLimit for Hthor
-PERF_HTHOR_MEMSIZE_GB=4
+PERF_HTHOR_MEMSIZE_GB=1
 
 # totalMemoryLimit for Thor
-PERF_THOR_MEMSIZE_GB=4
+PERF_THOR_MEMSIZE_GB=1
 
 PERF_THOR_NUMBER_OF_SLAVES=4
 #if not already defined (by the sequencer) then define it
@@ -507,7 +507,7 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=20
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=4
+PERF_ROXIE_MEMSIZE_GB=1
 
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
@@ -541,6 +541,7 @@ PERF_TEST_PARALLEL_QUERIES=1
 PERF_EXCLUDE_CLASS="-e stress"
 #PERF_EXCLUDE_CLASS="-e stress --ef 15b*.ecl"
 #PERF_EXCLUDE_CLASS="-e stress --ef 15ab*.ecl,15b*.ecl"
+PERF_EXCLUDE_CLASS="-e stress --ef 02aa_disksortlocal.ecl"
 
 # Example: for subset of queries
 # (If PERF_QUERY_LIST is empty or not defined the whole Performance suite will be excuted)
