@@ -1066,7 +1066,7 @@ then
             cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
             [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
             pushd ${TARGET_DIR}/test
-            zip ~/diagrams.zip diagrams/
+            zip -r ~/diagrams.zip diagrams/
             popd
         else
              WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
