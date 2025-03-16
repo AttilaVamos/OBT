@@ -1949,7 +1949,7 @@ then
     QUERY_STAT2_EXTRA='-v --timestamp'
     [[ ( -n  ${JOB_NAME_SUFFIX}) && ( -n ${PERF_TEST_DATE} ) ]] &&  QUERY_STAT2_EXTRA=" ${JOB_NAME_SUFFIX} --dateTransform ${PERF_TEST_DATE}"
     WriteLog "Collect Performance Test results" "${PERF_TEST_LOG}"
-    CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d ''  ${QUERY_STAT2_EXTRA}" 
+    CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d '' --buildType $PERF_BUILD_TYPE ${QUERY_STAT2_EXTRA}" 
     WriteLog "  CMD: '${CMD}'" "${PERF_TEST_LOG}"
 
     ${CMD} >> ${PERF_TEST_LOG} 2>&1
