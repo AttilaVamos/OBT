@@ -541,7 +541,7 @@ PERF_TEST_PARALLEL_QUERIES=1
 PERF_EXCLUDE_CLASS="-e stress"
 #PERF_EXCLUDE_CLASS="-e stress --ef 15b*.ecl"
 #PERF_EXCLUDE_CLASS="-e stress --ef 15ab*.ecl,15b*.ecl"
-PERF_EXCLUDE_CLASS="-e stress --ef 02aa_disksortlocal.ecl"
+#PERF_EXCLUDE_CLASS="-e stress --ef 02aa_disksortlocal.ecl"
 
 # Example: for subset of queries
 # (If PERF_QUERY_LIST is empty or not defined the whole Performance suite will be excuted)
