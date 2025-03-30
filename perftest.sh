@@ -1117,6 +1117,23 @@ then
     #    WriteLog "It seems the 'export indexName:=...' in 'ecl/perform/files.ecl' is already fixed." "${PERF_TEST_LOG}"
     #fi
     #
+    
+    #
+    #------------------------------------------------------------
+    # Start sar monitor if it is enabled
+    pushd $OBT_BIN_DIR
+    
+    if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
+    then
+        WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
+        
+        sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        echo $! > sarMonitor.pid
+        WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
+    fi
+
+    popd
+    
     #
     #---------------------------
     #
@@ -1193,6 +1210,25 @@ then
     else
         WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
         WriteLog "                                      " "${PERF_TEST_LOG}"        
+    fi
+    
+    
+    #
+    #--------------------------
+    #
+    pushd $OBT_BIN_DIR
+
+    if [[ -f ./sarMonitor.pid ]]
+    then
+        WriteLog "Stop sarMonitor (pid: $(cat ./sarMonitor.pid)" "${PERF_TEST_LOG}"
+        res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
+        res=$( rm -v ./sarMonitor.pid )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
     fi
     
     #
@@ -1541,6 +1577,23 @@ then
     #    WriteLog "It seems the 'export indexName:=...' in 'ecl/perform/files.ecl' is already fixed." "${PERF_TEST_LOG}"
     #fi
     #
+    
+    
+    #
+    #------------------------------------------------------------
+    # Start sar monitor if it is enabled
+    pushd $OBT_BIN_DIR
+    
+    if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
+    then
+        WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
+        
+        sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        echo $! > sarMonitor.pid
+        WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
+    fi
+
+    popd
     #
     #---------------------------
     #
@@ -1614,6 +1667,25 @@ then
         fi
     else
         WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
+    fi
+    
+    
+        #
+    #--------------------------
+    #
+    pushd $OBT_BIN_DIR
+
+    if [[ -f ./sarMonitor.pid ]]
+    then
+        WriteLog "Stop sarMonitor (pid: $(cat ./sarMonitor.pid)" "${PERF_TEST_LOG}"
+        res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
+        res=$( rm -v ./sarMonitor.pid )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
     fi
     
     #
@@ -1846,6 +1918,24 @@ then
     #fi
     #
     #
+    
+    #
+    #------------------------------------------------------------
+    # Start sar monitor if it is enabled
+    pushd $OBT_BIN_DIR
+    
+    if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
+    then
+        WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
+        
+        sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        echo $! > sarMonitor.pid
+        WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
+    fi
+
+    popd
+    
+    #
     #---------------------------
     #
     # Run performance tests on roxie
@@ -1882,6 +1972,24 @@ then
         fi
     else
         WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
+    fi
+ 
+    #
+    #--------------------------
+    #
+    pushd $OBT_BIN_DIR
+
+    if [[ -f ./sarMonitor.pid ]]
+    then
+        WriteLog "Stop sarMonitor (pid: $(cat ./sarMonitor.pid)" "${PERF_TEST_LOG}"
+        res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
+        res=$( rm -v ./sarMonitor.pid )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+        
     fi
  
     #
