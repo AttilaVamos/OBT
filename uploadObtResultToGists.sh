@@ -75,8 +75,7 @@ retCode=$?
 
 if [[ -f ~/diagrams.zip ]]
 then
-    [[ ! -d $OBT_ID ]] && mkdir $OBT_ID
-    res=$(cp -v ~/diagrams.zip $OBT_ID/  2>&1)
+    es=$(cp -v ~/diagrams.zip ${OBT_ID}-diagrams.zip  2>&1)
     retCode=$?
 
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
@@ -95,8 +94,8 @@ CURRENT_README=''
 
 if [[ "$res" =~ "Untracked files" ]]
 then
-    echo "  Add $(echo "$res" | egrep '*.json' | wc -l) new result file(s) to gist"
-    echo "  $(echo "$res" | egrep '*.json' )"
+    echo "  Add $(echo "$res" | egrep '.json|.zip' | wc -l) new result file(s) to gist"
+    echo "  $(echo "$res" | egrep '.json|.zip' )"
     res=$(git add . 2>&1)
     retCode=$?
 
@@ -131,8 +130,8 @@ then
     echo "  Push changes"
     res=$(git push origin main 2>&1)
     retCode=$?
-    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
-    [[ $DEBUG -ne 0 ]] && echo "res : $res"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
 
 else
     echo "  No new file added."
@@ -235,8 +234,8 @@ then
     echo " Push changes"
     res=$(git push origin main 2>&1)
     retCode=$?
-    [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
-    [[ $DEBUG -ne 0 ]] && echo "res: $res"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res: $res"
 else
     echo "  No file found to archive."
 fi
