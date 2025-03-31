@@ -75,7 +75,7 @@ retCode=$?
 
 if [[ -f ~/diagrams.zip ]]
 then
-    es=$(cp -v ~/diagrams.zip ${OBT_ID}-diagrams.zip  2>&1)
+    res=$(cp -v ~/diagrams.zip ${OBT_ID}-diagrams.zip  2>&1)
     retCode=$?
 
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
