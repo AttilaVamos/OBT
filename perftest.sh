@@ -719,6 +719,8 @@ then
                 # We need relative paths to use this archive in Smoketest as well
                 pushd ${BUILD_HOME}
                 rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
+                [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -v  vcpkg_installed/vcpkg/compiler-file-hash-cache.json
+
                 changesInInstalled=1
                 changesInDownloads=1
                 if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
@@ -1117,23 +1119,23 @@ then
     #    WriteLog "It seems the 'export indexName:=...' in 'ecl/perform/files.ecl' is already fixed." "${PERF_TEST_LOG}"
     #fi
     #
-    
+
     #
     #------------------------------------------------------------
     # Start sar monitor if it is enabled
     pushd $OBT_BIN_DIR
-    
+
     if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
     then
         WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
-        
+
         sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
         echo $! > sarMonitor.pid
         WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
     fi
 
     popd
-    
+
     #
     #---------------------------
     #
@@ -1211,8 +1213,8 @@ then
         WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
         WriteLog "                                      " "${PERF_TEST_LOG}"        
     fi
-    
-    
+
+
     #
     #--------------------------
     #
@@ -1224,13 +1226,13 @@ then
         res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
         res=$( rm -v ./sarMonitor.pid )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
     fi
-    
+
     #
     #---------------------------
     #
@@ -1577,23 +1579,24 @@ then
     #    WriteLog "It seems the 'export indexName:=...' in 'ecl/perform/files.ecl' is already fixed." "${PERF_TEST_LOG}"
     #fi
     #
-    
-    
+
+
     #
     #------------------------------------------------------------
     # Start sar monitor if it is enabled
     pushd $OBT_BIN_DIR
-    
+
     if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
     then
         WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
-        
+
         sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
         echo $! > sarMonitor.pid
         WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
     fi
 
     popd
+
     #
     #---------------------------
     #
@@ -1669,8 +1672,8 @@ then
         WriteLog "Skip performance test suite execution!" "${PERF_TEST_LOG}"
     fi
     
-    
-        #
+
+    #
     #--------------------------
     #
     pushd $OBT_BIN_DIR
@@ -1681,13 +1684,13 @@ then
         res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
         res=$( rm -v ./sarMonitor.pid )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
     fi
-    
+
     #
     #---------------------------
     #
@@ -1918,23 +1921,23 @@ then
     #fi
     #
     #
-    
+
     #
     #------------------------------------------------------------
     # Start sar monitor if it is enabled
     pushd $OBT_BIN_DIR
-    
+
     if [[ ${PERF_SAR_MONITOR_START} -eq 1 ]]
     then
         WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
-        
+
         sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
         echo $! > sarMonitor.pid
         WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
     fi
 
     popd
-    
+
     #
     #---------------------------
     #
@@ -1985,13 +1988,13 @@ then
         res=$(sudo kill $( cat ./sarMonitor.pid ) 2>&1 )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
         res=$( rm -v ./sarMonitor.pid )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
-        
+
     fi
- 
+
     #
     #---------------------------
     #
