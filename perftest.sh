@@ -662,7 +662,7 @@ then
 
     if [[ $PERF_CONTROL_TBB -eq 1 ]]
     then
-        C_CMD="/usr/local/bin/cmake -D USE_TBB=$PERF_USE_TBB -DUSE_TBBMALLOC=$PERF_USE_TBBMALLOC ../HPCC-Platform"
+        C_CMD="cmake -D USE_TBB=$PERF_USE_TBB -DUSE_TBBMALLOC=$PERF_USE_TBBMALLOC ../HPCC-Platform"
         WriteLog "${C_CMD}" "${PERF_TEST_LOG}"
 
         res=( "$(${C_CMD} 2>&1)" )
