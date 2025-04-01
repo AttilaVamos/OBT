@@ -515,13 +515,14 @@ RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_p
 
 
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+#RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb'
 
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
 # Timeouts
-VNET_DEPLOY_TIMEOUT="5.0m"          # Usually <2 minutes
-STORAGE_DEPLOY_TIMEOUT="7.0m"   # Usually <3 minutes
+VNET_DEPLOY_TIMEOUT="15.0m" #"5.0m"          # Usually <2 minutes
+STORAGE_DEPLOY_TIMEOUT="17.0m" #"7.0m"   # Usually <3 minutes
 AKS_DEPLOY_TIMEOUT="30.0m"          # Usually <12 Minutes
 
 #set -x
@@ -797,7 +798,10 @@ WriteLog "Update obt-admin.tfvars..." "$logFile"
 pushd $TERRAFORM_DIR > /dev/null
 
 WriteLog "$(cp -vf $OBT_DIR/obt-vnet-admin.tfvars modules/virtual_network/admin.tfvars 2>&1)" "$logFile"
+WriteLog "$(rm -v modules/virtual_network/terraform.tfstate* 2>&1)" "$logFile"
+
 WriteLog "$(cp -vf $OBT_DIR/obt-storage-admin.tfvars modules/storage_accounts/admin.tfvars 2>&1)" "$logFile"
+WriteLog "$(rm -v modules/storage_accounts/terraform.tfstate* 2>&1)" "$logFile"
 
 WriteLog "$(cp -vf $OBT_DIR/obt-admin.tfvars . 2>&1)" "$logFile"
 WriteLog "$(cp -v obt-admin.tfvars obt-admin.tfvars-back 2>&1)" "$logFile"
@@ -834,6 +838,8 @@ WriteLog "account: $account" "$logFile"
 
 [[ $( echo $account | awk '{ print $6 }' ) != "True" ]] && (WriteLog "us-hpccplatform-dev is not the default"  "$logFile"; exit 1) 
 
+
+
 if [[ $START_RESOURCES -eq 1 ]]
 then
     WriteLog "Create VNET ... (timeout is $VNET_DEPLOY_TIMEOUT)" "$logFile"
@@ -842,7 +848,7 @@ then
     res=$(timeout  -s 15 --preserve-status $VNET_DEPLOY_TIMEOUT terraform apply -var-file=admin.tfvars -auto-approve 2>&1)
     retCode=$?
     VNET_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-    if [[ $VERBOSE -ne 0 ]]
+    if [[ $VERBOSE -ne 0 || $retCode -ne 0 ]]
     then 
         WriteLog "res:$res" "$logFile"
     else
@@ -851,11 +857,29 @@ then
     VNET_NUM_OF_RESOURCES_STR=$( echo "$res" | egrep ' Resources: ' | awk '{ print $4" resources "$5 }'  | tr -d ',.' )
     VNET_NUM_OF_RESOURCES=$( echo $VNET_NUM_OF_RESOURCES_STR | cut -d ' ' -f1)
     VNET_START_TIME_STR="$VNET_START_TIME sec $(SecToTimeStr $VNET_START_TIME)"
-    VNET_START_RESULT_STR="Done (retCode: $retCode)"
-    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
-    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
-    popd > /dev/null
-     
+    if [[ $retCode -eq 0 ]]
+    then
+	    VNET_START_RESULT_STR="Done (retCode: $retCode)"
+	    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
+	    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
+	    popd > /dev/null
+    else
+        ERROR_STR=$(echo "$res" | egrep -A 4 'Error: ')
+   	    VNET_START_ERROR_STR="\n      - Error: $ERROR_STR"
+        VNET_START_RESULT_STR="VNet deployment failed(retCode: $retCode)."
+	    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_START_ERROR_STR"
+
+	    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
+	    popd > /dev/null
+
+        destroyResources "$logFile" "Destroy resources to remove leftovers ..." "1"
+
+        ERROR_MSG="Skipped based on error in deploy Vnet."
+        MyExit "VNET" "$ERROR_MSG"
+    fi
+
+
+
     WriteLog "Create storage accounts ... (timeout is $STORAGE_DEPLOY_TIMEOUT)" "$logFile"
     pushd modules/storage_accounts > /dev/null
     TIME_STAMP=$(date +%s)
