@@ -73,15 +73,16 @@ retCode=$?
 [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
-if [[ -f ~/diagrams.zip ]]
-then
-    res=$(cp -v ~/diagrams.zip ${OBT_ID}-diagrams.zip  2>&1)
-    retCode=$?
-
-    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
-    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
-
-fi
+# Skip this because gist quota
+#if [[ -f ~/diagrams.zip ]]
+#then
+#    res=$(cp -v ~/diagrams.zip ${OBT_ID}-diagrams.zip  2>&1)
+#    retCode=$?
+#
+#    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+#    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
+#
+#fi
 
 [[ $DEBUG -ne 0 ]] && echo "Git status ..."
 res=$(git status 2>&1)
