@@ -1106,6 +1106,13 @@ KillCheckDiskSpace "${OBT_LOG_FILE}"
 
 sleep 10
 
+pushd ${OBT_BIN_DIR}
+WriteLog "Upload results to Gists" "${OBT_LOG_FILE}"
+res=$( ./uploadObtResultToGists.sh 2>&1)
+retCode=$?
+WriteLog "retCode: $retCode" "${OBT_LOG_FILE}"
+WriteLog "res:'$res'" "${OBT_LOG_FILE}"
+popd
 #-----------------------------------------------------------------------------
 #
 # House keeping

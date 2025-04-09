@@ -210,6 +210,7 @@ then
         rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.[jlr]* centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
         
         echo "Upload regressMinikube-*.json to a result gists in GitHub as well ..."
+        ./fixJson.sh . > fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
         ./uploadObtResultToGists.sh
 
         zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.[jlr]*

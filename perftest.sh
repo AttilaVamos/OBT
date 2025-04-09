@@ -129,15 +129,21 @@ PERF_RESULT=PASS
 
 ProcessLog()
 { 
-    total=$(cat ${TEST_LOG_DIR}/$1*.log | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-    passed=$(cat ${TEST_LOG_DIR}/$1*.log | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-    failed=$(cat ${TEST_LOG_DIR}/$1*.log | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-    
-    WriteLog "TestResult:Total:${total} passed:${passed} failed:${failed}" "${PERF_TEST_LOG}"
-    
-    if [[ $failed -ne 0 ]]
+    fn=$( find  ${TEST_LOG_DIR}/ -iname $1'.*.log' | sort -r | head -n 1)
+    if [[ -n $fn ]]
     then
-        PERF_RESULT=FAILED
+        total=$(cat $fn | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
+        passed=$(cat $fn | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
+        failed=$(cat $fn | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
+        
+        WriteLog "TestResult:Total:${total}, passed:${passed}, failed:${failed}" "${PERF_TEST_LOG}"
+        
+        if [[ $failed -ne 0 ]]
+        then
+            PERF_RESULT=FAILED
+        fi
+    else
+        WriteLog "Log file related to '$1' not found in '$TEST_LOG_DIR'. " "${PERF_TEST_LOG}"
     fi
 }
 
