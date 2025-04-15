@@ -36,6 +36,7 @@ LOGDIR=~/HPCCSystems-regression/log
 
 BUILD_ONLY=1
 #NUMBER_OF_CPUS=1
+WIPE_OUT=1
 
 DEFAULT_UMASK=$(umask)
 
@@ -70,7 +71,7 @@ ${SUDO} rm -rf ${COVERAGE_ROOT}/*
 
 WriteLog "Uninstall HPCC-Platform" "${COVERAGE_LOG_FILE}"
 
-UninstallHPCC "${COVERAGE_LOG_FILE}"
+UninstallHPCC "$WIPE_OUT" "${COVERAGE_LOG_FILE}"
 
 
 # --------------------------------------------------------------

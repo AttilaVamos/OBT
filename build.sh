@@ -127,7 +127,22 @@ else
         [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$OBT_BUILD_LOG_FILE"
         WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
     else
-        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found, try with master." "$OBT_BUILD_LOG_FILE"
+        if [[ -f ~/vcpkg_downloads-master.zip ]]
+        then
+            VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-master.zip
+            WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$OBT_BUILD_LOG_FILE"
+            
+            pushd build
+            res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+            retCode=$?
+            popd
+            
+            [[ $retCode -ne 0 ]] && WriteLog "retCode: $retCode\nRes: $res" "$OBT_BUILD_LOG_FILE"
+            WriteLog "   Done."  "$OBT_BUILD_LOG_FILE"
+        else
+            WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$OBT_BUILD_LOG_FILE"
+        fi
     fi
 fi
 
