@@ -725,7 +725,7 @@ then
                 # We need relative paths to use this archive in Smoketest as well
                 pushd ${BUILD_HOME}
                 rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
-                [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -v  vcpkg_installed/vcpkg/compiler-file-hash-cache.json
+                [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
 
                 changesInInstalled=1
                 changesInDownloads=1
