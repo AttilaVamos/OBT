@@ -59,6 +59,7 @@ class RegressionLogProcessor(object):
         self.report=[]
         self.htmlReport=[]
         self.target=''
+        self.faultedTestCaseSimple = {}
         self.targetPrefix = 'Regression test'
         if not filename.endswith('.log'):
             return
@@ -498,6 +499,8 @@ class RegressionLogProcessor(object):
 
                         if not testName in self.faultedTestCase:
                                 self.faultedTestCase[testName] = {}
+
+                        if not self.target in self.faultedTestCaseSimple:
                                 self.faultedTestCaseSimple[self.target] = {}
                                 
                         self.faultedTestCase[testName][self.logDate]= {'TestId': testId,  'Target':self.target, 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }

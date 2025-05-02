@@ -401,6 +401,8 @@ class BuildNotification(object):
         subjectError = ''
         
         testLogs = []
+        taskItem = { "Performance" : {}}
+        taskItem["Performance"]["Result"] = "PASSED"
         for test in tests:
             queries = ''
             passed = ''
@@ -441,6 +443,17 @@ class BuildNotification(object):
                       self.logReport['status'] += failed + test[0:1].upper()
 
             result = 'total:'+queries+' passed:'+passed+' failed:'+failed
+
+            if test not in taskItem["Performance"]:
+                taskItem["Performance"][test] = {}
+
+            taskItem["Performance"][test]["Total"] = queries
+            taskItem["Performance"][test]["Pass"] = passed
+            taskItem["Performance"][test]["Fail"] = failed
+            taskItem["Performance"][test]["Result"] = "PASSED"
+            if failed != '0':
+                taskItem["Performance"][test]["Result"] = "FAILED"
+                taskItem["Performance"]["Result"] = "FAILED"
             
             part = MIMEBase('application', 'octet-stream')
             part.set_payload( ''.join(temp))
@@ -461,6 +474,7 @@ class BuildNotification(object):
             msgHTML += "<a href=\"" + logFileUrl + "\" target=\"_blank\">" + file + "</a>" 
             msgHTML += "</TD>\n</TR>\n" 
         msgHTML += '</table><br>\n\n'
+        self.jsonReport["OBTResult"]["Tasks"].append(taskItem)
         
         if RegressionLogProcessor:
             # Use it if sucessfully imported
@@ -473,9 +487,13 @@ class BuildNotification(object):
                     rlp.ProcessFile(file)
                     rlp.ProcessResults()
                     rlp.SaveFaultedTestCases()
+                    faultedTestCases = rlp.GetFaultedTestCasesSimple()
                     htmlResult = '\n'.join(rlp.GetHtmlResult())
                     if len(htmlResult) > 5:
                         msgHTML +=  htmlResult + "\n"
+
+                    if len(faultedTestCases) > 0:
+                        self.jsonReport["OBTResult"]["Errors"].append(faultedTestCases)
                 except:
                     print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
                     traceback.print_stack()
@@ -726,7 +744,10 @@ if __name__ == "__main__":
     bnc = BuildNotificationConfig(options) 
     bn = BuildNotification(bnc)
     bn.createMsg()
-    bn.send()
+    try:
+        bn.send()
+    except:
+        print("Email sending error.")
     bn.storeLogRecord()
     bn.storeJsonResult()
     print("Report sent. End.")
