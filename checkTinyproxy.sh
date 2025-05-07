@@ -33,6 +33,7 @@ tryCount=2
 
 WriteLog "Start Tinyproxy Server check..." "${TINYPROXY_CHECK_LOG_FILE}"
 
+goodToGo=1
 # Check if Tinyproxy installed
 if ! which "tinyproxy" &> /dev/null
 then
@@ -40,27 +41,41 @@ then
     WriteLog "Install Tinyproxy ... " "${TINYPROXY_CHECK_LOG_FILE}"
     res=$( sudo apt-get -y install tinyproxy 2>&1 )
     retCode=$?
-    [[ $retCode -ne 0 ]] && WriteLog "To install Tinyproxy failed.\n res: '$res'" "${TINYPROXY_CHECK_LOG_FILE}"
-    echo "Port 8888"    > tp.conf
-    echo "Timeout 600" >> tp.conf
-
+    if [[ $retCode -ne 0 ]] 
+    then 
+        WriteLog "To install Tinyproxy failed.\n res: '$res'" "${TINYPROXY_CHECK_LOG_FILE}"
+        goodToGo=0
+    else
+        WriteLog "Done." "${TINYPROXY_CHECK_LOG_FILE}"
+    fi
+else
+    WriteLog "Tinyproxy is installed." "${TINYPROXY_CHECK_LOG_FILE}"
 fi
 
-if type "tinyproxy" &> /dev/null
+if [[ ! -f tinyproxy.conf ]]
 then
+    WriteLog "Tinyproxy config file is missing, create it." "${TINYPROXY_CHECK_LOG_FILE}"
+    echo "Port 8888"    > tinyproxy.conf
+    echo "Timeout 600" >> tinyproxy.conf
+else
+    WriteLog "Tinyproxy config is found." "${TINYPROXY_CHECK_LOG_FILE}"
+fi 
+
+if [[ $goodToGo -eq 1 ]]
+then
+    WriteLog "Start tinyproxy ...(max attempt count is: $tryCount)" "${TINYPROXY_CHECK_LOG_FILE}"
     while [[ $tryCount -ne 0 ]]
     do
-        WriteLog "Try count: ${tryCount}" "${TINYPROXY_CHECK_LOG_FILE}"
-
         tinyproxyState=$( pgrep tinyproxy )
         if [[ -z $tinyproxyState ]]
         then
             WriteLog "Stoped! Start it! " "${TINYPROXY_CHECK_LOG_FILE}"
-            res=$( tinyproxy -c tp.conf 2>&1 )
+            res=$( tinyproxy -c tinyproxy.conf 2>&1 )
             retCode=$?
 
             sleep 20
             tryCount=$(( $tryCount-1 ))
+            WriteLog "Try count: ${tryCount}" "${TINYPROXY_CHECK_LOG_FILE}"
             continue
         else
             WriteLog "It is OK! " "${TINYPROXY_CHECK_LOG_FILE}"
@@ -75,9 +90,9 @@ then
         echo "Tinyproxy won't start! " | mailx -s "Problem with Tinyproxy" -u $USER  ${ADMIN_EMAIL_ADDRESS}
     fi
 else
-    WriteLog "Tinyproxy not installed in this sysytem! Give up and send Email to Agyi! " "${TINYPROXY_CHECK_LOG_FILE}"
+    WriteLog "Tinyproxy not installed in this system! Give up and send Email to Agyi! " "${TINYPROXY_CHECK_LOG_FILE}"
     # send email to Agyi
-    echo "Tinyproxy not installed in this sysytem! " | mailx -s "Problem with Tinyproxy" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+    echo "Tinyproxy not installed in this system! " | mailx -s "Problem with Tinyproxy" -u $USER  ${ADMIN_EMAIL_ADDRESS}
 fi
 
 WriteLog "End of Tinyproxy Server check." "${TINYPROXY_CHECK_LOG_FILE}"
