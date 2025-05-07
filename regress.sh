@@ -171,6 +171,16 @@ fi
 #
 #----------------------------------------------------
 #
+# Check Tinyproxy state
+#
+
+WriteLog "Check TinyProxy state" "${REGRESS_LOG_FILE}"
+./checkTinyproxy.sh
+
+
+#
+#----------------------------------------------------
+#
 # Un-install HPCC Systems
 #
 

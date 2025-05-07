@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-03-05, 19:15:14 -->
+<!-- Saved: 2025-05-07, 14:53:38 -->
 <!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -80,6 +80,7 @@
     <Source>checkMySQL.sh</Source>
     <Source>checkNginx.sh</Source>
     <Source>checkRedis.sh</Source>
+    <Source>checkTinyproxy.sh</Source>
     <Source>clean_builds.sh</Source>
     <Source>cloneRepo.sh</Source>
     <Source>coverage.sh</Source>
