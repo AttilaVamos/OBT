@@ -39,8 +39,14 @@ if ! which "tinyproxy" &> /dev/null
 then
     # No, it isn't
     WriteLog "Install Tinyproxy ... " "${TINYPROXY_CHECK_LOG_FILE}"
-    res=$( sudo apt-get -y install tinyproxy 2>&1 )
-    retCode=$?
+    if [[ "$OS_ID" =~ "Ubuntu" ]]
+    then
+        res=$( sudo apt-get -y install tinyproxy 2>&1 )
+        retCode=$?
+    else
+        res=$( sudo yum -y install tinyproxy 2>&1 )
+        retCode=$?   
+    fi
     if [[ $retCode -ne 0 ]] 
     then 
         WriteLog "To install Tinyproxy failed.\n res: '$res'" "${TINYPROXY_CHECK_LOG_FILE}"
