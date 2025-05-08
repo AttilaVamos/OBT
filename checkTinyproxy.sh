@@ -63,6 +63,9 @@ then
     WriteLog "Tinyproxy config file is missing, create it." "${TINYPROXY_CHECK_LOG_FILE}"
     echo "Port 8888"    > tinyproxy.conf
     echo "Timeout 600" >> tinyproxy.conf
+    echo "StartServers 5" >> tinyproxy.conf
+    echo "MaxClients 5" >> tinyproxy.conf
+    echo "#SysLog On" >> tinyproxy.conf
 else
     WriteLog "Tinyproxy config is found." "${TINYPROXY_CHECK_LOG_FILE}"
 fi 
