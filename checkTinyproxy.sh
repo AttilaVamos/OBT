@@ -52,7 +52,7 @@ then
         WriteLog "To install Tinyproxy failed.\n res: '$res'" "${TINYPROXY_CHECK_LOG_FILE}"
         goodToGo=0
     else
-        WriteLog "Done." "${TINYPROXY_CHECK_LOG_FILE}"
+        WriteLog "  Done." "${TINYPROXY_CHECK_LOG_FILE}"
     fi
 else
     WriteLog "Tinyproxy is installed." "${TINYPROXY_CHECK_LOG_FILE}"
@@ -66,6 +66,7 @@ then
     echo "StartServers 5" >> tinyproxy.conf
     echo "MaxClients 5" >> tinyproxy.conf
     echo "#SysLog On" >> tinyproxy.conf
+    WriteLog "  Done." "${TINYPROXY_CHECK_LOG_FILE}"
 else
     WriteLog "Tinyproxy config is found." "${TINYPROXY_CHECK_LOG_FILE}"
 fi 
