@@ -79,9 +79,13 @@ then
         if [[ -z $tinyproxyState ]]
         then
             WriteLog "Stoped! Start it! " "${TINYPROXY_CHECK_LOG_FILE}"
-            res=$( tinyproxy -c tinyproxy.conf 2>&1 )
+            res=$( sudo tinyproxy -c tinyproxy.conf 2>&1 )
             retCode=$?
-
+            if [[ $retCode -ne 0 ]]
+            then
+                WriteLog "Error at start: $retCode" "${TINYPROXY_CHECK_LOG_FILE}"
+                WriteLog "res:$res" "${TINYPROXY_CHECK_LOG_FILE}"
+            fi
             sleep 20
             tryCount=$(( $tryCount-1 ))
             WriteLog "Try count: ${tryCount}" "${TINYPROXY_CHECK_LOG_FILE}"
