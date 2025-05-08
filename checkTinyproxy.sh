@@ -91,7 +91,8 @@ then
             WriteLog "Try count: ${tryCount}" "${TINYPROXY_CHECK_LOG_FILE}"
             continue
         else
-            WriteLog "It is OK! " "${TINYPROXY_CHECK_LOG_FILE}"
+            WriteLog "It is running." "${TINYPROXY_CHECK_LOG_FILE}"
+            WriteLog "PID(s): $(pgrep tinyproxy)" "${TINYPROXY_CHECK_LOG_FILE}"
             break
         fi
     done
