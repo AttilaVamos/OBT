@@ -128,7 +128,12 @@ class RegressionLogProcessor(object):
                         isResultList = True
                         continue
                     if re.match("[0-9]+",  items[0]):
-                        index=int(items[0])
+                        index = 0
+                        try:
+                            index=int(items[0])
+                        except:
+                            pass
+
                         if index == 0:
                             continue
                     else:
@@ -185,7 +190,22 @@ class RegressionLogProcessor(object):
                         items = line.split(' ')
                         self.testCases[prev][items[1]]=items[2]
                     elif 'Create Stack Trace' in line:
-                        # Perhaps it would be nice to report it somehow
+                        # TO-DO Perhaps it would be nice to report it somehow
+                        pass
+                    elif 'abortWorkunit' in line:
+                        # TO-DO Perhaps it would be nice to report it somehow
+                        pass
+                    elif 'Debug-[debug' in line:
+                        # Message from Debug run, ignore
+                        pass
+                    elif 'Timeout occured for' in line:
+                        # TO-DO Perhaps it would be nice to report it somehow
+                        pass
+                    elif 'N/A in queryWuid' in line:
+                        # TO-DO Perhaps it would be nice to report it somehow
+                        pass
+                    elif 'has not started yet' in line:
+                        # Message from Debug run, ignore
                         pass
                     else:
                         items = line.split(' ')

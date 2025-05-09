@@ -408,7 +408,7 @@ class BuildNotification(object):
             passed = ''
             failed = ''
             file = test + "-performance-test.log" 
-            files = glob.glob(  test + \
+            files = glob.glob( test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
             if files: 
                 sortedFiles = sorted( files, key=str.lower, reverse=True )
@@ -646,6 +646,17 @@ class BuildNotification(object):
                     fileName = file.replace(self.config.obtLogDirectory +"/","")
                     part.add_header('Content-Disposition', 'attachment; filename="%s"' % fileName )
                     self.msg.attach(part)
+
+        # TO-DO store this HTML into a file in self.config.reportDirectoryFileSystem as "report.html"
+        try:
+            reportFileName = self.config.obtLogDirectory + '/report.html'
+            reportFile = open(reportFileName,  "w")
+            reportFile.write(msgHTML)
+            reportFile.close()
+        except Exception as e:
+            print("Something wrong with HTML report file (%s) generation: %s" % (reportFileName, repr(e)) )
+            print(e)
+            pass
 
 
         os.chdir( curDir ) 

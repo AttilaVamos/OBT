@@ -1169,7 +1169,8 @@ class BuildNotification( object ):
                     self.msgHTML += '\n'.join(rlp.GetHtmlResult())
                     faultedTestCases = rlp.GetFaultedTestCasesSimple()
                     rlp.SaveResult()
-                    self.jsonReport["OBTResult"]["Errors"].append(faultedTestCases)
+                    if len(faultedTestCases) > 0:
+                        self.jsonReport["OBTResult"]["Errors"].append(faultedTestCases)
 
                 except:
                     pass
