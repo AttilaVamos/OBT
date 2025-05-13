@@ -401,12 +401,17 @@ class BuildNotification(object):
         subjectError = ''
         
         testLogs = []
-        taskItem = { "Performance" : {}}
+        taskItem = { "Setup" : {},  "Performance" : {}}
         taskItem["Performance"]["Result"] = "PASSED"
+        taskItem["Setup"]["Result"] = "PASSED"
         for test in tests:
             queries = ''
             passed = ''
             failed = ''
+            taskSelector = "Performance"
+            if 'setup' in test:
+                taskSelector = "Setup"
+
             file = test + "-performance-test.log" 
             files = glob.glob( test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
@@ -444,16 +449,16 @@ class BuildNotification(object):
 
             result = 'total:'+queries+' passed:'+passed+' failed:'+failed
 
-            if test not in taskItem["Performance"]:
-                taskItem["Performance"][test] = {}
+            if test not in taskItem[taskSelector]:
+                taskItem[taskSelector][test] = {}
 
-            taskItem["Performance"][test]["Total"] = queries
-            taskItem["Performance"][test]["Pass"] = passed
-            taskItem["Performance"][test]["Fail"] = failed
-            taskItem["Performance"][test]["Result"] = "PASSED"
+            taskItem[taskSelector][test]["Total"] = queries
+            taskItem[taskSelector][test]["Pass"] = passed
+            taskItem[taskSelector][test]["Fail"] = failed
+            taskItem[taskSelector][test]["Result"] = "PASSED"
             if failed != '0':
-                taskItem["Performance"][test]["Result"] = "FAILED"
-                taskItem["Performance"]["Result"] = "FAILED"
+                taskItem[taskSelector][test]["Result"] = "FAILED"
+                taskItem[taskSelector]["Result"] = "FAILED"
             
             part = MIMEBase('application', 'octet-stream')
             part.set_payload( ''.join(temp))

@@ -65,6 +65,7 @@ then
     echo "Timeout 600" >> tinyproxy.conf
     echo "StartServers 5" >> tinyproxy.conf
     echo "MaxClients 5" >> tinyproxy.conf
+    echo "DisableViaHeader yes" >> tinyproxy.conf
     echo "#SysLog On" >> tinyproxy.conf
     WriteLog "  Done." "${TINYPROXY_CHECK_LOG_FILE}"
 else
