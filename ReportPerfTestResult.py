@@ -408,10 +408,6 @@ class BuildNotification(object):
             queries = ''
             passed = ''
             failed = ''
-            taskSelector = "Performance"
-            if 'setup' in test:
-                taskSelector = "Setup"
-
             file = test + "-performance-test.log" 
             files = glob.glob( test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
@@ -419,7 +415,12 @@ class BuildNotification(object):
                 sortedFiles = sorted( files, key=str.lower, reverse=True )
                 file = sortedFiles[0] 
             print("processing file:"+file)
-            
+
+            taskSelector = "Performance"
+            if 'setup' in test:
+                taskSelector = "Setup"
+                test = test.replace('setup_', '')
+
             try:
                 temp = open(file).readlines( )
                 logFiles.append(file)
