@@ -55,6 +55,7 @@ def readSystemLog(systemName):
         systemLogs[logItems[0]]['testItems'] = list(logItems[1:])
 
     systemErrorsLogFileName = systemName+'-errors.csv'
+    errorLines = []
     try:
         errorLines = open(systemErrorsLogFileName, "r").readlines( )
     except IOError:
@@ -70,11 +71,15 @@ def readSystemLog(systemName):
         # and the third (items[2]) is the number of errors
         # and use the rest as a list of failed test cases
         key = errorItems[0]
-        engine = errorItems[1]
+        tag = errorItems[1]
+        engine = errorItems[2]
 
         if key not in systemLogs:
             print("%s is missing from systemLogs" % (key))
             continue
+
+        if tag not in systemLogs[key]:
+            systemLogs[key]['tag'] = tag
 
         if engine not in systemLogs[key]['errors']:
                 systemLogs[key]['errors'][engine] = []
@@ -89,7 +94,13 @@ def writeSystemLog(systemName,  systemLog):
     try:
         outFile = open(systemLogFileName, "w")
         for timestamp in systemLogs:
-            outFile.write(timestamp + ',')
+            tag = 'n/a'
+            try:
+                tag = systemLog[timestamp]['tag']
+            except:
+                print("Timestamp:", timestamp,", Item:",   systemLog[timestamp])
+
+            outFile.write( "%s,%s," % (timestamp, tag))
             # Create a string, a coma separated values from the list associated
             # to the timestamp
             outFile.write(','.join(systemLog[timestamp]['testItems']))
@@ -105,10 +116,12 @@ def writeSystemLog(systemName,  systemLog):
             if len(systemLog[timestamp]['errors']) == 0:
                 # No error registered, skip this item
                 continue
-                
+
+            tag = systemLog[timestamp]['tag']
+
             for engine in systemLog[timestamp]['errors']:
                 numOfErrors = len(systemLog[timestamp]['errors'][engine])
-                outFile.write( "%s,%s,%s," % (timestamp, engine, numOfErrors))
+                outFile.write( "%s,%s,%s,%s," % (timestamp, tag, engine, numOfErrors))
                 # Create a string, a coma separated values from the list associated
                 # to the timestamp
                 outFile.write(','.join(systemLog[timestamp]['errors'][engine]))
@@ -128,7 +141,8 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         # Pocessing this kinfd of line:
         #  0         1  2      3  4                 5                  6          7                8           9               10
         #  'HEAD is now at bbff691a52 Community Edition 9.4.16-rc1 Release Candidate 1'
-        sysLogs[timestamp]['testItems'].append(items[7])
+        #sysLogs[timestamp]['testItems'].append(items[7])
+        sysLogs[timestamp]['tag'] = items[7]
 
     def processSuite(items,  timestamp,  sysLogs):
         global suite

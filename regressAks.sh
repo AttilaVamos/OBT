@@ -859,18 +859,18 @@ then
     VNET_START_TIME_STR="$VNET_START_TIME sec $(SecToTimeStr $VNET_START_TIME)"
     if [[ $retCode -eq 0 ]]
     then
-	    VNET_START_RESULT_STR="Done (retCode: $retCode)"
-	    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
-	    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
-	    popd > /dev/null
+        VNET_START_RESULT_STR="Done (retCode: $retCode)"
+        VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_NUM_OF_RESOURCES_STR"
+        WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
+        popd > /dev/null
     else
         ERROR_STR=$(echo "$res" | egrep -A 4 'Error: ')
-   	    VNET_START_ERROR_STR="\n      - Error: $ERROR_STR"
+        VNET_START_ERROR_STR="\n      - Error: $ERROR_STR"
         VNET_START_RESULT_STR="VNet deployment failed(retCode: $retCode)."
-	    VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_START_ERROR_STR"
+        VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_START_ERROR_STR"
 
-	    WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
-	    popd > /dev/null
+        WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
+        popd > /dev/null
 
         destroyResources "$logFile" "Destroy resources to remove leftovers ..." "1"
 
