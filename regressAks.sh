@@ -514,7 +514,7 @@ RTE_TIMEOUT="--timeout 1200"
 RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_pke_lfn.ecl external.ecl javalibrary* library*'  # To generate errors as well
 
 
-RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray'
+RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray,proxy'
 #RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb'
 
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
