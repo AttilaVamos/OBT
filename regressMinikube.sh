@@ -219,7 +219,10 @@ then
     RTE_DIR=$REGRESSION_TEST_ENGINE_HOME
     QUERY_STAT2_DIR="$OBT_BIN_DIR"
     PERFSTAT_DIR="$HOME/Perfstat-Minikube/"
-    PKG_DIR=$OBT_BIN_DIR/PkgCache
+    # Try to find install package in the cache first, then in the archive
+    # (Searching in the archive can help when the platform didn't build on that day, but we need client tools only.
+    # So, the older build from a same version would be fine)
+    PKG_DIR="$OBT_BIN_DIR/PkgCache/ $HOME/common/nightly_builds/HPCC/"
 else
     WriteLog "Non OBT environment, like local VM/BM" "$logFile"
     SOURCE_DIR="$HOME/HPCC-Platform"
