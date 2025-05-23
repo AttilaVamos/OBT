@@ -52,7 +52,7 @@ def readSystemLog(systemName):
         # The first item is the timestamp, that will be the key and
         # use the rest as a related list.'
         systemLogs[logItems[0]] = { 'testItems' :  [],  'errors' : {}}
-        systemLogs[logItems[0]]['testItems'] = list(logItems[1:])
+        systemLogs[logItems[0]]['testItems'] = list(logItems[2:])  # Skip the datestamp and tag
 
     systemErrorsLogFileName = systemName+'-errors.csv'
     errorLines = []
