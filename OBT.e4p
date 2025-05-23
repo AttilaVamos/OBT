@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-05-07, 14:53:38 -->
+<!-- Saved: 2025-05-23, 19:26:27 -->
 <!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -104,6 +104,7 @@
     <Source>perftest.sh</Source>
     <Source>preabort.sh</Source>
     <Source>prepareObt.sh</Source>
+    <Source>publishCoverageResult.sh</Source>
     <Source>regress-av.sh</Source>
     <Source>regress.sh</Source>
     <Source>regressAks.sh</Source>
