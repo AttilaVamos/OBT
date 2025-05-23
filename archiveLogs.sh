@@ -305,7 +305,7 @@ CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DI
 
 CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "uploadObtResultToGists-*.log" "$ARCHIVE_TARGET.log"
 CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "fixJson-*.log"                        "$ARCHIVE_TARGET.log"
-
+CheckAndZip "${MOVE_TO_ZIP_FLAG}" "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "sar-*.log"                             "$ARCHIVE_TARGET.log"
 
 
 echo '' >> $ARCHIVE_TARGET.log
@@ -346,7 +346,7 @@ echo '' >> $ARCHIVE_TARGET.log
 WriteLog "Archive content of ${HPCC_LOG_DIR}" "${ARCHIVE_LOG_DIR}"
 echo 'Archive content of '${HPCC_LOG_DIR} >> $ARCHIVE_TARGET.log
 echo '-----------------------------------------------------------' >> $ARCHIVE_TARGET.log
-#zip $ARCHIVE_TARGET-r ${HPCC_LOG_DIR} >> $ARCHIVE_TARGET.log
+#zip $ARCHIVE_TARGET ${HPCC_LOG_DIR} >> $ARCHIVE_TARGET.log
 
 if [ -d /var/log/HPCCSystems/ ] 
 then
@@ -378,7 +378,7 @@ do
     echo "  Archive content of :"$i >> $ARCHIVE_TARGET.log
     echo "  ------------------------------------" >> $ARCHIVE_TARGET.log
 
-    zip ${MOVE_LOG_TO_ZIP_FLAG} $ARCHIVE_TARGET-r ${TEST_LOG_DIR}/$i/ >> $ARCHIVE_TARGET.log
+    zip ${MOVE_LOG_TO_ZIP_FLAG} $ARCHIVE_TARGET ${TEST_LOG_DIR}/$i/ >> $ARCHIVE_TARGET.log
     echo '' >> $ARCHIVE_TARGET.log
 
 done
