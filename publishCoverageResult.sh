@@ -18,8 +18,12 @@ then
     [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
     echo "  Done."
 
+    res=$( sudo rm -v *.l[oc]* 2>&1)
+    retCode=$?
+    [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
+
     tags=( 'latest' 'previous' 'old' )
-    results=( $(ls -1d *-filt* | sort -r | head -n 3) )
+    results=( $( find . -iname '*-filt*' -type d | sort -r | head -n 3) )
 
     echo "Remove current links..."
     sudo rm -v hpcc_coverage-[lop]*
