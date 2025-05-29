@@ -466,7 +466,7 @@ fi
 WriteLog "Archive content of ${DALI_DIR}" "${ARCHIVE_LOG_DIR}"
 echo 'Archive content of '${DALI_DIR} >> $ARCHIVE_TARGET.log
 echo '-----------------------------------------------------------' >> $ARCHIVE_TARGET.log
-zip $ARCHIVE_TARGET-r ${DALI_DIR} >> $ARCHIVE_TARGET.log
+zip $ARCHIVE_TARGET ${DALI_DIR} >> $ARCHIVE_TARGET.log
 echo '' >> $ARCHIVE_TARGET.log
 
 
@@ -477,7 +477,7 @@ echo '' >> $ARCHIVE_TARGET.log
 WriteLog "Archive content of ${ECLCC_DIR}" "${ARCHIVE_LOG_DIR}"
 echo 'Archive content of '${ECLCC_DIR} >> $ARCHIVE_TARGET.log
 echo '-----------------------------------------------------------' >> $ARCHIVE_TARGET.log
-zip $ARCHIVE_TARGET-r ${ECLCC_DIR}/*.log >> $ARCHIVE_TARGET.log
+zip $ARCHIVE_TARGET ${ECLCC_DIR}/*.log >> $ARCHIVE_TARGET.log
 echo '' >> $ARCHIVE_TARGET.log
 
 
