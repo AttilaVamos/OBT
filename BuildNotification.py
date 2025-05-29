@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
+#
+# To debug this script with using an existing result set use '-d' and '-t' parameters to point to the set, like this:
+#
+# ./BuildNotification.py  -d 2024-10-15 -t 04-05-40
+#
+# The script would be looking for the files in this directory (see comments in BuildNotification.ini file)
+#   /home/ati/common/nightly_builds/HPCC/master/2024-10-15/OBT-AWS02-CentOS_Linux_7/04-05-40/CE/platform/
+#
+
 from __future__ import print_function
 
 import smtplib
-#import mimetypes
 import re
 import os
 from datetime import datetime
@@ -20,7 +28,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 try:
-    #from regressionLogProcessor import RegressionLogProcessor
     from RegressionLogProcessor.regressionLogProcessor import RegressionLogProcessor
 except ImportError:
     print("Reparable import error...")
@@ -946,15 +953,21 @@ class BuildNotification( object ):
                 elif task.name in ['Wutooltests']:
                     result = task.result
                     self.logFiles.append(task.logFileFileSystem)
-                    
+
                 elif task.name in ['Build']:
                     result = task.result
+
                 elif task.name in ['MLtests']:
                     logFileName = task.logFileFileSystem.replace('mltests.summary', 'ml-') 
                     files = glob.glob(logFileName+'*.log')
                     if files:
-                        for f in sorted(files):
-                            self.logFiles.append(f)
+                        for file in sorted(files):
+                            self.logFiles.append(file)
+
+                elif (task.name == 'Unittests'):
+                    result = task.errorMsg.replace('Unittests:', '').replace('<br>', '').strip()
+                    lines = result.split('\n')
+                    self.jsonReport["OBTResult"]["Errors"].append( { 'Unittests': lines } )
 
                 else:
                     result = "<span style=\"color:red\">" + task.result + "</span>" 
@@ -964,7 +977,7 @@ class BuildNotification( object ):
                 subjectError += self.appendWithDelimiter(subjectError, task.name )
                 
                 self.logReport['status'] += self.appendWithDelimiter(self.logReport['status'], task.problems + task.name[0:1].upper())
-                
+
                 if len(task.errorMsg) > 0:
                     if task.errorMsg.startswith('[Error]'):
                         self.testEngineErrMsg += task.errorMsg.replace('<br>\n','') + "<br>\n"
@@ -998,6 +1011,7 @@ class BuildNotification( object ):
                     self.errorMsg += task.errorMsg + "<br>\n"
                     subjectSuffix += self.appendWithDelimiter(subjectSuffix, task.problems +' ' + task.name);
                     subjectError += self.appendWithDelimiter(subjectError, task.name )
+                    self.jsonReport["OBTResult"]["Errors"].append( { 'Wutooltests': task.errorMsg } )
                     
             elif(task.name == 'MLtests'):
                 # TODO It would be nice to color coding the results like other tests
@@ -1111,15 +1125,15 @@ class BuildNotification( object ):
                 self.msgHTML += "<a href=\"" + task.logFileURL + "\" target=\"_blank\">" + task.logFileName + "</a>"
             elif( task.name == "Setup" ):
                 subTasks = [ 'setup_hthor', 'setup_thor', 'setup_roxie' ]
-                for st in subTasks:
-                    subTask = TestTask( st, self.config )
+                for subTask in subTasks:
+                    subTask = TestTask( subTask, self.config )
                     self.msgHTML += "<a href=\"" + subTask.logFileURL + "\" target=\"_blank\">" + subTask.logFileName + "</a><br/>"
             elif( task.name == "MLtests" ):
                 logFileName = task.logFileFileSystem.replace('mltests.summary', 'ml-') 
                 files = glob.glob(logFileName+'*.log')
                 if files:
-                    for f in sorted(files):
-                        basename = os.path.basename(f)
+                    for file in sorted(files):
+                        basename = os.path.basename(file)
                         subTaskName = basename.split('.')[0]
                         subTask = TestTask(subTaskName, self.config )
                         self.msgHTML += "<a href=\"" + subTask.logFileURL + basename + "\" target=\"_blank\">" + basename.replace('ml-','') + "</a><br/>"
@@ -1149,11 +1163,12 @@ class BuildNotification( object ):
         if len(self.buildErrorMsg) > 0:
             self.msgHTML += "<H3>Build errors</H3>\n"
             self.msgHTML += self.buildErrorMsg + "<hr>\n"
+            self.jsonReport["OBTResult"]["Errors"].append( { 'Build': self.buildErrorMsg} )
     
         if len(self.errorMsg) > 0:
             self.msgHTML += "<H3>Internal test errors</H3>\n"
             self.msgHTML += self.errorMsg + "<hr>\n"
-       
+
         logArchiveLink = self.config.reportDirectoryURL + "/log-archive" 
 
         if RegressionLogProcessor:
@@ -1304,13 +1319,18 @@ if __name__ == "__main__":
         bn.endRender()
         bn.storeLogRecord()
         bn.storeJsonResult()
-        bn.send()
     except:
         print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
         print("Exception in user code:")
         print('-'*60)
         traceback.print_exc(file=sys.stdout)
         print('-'*60)
+
+    try:
+        bn.send()
+    except:
+        print("Email sending error.")
+
     print("End of Regression report generation.")
     pass
 
