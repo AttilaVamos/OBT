@@ -132,6 +132,11 @@ then
                 RUN_COVERAGE=0
                 RUN_PERFORMANCE=0
                 BUILD=0
+                RUN_UNITTESTS=0
+                RUN_WUTOOL_TESTS=0
+                RUN_ML_TESTS=0
+                RUN_WUTEST=0
+                RUN_COVERITY=0
                 ;;
     esac
 fi
@@ -171,10 +176,14 @@ trap ControlC SIGKILL
 export PATH=$PATH:/usr/local/bin:/bin:/usr/local/sbin:/sbin:/usr/sbin:/mnt/disk1/home/vamosax/bin:
 WriteLog "path:'${PATH}'" "${OBT_LOG_FILE}"
 
+gccVersion=$(gcc --version | head -n 1 )
+glibcVersion=$( v=$(ldd --version | head -n 1); v=${v#*\(}; v=${v%)*}; echo $v)
+
 WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${OBT_LOG_FILE}"
-WriteLog "GCC: $(gcc --version | head -n 1)" "${OBT_LOG_FILE}"
-WriteLog "CMake: $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
-WriteLog "Python: $(python --version )" "${OBT_LOG_FILE}"
+WriteLog "GCC    : $gccVersion" "${OBT_LOG_FILE}"
+WriteLog "GLibCC : $glibcVersion" "${OBT_LOG_FILE}"
+WriteLog "CMake  : $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
+WriteLog "Python : $(python --version )" "${OBT_LOG_FILE}"
 WriteLog "Python3: $(python3 --version )" "${OBT_LOG_FILE}"
 
 STARTUP_MSG=""
@@ -559,6 +568,43 @@ fi
     WriteLog "Update 'ObtLogDir' in ReportPerfTestResult.ini to ObtLogDir : ${OBT_LOG_DIR}" "${OBT_LOG_FILE}"
     cp -f ./ReportPerfTestResult.ini ./ReportPerfTestResult.bak
     sed  -e '/^ObtLogDir : \(.*\)/c ObtLogDir : '${OBT_LOG_DIR} ./ReportPerfTestResult.ini > ./ReportPerfTestResult.tmp && mv -f ./ReportPerfTestResult.tmp ./ReportPerfTestResult.ini 
+
+    # To-DO need to use a function for these changes
+
+    # Update GCC and GLibC versions in BuildNotification.ini
+    if  [[ $(egrep -c 'GccVersion' BuildNotification.ini) -ge 1 ]]
+    then
+        WriteLog "Update 'GccVersion' in BuildNotification.ini to '$gccVersion'" "${OBT_LOG_FILE}"
+        sed -i  -e '/^GccVersion : \(.*\)/c GccVersion : "'"$gccVersion"'"' ./BuildNotification.ini
+    else
+        WriteLog "'GccVersion' field is not defined in BuildNotification.ini." "${OBT_LOG_FILE}"
+    fi
+
+    if  [[ $(egrep -c 'GccVersion' BuildNotification.ini) -ge 1 ]]
+    then
+        WriteLog "Update 'glibcVersion' in BuildNotification.ini to '$glibcVersion'" "${OBT_LOG_FILE}"
+        sed -i  -e '/^GlibcVersion : \(.*\)/c GlibcVersion : "'"$glibcVersion"'"' ./BuildNotification.ini
+    else
+        WriteLog "'GlibcVersion' field is not defined in BuildNotification.ini." "${OBT_LOG_FILE}"
+    fi
+
+    # Update GCC and GLibC versions in ReportPerfTestResult.ini
+    if  [[ $(egrep -c 'GccVersion' ReportPerfTestResult.ini) -ge 1 ]]
+    then
+        WriteLog "Update 'GccVersion' in ReportPerfTestResult.ini to '$gccVersion'" "${OBT_LOG_FILE}"
+        sed -i  -e '/^GccVersion : \(.*\)/c GccVersion : "'"$gccVersion"'"' ./ReportPerfTestResult.ini
+    else
+        WriteLog "'GccVersion' field is not defined in ReportPerfTestResult.ini." "${OBT_LOG_FILE}"
+    fi
+
+    if  [[ $(egrep -c 'GccVersion' ReportPerfTestResult.ini) -ge 1 ]]
+    then
+        WriteLog "Update 'glibcVersion' in ReportPerfTestResult.ini to '$glibcVersion'" "${OBT_LOG_FILE}"
+        sed -i  -e '/^GlibcVersion : \(.*\)/c GlibcVersion : "'"$glibcVersion"'"' ./ReportPerfTestResult.ini
+    else
+        WriteLog "'GlibcVersion' field is not defined in ReportPerfTestResult.ini." "${OBT_LOG_FILE}"
+    fi
+
 
     if [ -n "$OBT_ID" ]
     then
@@ -1171,7 +1217,6 @@ sudo find /tmp/ -mtime +2 -type f -print -exec rm  '{}' \;
 WriteLog "${dirCount} directories and ${fileCount} files are removed." "${OBT_LOG_FILE}"
 
 WriteLog "End of cleanup." "${OBT_LOG_FILE}"
-
 
 #-----------------------------------------------------------------------------
 #
