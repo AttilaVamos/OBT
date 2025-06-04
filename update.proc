@@ -33,6 +33,7 @@ then
         else
             echo "Cloning was success." >> ${logFile} 2>&1
             echo "res:$res" >> ${logFile} 2>&1
+        fi
     else
         echo "Cloning was success." >> ${logFile} 2>&1
         echo "res:$res" >> ${logFile} 2>&1
