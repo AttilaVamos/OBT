@@ -19,10 +19,26 @@ then
    echo "Cloning ..." >> ${logFile}
    echo "Cloning ..." 
    pushd ~/
-   git clone https://github.com/AttilaVamos/OBT.git >> ${logFile} 2>&1
+   res=$( git clone https://github.com/AttilaVamos/OBT.git  2>&1 )
+   retCode=$?
+   if [[ $retCode -ne 0 ]]
+   then
+        echo "Cloning the 'https://github.com/AttilaVamos/OBT.git' failed try ' https://github.com/hpcc-systems/OBT.git'" >> ${logFile} 2>&1
+        res=$( git clone https://github.com/hpcc-systems/OBT.git  2>&1 )
+        retCode=$?
+        if [[ $retCode -ne 0 ]]
+        then
+            echo "Cloning the 'https://github.com/hpcc-systems/OBT.git' failed, give-up." >> ${logFile} 2>&1
+            echo "res:$res" >> ${logFile} 2>&1
+        else
+            echo "Cloning was success." >> ${logFile} 2>&1
+            echo "res:$res" >> ${logFile} 2>&1
+    else
+        echo "Cloning was success." >> ${logFile} 2>&1
+        echo "res:$res" >> ${logFile} 2>&1
+    fi
+
    popd
-   echo "Cloned."
-   echo "Cloned." >> ${logFile}
 fi
 
 if [ -d ~/OBT ]
@@ -30,18 +46,25 @@ then
     pushd ~/OBT
 
     res=$( git pull origin master 2>&1 )
-    echo "${res}"  >> ${logFile}
-    echo "${res}"
-
-    cp -u -v * $OBT_DIR/  >> ${logFile} 2>&1
-
-    if [ -n "$OBT_ID" ]
+    retCode=$?
+    if [[ $retCode -eq 0 ]]
     then
-        # Copy machine specific files
-        cp -v $OBT_ID/* $OBT_DIR/  >> ${logFile} 2>&1
+        echo "${res}"  >> ${logFile}
+        echo "${res}"
+
+        cp -u -v * $OBT_DIR/  >> ${logFile} 2>&1
+
+        if [ -n "$OBT_ID" ]
+        then
+            # Copy machine specific files
+            cp -v $OBT_ID/* $OBT_DIR/  >> ${logFile} 2>&1
+        else
+            echo "OBT_ID is not defined, using default settings.sh." >> ${logFile} 2>&1
+            echo "OBT_ID is not defined, using default settings.sh." 
+        fi
     else
-        echo "OBT_ID is not defined, using default settings.sh." >> ${logFile} 2>&1
-        echo "OBT_ID is not defined, using default settings.sh." 
+        echo "Update failed with retCode: $retCode" >> ${logFile} 2>&1
+        echo "res:$res" >> ${logFile} 2>&1
     fi
 
     popd

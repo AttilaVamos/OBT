@@ -351,12 +351,12 @@ echo '-----------------------------------------------------------' >> $ARCHIVE_T
 if [ -d /var/log/HPCCSystems/ ] 
 then
     find /var/log/HPCCSystems/ -name '*'$(date "+%Y_%m_%d")'*.log' -type f -exec \
-         zip $ARCHIVE_TARGET'{}' \; >> $ARCHIVE_TARGET.log
+         zip $ARCHIVE_TARGET '{}' \; >> $ARCHIVE_TARGET.log
     
     # If there is any log from yesterday (overlappeds session case) add it to archive
     # (It can happen only in overlapped case, because otherwise the OBT cleans up everything at the end of a session.)
     find /var/log/HPCCSystems/ -name '*'$(date -d '-1 day'  "+%Y_%m_%d")'*.log' -type f -exec \
-         zip $ARCHIVE_TARGET'{}' \; >> $ARCHIVE_TARGET.log
+         zip $ARCHIVE_TARGET '{}' \; >> $ARCHIVE_TARGET.log
     
     echo '' >> $ARCHIVE_TARGET.log
 fi
