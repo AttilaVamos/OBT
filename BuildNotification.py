@@ -732,9 +732,11 @@ class TestTask( Task ):
                         if m2.group(2) != m2.group(3):
                             self._result += "<span style=\"color:red\">" + res + "</span><br>\n" 
                             self._status  = 'FAILED'
+                            testStatus = 'FAILED'
                             self._failedSubtask.append(testName)
                         else:
                             self._result += "<span style=\"color:green\">" + res + "</span><br>\n"
+                            testStatus = 'PASSED'
                         
                         self._total   = self._total  + int(m2.group(2))
                         info[testName]["Total"] = int(m2.group(2))
@@ -745,7 +747,7 @@ class TestTask( Task ):
                         self._failed  = self._failed + int(m2.group(4))
                         info[testName]["Fail"] = int(m2.group(4))
                         
-                        info[testName]["Result"] =  self._status
+                        info[testName]["Result"] =  testStatus
 
                         self._subTask.append(info)
                    
