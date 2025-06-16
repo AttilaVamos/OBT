@@ -113,6 +113,8 @@ else
     LOG_DIR="$HOME/common/nightly_builds/HPCC/"
 fi
 
+printf "Log directory: %s\n" "$LOG_DIR"
+
 pushd $LOG_DIR > /dev/null
 
 printf "Test case    : '$testCase'\n"
@@ -190,11 +192,10 @@ do
         testNames[$item]="$testName"
         
     done< <( [[ $versionedTestCase -gt 0  ]] && (echo "$line" | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\(\[.*\]\)\s*.*\[\(.*\) sec\].*$/\1 \2 \4 \3/p')  \
-
-                                                                        || (echo "$line"  | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1 \2 \3/p') \
+                                                                        || (echo "$line"  | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1 \2 \3/p')  \
                     )
 
-    [[ $DEBUG == 1 ]] && printf "--------------------------\n\n"
+    [[ $DEBUG == 1 ]] && echo -e "--------------------------\n\n"
       
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
