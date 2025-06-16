@@ -120,7 +120,7 @@ printf "Result filter: "
 [[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
 
 maxTestNameLen=0
-declare -A count  min  max sum avg testNames
+declare -A count  min  max sum avg testNames failed passed
 declare items=()
 while read fn
 do
@@ -144,7 +144,7 @@ do
     [[ $DEBUG == 1 ]] && printf "File:%s\nline:%s\n" "$fn" "$line"
     while read status testName runTime version
     do 
-         [[ $DEBUG == 1 ]] && printf "\nline:test name: '%s',version: '%s', runtime: %s sec, status: '%s'\n" "$testName" "$version" "$runTime" "$status"
+        [[ $DEBUG == 1 ]] && printf "\nline:test name: '%s',version: '%s', runtime: %s sec, status: '%s'\n" "$testName" "$version" "$runTime" "$status"
         if [[ $versionedTestCase -gt 0 ]]
         then
             verTag="$( echo "$version" | tr -d " []:'" | tr '=,' '-_')"
@@ -178,17 +178,24 @@ do
             max[$item]=0
             min[$item]=99999
             sum[$item]=0
+            passed[$item]=0
+            failed[$item]=0
             items+=( "$item" )
         fi
         count[$item]=$(( count[$item] + 1 ))
         sum[$item]=$(( sum[$item] + $runTime ))
         [[ max[$item] -le $runTime ]] && max[$item]=$runTime
         [[ min[$item] -gt $runTime ]] && min[$item]=$runTime
+        [[ "$status" == "Pass" ]] && passed[$item]=$(( passed[$item] + 1 )) || failed[$item]=$(( failed[$item] + 1 ))
         testNames[$item]="$testName"
         
     done< <( [[ $versionedTestCase -gt 0  ]] && (echo "$line" | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\(\[.*\]\)\s*.*\[\(.*\) sec\].*$/\1 \2 \4 \3/p')  \
+
                                                                         || (echo "$line"  | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1 \2 \3/p') \
                     )
+
+    [[ $DEBUG == 1 ]] && printf "--------------------------\n\n"
+      
 done< <(find . -iname $engine'.2*.log' -type f -print)
 
 [[ ($VERBOSE -eq 1) || ($DEBUG == 1) ]] && echo "maxTestNameLen: $maxTestNameLen"
@@ -196,8 +203,8 @@ items=( $( printf "%s\n" "${items[@]}" | sort ) )
 prevTestName=${testNames[${items[0]}]}
 [[  ($VERBOSE -eq 1) || ($DEBUG == 1)]] && echo "testName: '$prevTestName'"
 echo ""
-printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
-printf "%.*s\n"  "$(( $maxTestNameLen + 32 ))"  "------------------------------------------------------------------------------------------------------------------------------"
+printf "%-*s:  %-5s  %-6s  %-6s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)" " Pass " " Fail "
+printf "%.*s\n"  "$(( $maxTestNameLen + 48 ))"  "--------------------------------------------------------------------------------------------------------------------------------------------------------------"
 for item in  ${items[@]}
 do
     testName=${testNames[$item]}
@@ -212,7 +219,7 @@ do
     else
         avg[$item]=0
     fi
-    printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
+    printf "%-*s:  %5d  %5d   %5d   %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}" "${passed[$item]}" "${failed[$item]}"
 done
 
 popd > /dev/null
