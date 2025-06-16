@@ -522,7 +522,7 @@ EXECUTE_PERFORMANCE_SUITE_SETUP=1
 EXECUTE_PERFORMANCE_SUITE=1
 
 # timeout in seconds (>0) in Regression Engine
-PERF_TIMEOUT=3600
+PERF_TIMEOUT=1200
 
 # 0 - HPCC unistalled after Performance Suite finished on an engine
 # 1 - performance test doesn't uninstall HPCC after executed tests
