@@ -98,7 +98,9 @@ def writeSystemLog(systemName,  systemLog):
             try:
                 tag = systemLog[timestamp]['tag']
             except:
-                print("Timestamp:", timestamp,", Item:",   systemLog[timestamp])
+                if options.verbose:
+                    print("Timestamp:", timestamp,", Item:",   systemLog[timestamp])
+                pass
 
             outFile.write( "%s,%s," % (timestamp, tag))
             # Create a string, a coma separated values from the list associated
