@@ -204,8 +204,17 @@ items=( $( printf "%s\n" "${items[@]}" | sort ) )
 prevTestName=${testNames[${items[0]}]}
 [[  ($VERBOSE -eq 1) || ($DEBUG == 1)]] && echo "testName: '$prevTestName'"
 echo ""
-printf "%-*s:  %-5s  %-6s  %-6s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)" " Pass " " Fail "
-printf "%.*s\n"  "$(( $maxTestNameLen + 48 ))"  "--------------------------------------------------------------------------------------------------------------------------------------------------------------"
+if [[ $ALL_TESTS_RESULTS -eq 1 ]]
+then
+    printf "%-*s:  %-5s  %-6s  %-6s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)" " Pass " " Fail "
+    headerLen=$(( $maxTestNameLen + 48 ))
+else
+    printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
+    headerLen=$(( $maxTestNameLen + 32 ))
+fi
+printf "%.*s\n"  "$headerLen"  "--------------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+
 for item in  ${items[@]}
 do
     testName=${testNames[$item]}
@@ -220,7 +229,14 @@ do
     else
         avg[$item]=0
     fi
-    printf "%-*s:  %5d  %5d   %5d   %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}" "${passed[$item]}" "${failed[$item]}"
+
+    if [[ $ALL_TESTS_RESULTS -eq 1 ]]
+    then
+        printf "%-*s:  %5d  %5d   %5d   %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}" "${passed[$item]}" "${failed[$item]}"
+    else
+        printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
+    fi
+
 done
 
 popd > /dev/null
