@@ -271,20 +271,20 @@ SuppressAnalyserWarnings()
 
     while read file
     do
-        WriteLog "File:${file}" "${PERF_TEST_LOG}"
+        WriteLog "  File:${file}" "${PERF_TEST_LOG}"
 
         patched=$( egrep -H '#onwarning' $file | egrep -c '5820' )
 
-        if [[ -z ${patched} ]]
+        if [[ ${patched} -eq 0 ]]
         then
-            WriteLog "Patching $file ..." "${PERF_TEST_LOG}"
-            (echo "#onwarning(5820, ignore); // Suppress analyser" ; cat $file) >${file}.new
+            WriteLog "    Patching..." "${PERF_TEST_LOG}"
+            (echo "#onwarning(5820, ignore); // Suppress analyser warning" ; cat $file) >${file}.new
             mv ${file}.new $file
-            WriteLog "  Done: $(egrep -H '#onwarning' $file | egrep -c '5820' )" "${PERF_TEST_LOG}"
+            WriteLog "      Done: $(egrep -H '#onwarning' $file | egrep -c '5820' )" "${PERF_TEST_LOG}"
         else
-            WriteLog "$file already has '#onwarning(5820, ignore)'." "${PERF_TEST_LOG}"
+            WriteLog "    Already has '#onwarning(5820, ignore)'." "${PERF_TEST_LOG}"
         fi
-    done < <$(ls -1 *.ecl )
+    done < <(ls -1 *.ecl )
 
     popd
     
