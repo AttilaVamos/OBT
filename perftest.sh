@@ -264,6 +264,33 @@ addTlsToRoxie()
     popd
 }
 
+SuppressAnalyserWarnings()
+{
+    WriteLog "Inject '#onwarning(5820, ignore);' to all performance test." "${PERF_TEST_LOG}"
+    pushd ${PERF_TEST_HOME}/ecl
+
+    while read file
+    do
+        WriteLog "File:${file}" "${PERF_TEST_LOG}"
+
+        patched=$( egrep -H '#onwarning' $file | egrep -c '5820' )
+
+        if [[ -z ${patched} ]]
+        then
+            WriteLog "Patching $file ..." "${PERF_TEST_LOG}"
+            (echo "#onwarning(5820, ignore); // Suppress analyser" ; cat $file) >${file}.new
+            mv ${file}.new $file
+            WriteLog "  Done: $(egrep -H '#onwarning' $file | egrep -c '5820' )" "${PERF_TEST_LOG}"
+        else
+            WriteLog "$file already has '#onwarning(5820, ignore)'." "${PERF_TEST_LOG}"
+        fi
+    done < <$(ls -1 *.ecl )
+
+    popd
+    
+    WriteLog "  Done." "${PERF_TEST_LOG}"
+}
+
 #
 #----------------------------------------------------
 #
@@ -1030,6 +1057,8 @@ then
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
     fi
     
+    SuppressAnalyserWarnings
+    
     cd ${REGRESSION_TEST_ENGINE_HOME}
     
 
@@ -1506,6 +1535,8 @@ then
         fi
     fi
     
+    SuppressAnalyserWarnings
+    
     cd ${REGRESSION_TEST_ENGINE_HOME}
     
     #
@@ -1900,6 +1931,8 @@ then
     else
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
     fi
+    
+    SuppressAnalyserWarnings
     
     cd ${REGRESSION_TEST_ENGINE_HOME}
 

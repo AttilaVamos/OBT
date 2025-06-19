@@ -378,7 +378,7 @@ do
     echo "  Archive content of :"$i >> $ARCHIVE_TARGET.log
     echo "  ------------------------------------" >> $ARCHIVE_TARGET.log
 
-    zip ${MOVE_LOG_TO_ZIP_FLAG} $ARCHIVE_TARGET ${TEST_LOG_DIR}/$i/ >> $ARCHIVE_TARGET.log
+    zip -r ${MOVE_LOG_TO_ZIP_FLAG} $ARCHIVE_TARGET ${TEST_LOG_DIR}/$i/ >> $ARCHIVE_TARGET.log
     echo '' >> $ARCHIVE_TARGET.log
 
 done
