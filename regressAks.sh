@@ -500,6 +500,7 @@ fi
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-new
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-28
 TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-29
+TERRAFORM_DIR=~/terraform-azurerm-hpcc-pr-32
 #TERRAFORM_DIR=~/terraform-azurerm-hpcc
 
 RTE_CONFIG="./ecl-test-k8s.json"
