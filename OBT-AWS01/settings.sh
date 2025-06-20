@@ -522,6 +522,9 @@ EXECUTE_PERFORMANCE_SUITE=1
 # timeout in seconds (>0) in Regression Engine
 PERF_TIMEOUT=1200
 
+# Try count for Perfromance testing overwrite the ecl-test.json setting
+PERF_MAX_ATTEMPT_COUNT=1
+
 # 0 - HPCC unistalled after Performance Suite finished on an engine
 # 1 - performance test doesn't uninstall HPCC after executed tests
 PERF_KEEP_HPCC=1

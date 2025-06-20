@@ -1593,6 +1593,18 @@ then
 
     fi
 
+    if [[ -n $PERF_MAX_ATTEMPT_COUNT ]]
+    then
+        WriteLog "Replace original Regression Test Engine maxAttemptCount value with ${PERF_MAX_ATTEMPT_COUNT}" "${PERF_TEST_LOG}"
+
+        cp ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json.bak
+
+        sed -r -e 's/(\s*)"maxAttemptCount"\s*:\s*"([0-9]*)",/\1"maxAttemptCount" : "'${PERF_MAX_ATTEMPT_COUNT}'",/g' ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json > temp.json && mv -f temp.json ${REGRESSION_TEST_ENGINE_HOME}/ecl-test.json
+
+    else
+        WriteLog "Keep original Regression Test Engine maxAttemptCount" "${PERF_TEST_LOG}"
+
+    fi
     
     #
     #----------------------------------------------------
