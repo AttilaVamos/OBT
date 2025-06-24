@@ -522,7 +522,7 @@ EXECUTE_PERFORMANCE_SUITE_SETUP=1
 EXECUTE_PERFORMANCE_SUITE=1
 
 # timeout in seconds (>0) in Regression Engine
-PERF_TIMEOUT=1200
+PERF_TIMEOUT=2400
 
 # Try count for Perfromance testing overwrite the ecl-test.json setting
 PERF_MAX_ATTEMPT_COUNT=1

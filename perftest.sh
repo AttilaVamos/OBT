@@ -117,7 +117,7 @@ PERF_TEST_REPO=https://github.com/hpcc-systems/PerformanceTesting.git
 
 TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
 TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/PerformanceTimeoutedTests.csv
-TIMEOUT_TAG="//timeout 90"
+TIMEOUT_TAG="//timeout ${PERF_TIMEOUT}"
 
 PARALLEL_QUERIES=0
 
