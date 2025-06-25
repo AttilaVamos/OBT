@@ -8,6 +8,7 @@ VERBOSE=0
 DEBUG=0
 ALL_TESTS_RESULTS=0
 SEPARATOR=0
+FIRST_FILE_ONLY=0
 
 usage()
 {
@@ -25,9 +26,10 @@ usage()
     echo "               format as is logged in result file like:"
     echo "               'stresstext.ecl ( version: multiPart=true )' "
     echo " -e <engine> - Engine where the test executed: Hthor, Thor or Roxie."
-    echo "               Default: Thor."
+    echo "               Default: Thor. Use 'all' for all engenes'"
     echo " -all        - Use all test results Pass/Fail. Default: Pass only."
     echo " -addsep     - Add separator line betwent tests. Default: no"
+    echo " -1          - Process the latest test result file only."
     echo " -v          - Show more logs."
     echo " -d          - Show debug logs."
     echo " -h          - This help."
@@ -68,7 +70,8 @@ else
         param=$1
         param=${param//-/}
         upperParam=${param^^}
-        #WriteLog "Param: ${upperParam}" "/dev/null"
+        [[ $DEBUG == 1 ]] && echo "Param: ${upperParam}"
+
         case $upperParam in
             ALL) 
                 ALL_TESTS_RESULTS=1
@@ -86,13 +89,18 @@ else
 
             E) shift
                 engine=$1
+                [[ "$engine" == 'all' ]] && engine='*'
                 ;;
                 
             H)
                 usage
                 exit 1
                 ;;
-                
+
+            1)
+                FIRST_FILE_ONLY=1
+                ;;
+
             *)
                 echo "Unknown parameter: ${upperParam}"
                 usage
@@ -117,35 +125,58 @@ printf "Log directory: %s\n" "$LOG_DIR"
 
 pushd $LOG_DIR > /dev/null
 
-printf "Test case    : '$testCase'\n"
+printf "Engine       : %s\n" "$( [[ $engine == '*' ]] && echo 'all' || echo $engine)"
+
+printf "Test case    : '$testCase' %s\n" "$( [[ $testCase == '*' ]] && echo '(all)' || echo '')"
+[[ "$testCase" == '*' ]] && testCase=''
+
 printf "Result filter: "
 [[ $ALL_TESTS_RESULTS -eq 1 ]] && echo "All tests" || echo "Pass only"
+[[ $FIRST_FILE_ONLY -eq 1 ]] && echo "Process the first/oldest file only"
 
 maxTestNameLen=0
+filesProcessed=0
 declare -A count  min  max sum avg testNames failed passed
 declare items=()
 while read fn
 do
+    printf "\r%-60s\r" "$fn"
     branchName=${fn#*/}
     branchName=${branchName#candidate-}
     branchName=${branchName%%/*}
     [[ $DEBUG == 1 ]] && printf "Branch: %s\n" "$branchName"
-    
+
+    testEngine=${fn##*/}
+    testEngine=${testEngine%%.*}
+    [[ $DEBUG == 1 ]] && printf "Test engine: %s\n" "$testEngine"
+   
     # Need to escape the '(' to '\(' and ')' to '\)' for grep
     escapedTestCase=$( echo $testCase | sed -e 's/(/\\(/g' -e 's/)/\\)/g')
+    [[ $DEBUG == 1 ]] && printf "escapedTestCase: %s\n" "$escapedTestCase"
+    
     if [[ $ALL_TESTS_RESULTS -eq 1 ]]
     then
-        line=$(egrep "(Pass |Fail )$escapedTestCase" ${fn})
+        lines=$(egrep "(Pass |Fail )$escapedTestCase" ${fn})
     else
-        line=$(egrep "Pass $escapedTestCase" ${fn})
+        lines=$(egrep "Pass $escapedTestCase" ${fn})
     fi
     
-    versionedTestCase=$( echo "${line}" | egrep -c 'version:')
-    [[ $DEBUG == 1 ]] && echo "versionedTestCase: $versionedTestCase"
-    
-    [[ $DEBUG == 1 ]] && printf "File:%s\nline:%s\n" "$fn" "$line"
-    while read status testName runTime version
+    [[ $DEBUG == 1 ]] && printf "File:%s\nline:%s\n" "$fn" "$lines"
+    IFS=$'\n'
+    for line in $lines
     do 
+        line=$(echo "$line" | tr '()' '[]')
+        [[ $DEBUG == 1 ]] && printf "\nline: '%s'\n" "$line"
+
+        versionedTestCase=$( echo "${line}" | egrep -c 'version:')
+        if [[  $versionedTestCase -ne 0 ]]
+        then
+            IFS=$';' read -r status testName version runTime < <(echo "$line" | sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\(\[.*\]\)\s*.*\[\(.*\) sec\].*$/\1;\2;\3;\4/p')
+        else
+            IFS=$';' read -r status testName runTime < <(echo "$line" | sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1;\2;\3/p')
+            version=''
+        fi
+
         [[ $DEBUG == 1 ]] && printf "\nline:test name: '%s',version: '%s', runtime: %s sec, status: '%s'\n" "$testName" "$version" "$runTime" "$status"
         if [[ $versionedTestCase -gt 0 ]]
         then
@@ -154,14 +185,14 @@ do
             [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
             
             # Create a unique key
-            item="$testName-$verTag-$branchName"
+            item="$testName-$verTag-$branchName-$testEngine"
             [[ $DEBUG == 1 ]] && echo "item: $item"        
             
             testName="$testName-$verTag"
             [[ $DEBUG == 1 ]] && echo "testName: $testName"        
         else
             # Create a unique key
-            item="$testName-$branchName"
+            item="$testName-$branchName-$testEngine"
             [[ $DEBUG == 1 ]] && echo "item: $item"        
             
             testName="$testName"
@@ -190,14 +221,27 @@ do
         [[ min[$item] -gt $runTime ]] && min[$item]=$runTime
         [[ "$status" == "Pass" ]] && passed[$item]=$(( passed[$item] + 1 )) || failed[$item]=$(( failed[$item] + 1 ))
         testNames[$item]="$testName"
-        
-    done< <( [[ $versionedTestCase -gt 0  ]] && (echo "$line" | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\(\[.*\]\)\s*.*\[\(.*\) sec\].*$/\1 \2 \4 \3/p')  \
-                                                                        || (echo "$line"  | tr '()' '[]' |sed -n 's/^\s*.*\([PF].*\)\s\(.*\)\.ecl\s\-\sW[0-9\-]*\s*\[\(.*\) sec\].*$/\1 \2 \3/p')  \
-                    )
+    done
+    set +x
 
     [[ $DEBUG == 1 ]] && echo -e "--------------------------\n\n"
-      
-done< <(find . -iname $engine'.2*.log' -type f -print)
+
+    filesProcessed=$(( filesProcessed + 1 ))
+
+    [[ $FIRST_FILE_ONLY -eq 1 ]] &&  break
+
+done< <(find . -iname $engine'.2*.log' -type f -print | egrep -v '-exclusion' | sort -r )
+echo ""
+
+printf "%5d file(s) processed.\n" "$filesProcessed"
+
+if [[ ${#items[@]} -eq 0 ]]
+then
+    printf "\nNo test match to '$testCase'. Exit.\n"
+    exit 1
+fi
+
+printf "%5d result(s) generated.\n" "${#items[@]}"
 
 [[ ($VERBOSE -eq 1) || ($DEBUG == 1) ]] && echo "maxTestNameLen: $maxTestNameLen"
 items=( $( printf "%s\n" "${items[@]}" | sort ) )
@@ -206,15 +250,15 @@ prevTestName=${testNames[${items[0]}]}
 echo ""
 if [[ $ALL_TESTS_RESULTS -eq 1 ]]
 then
-    printf "%-*s:  %-5s  %-6s  %-6s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)" " Pass " " Fail "
-    headerLen=$(( $maxTestNameLen + 48 ))
+    printf "%6s: %-*s:  %-5s  %-6s  %-6s  %-6s  %-6s  %-6s\n" "  No." "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)" " Pass " " Fail "
+    headerLen=$(( $maxTestNameLen + 56 ))
 else
-    printf "%-*s:  %-5s  %-6s  %-6s  %-6s\n" "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
-    headerLen=$(( $maxTestNameLen + 32 ))
+    printf "%6s: %-*s:  %-5s  %-6s  %-6s  %-6s\n" "  No." "$maxTestNameLen" "Test" "count" "min(s)" "max(s)" "avg(s)"
+    headerLen=$(( $maxTestNameLen + 40 ))
 fi
 printf "%.*s\n"  "$headerLen"  "--------------------------------------------------------------------------------------------------------------------------------------------------------------"
 
-
+itemNo=1
 for item in  ${items[@]}
 do
     testName=${testNames[$item]}
@@ -232,11 +276,12 @@ do
 
     if [[ $ALL_TESTS_RESULTS -eq 1 ]]
     then
-        printf "%-*s:  %5d  %5d   %5d   %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}" "${passed[$item]}" "${failed[$item]}"
+        printf "%6d: %-*s:  %5d  %5d   %5d   %5d   %5d   %5d\n"  "$itemNo" "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}" "${passed[$item]}" "${failed[$item]}"
     else
-        printf "%-*s:  %5d  %5d   %5d   %5d\n"  "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
+        printf "%6d: %-*s:  %5d  %5d   %5d   %5d\n"  "$itemNo" "$maxTestNameLen" "$item" "${count[$item]}" "${min[$item]}" "${max[$item]}" "${avg[$item]}"
     fi
 
+    itemNo=$(( itemNo + 1 ))
 done
 
 popd > /dev/null
