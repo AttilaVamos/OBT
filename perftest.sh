@@ -291,6 +291,52 @@ SuppressAnalyserWarnings()
     WriteLog "  Done." "${PERF_TEST_LOG}"
 }
 
+
+#
+#-----------------------------------------------------
+# Patch Performance suite tests if they needed to prevent extra long execuion tme
+InjectTimeout()
+    if [[ -n $PERF_TIMEOUTS ]]
+    then
+        WriteLog "Inject/update '//timeout <value>' to all performance test stored in 'PERF_TIMEOUTS' array." "${PERF_TEST_LOG}"
+        COUNT=${#PERF_TIMEOUTS[@]}
+        WriteLog "There is $COUNT test case need individual timeout setting" "${PERF_TEST_LOG}"
+        pushd ${PERF_TEST_HOME}/ecl
+
+        for((testIndex=0; testIndex<$COUNT; testIndex++))
+        do
+            TEST=(${!PERF_TIMEOUTS[$testIndex]})
+            WriteLog "\tPatch ${TEST[0]} with ${TEST[1]} sec timeout" "${PERF_TEST_LOG}"
+            file="${TEST[0]}"
+            if [[ -f ${file} ]]
+            then
+                timeout=${TEST[1]}
+                # Check if test already has '//timeout' tag
+                if [[ $( egrep -c '\/\/timeout' $file ) -eq 0 ]]
+                then
+                    # it has not, add one at the beginning of the file
+                    mv -fv $file $file-back
+                    echo "// Patched by the perftest.sh on $( date '+%Y.%m.%d %H:%M:%S')" > $file
+                    echo "//timeout $timeout" >> $file
+                    cat $file-back >> $file
+                else
+                    # yes it has, change it
+                    cp -fv $file $file-back
+                    sed -e 's/^\/\/timeout \(.*\).*$/\/\/ Patched by the Smoketest on '"$( date '+%Y.%m.%d %H:%M:%S')"'\n\/\/timeout '"$timeout"'/g' $file > $file-patched && mv -f $file-patched $file
+                fi
+                WriteLog "$(egrep -H -B1 -A1 '//timeout ' $file)" "${PERF_TEST_LOG}"
+                WriteLog "\t\tDone.\n" "${PERF_TEST_LOG}"
+            else
+                WriteLog "\t\t${file} file not exists, skip patching." "${PERF_TEST_LOG}"
+            fi
+        done
+        WriteLog "  Done." "${PERF_TEST_LOG}"
+        popd
+    else
+        WriteLog "No file to patch." "${PERF_TEST_LOG}"
+    fi
+}
+
 #
 #----------------------------------------------------
 #
@@ -1058,6 +1104,7 @@ then
     fi
     
     SuppressAnalyserWarnings
+    InjectTimeout
     
     cd ${REGRESSION_TEST_ENGINE_HOME}
     
@@ -1536,6 +1583,7 @@ then
     fi
     
     SuppressAnalyserWarnings
+    InjectTimeout
     
     cd ${REGRESSION_TEST_ENGINE_HOME}
     
@@ -1945,7 +1993,7 @@ then
     fi
     
     SuppressAnalyserWarnings
-    
+    InjectTimeout
     cd ${REGRESSION_TEST_ENGINE_HOME}
 
 

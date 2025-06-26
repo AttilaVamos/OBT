@@ -557,6 +557,28 @@ PERF_EXCLUDE_CLASS="-e stress"
 #PERF_QUERY_LIST='15*'
 PERF_QUERY_LIST=''
 
+# Individual performance test timeouts
+#               "testname" "timeout sec" (~1.5 - 2 x max RTE execution time)
+PERF_TEST_1=( "02bl_sortvariable" "130" )
+PERF_TEST_2=( "02bm_sortlarge" "200" )
+PERF_TEST_3=( "04aa_join1.ecl" "280" )
+PERF_TEST_4=( "04ab_join1u.ecl" "800" )
+PERF_TEST_5=( "07ca_keyedjoinlimit_no.ecl" "2400" )
+PERF_TEST_6=( "07cb_keyedjoinlimit_no2.ecl" "1400" )
+
+PERF_TIMEOUTS=(
+    PERF_TEST_1[@]
+    PERF_TEST_2[@]
+    PERF_TEST_3[@]
+    PERF_TEST_4[@]
+    PERF_TEST_5[@]
+    PERF_TEST_6[@]
+    )
+
+
+
+
+
 # If empty disabled, if not see comment
 PERF_FLUSH_DISK_CACHE=""    # "--flushDiskCache --flushDiskCachePolicy 1 "
 
