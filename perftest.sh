@@ -115,9 +115,9 @@ PERF_TEST_HOME=${PERF_TEST_ROOT}/PerformanceTesting/PerformanceTesting
 PERF_TEST_LOG=${BIN_HOME}/Perf_test-${LONG_DATE}.log
 PERF_TEST_REPO=https://github.com/hpcc-systems/PerformanceTesting.git
 
-TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
-TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/PerformanceTimeoutedTests.csv
-TIMEOUT_TAG="//timeout ${PERF_TIMEOUT}"
+#TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
+#TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/PerformanceTimeoutedTests.csv
+#TIMEOUT_TAG="//timeout ${PERF_TIMEOUT}"
 
 PARALLEL_QUERIES=0
 
@@ -296,6 +296,7 @@ SuppressAnalyserWarnings()
 #-----------------------------------------------------
 # Patch Performance suite tests if they needed to prevent extra long execuion tme
 InjectTimeout()
+{
     if [[ -n $PERF_TIMEOUTS ]]
     then
         WriteLog "Inject/update '//timeout <value>' to all performance test stored in 'PERF_TIMEOUTS' array." "${PERF_TEST_LOG}"
@@ -1116,7 +1117,7 @@ then
 
     #echo "Patch testcases which previously run timeout if any ${TARGET_PLATFORM}"
     #WriteLog "Patch testcases which previously run timeout if any ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-    
+
     #if [ -f ${TIMEOUTED_FILE_LIST_NAME} ]
     #then
     #    echo "There is some timeouted testcases"
@@ -1591,34 +1592,34 @@ then
     #----------------------------------------------------
     #
     # Patch testcase(s) which previously run timeout if any
-    
-    WriteLog "Patch testcase(s) which previously run timeout if any ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-    
-    if [ -f ${TIMEOUTED_FILE_LIST_NAME} ]
-    then
-        WriteLog "There is some timeouted testcases ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-        myPwd=$( pwd )
-    
-        cd ${PERF_TEST_HOME}/ecl
-    
-        while read file
-        do
-            WriteLog "File:${file}" "${PERF_TEST_LOG}"
 
-            patched=$( grep '//timeout' ${file}.ecl )
-    
-            if [[ -z ${patched} ]]
-            then
-                WriteLog "Patching..." "${PERF_TEST_LOG}"
-                (echo ${TIMEOUT_TAG}; cat ${file}'.ecl') >${file}.new
-                mv ${file}{.new,.ecl}
-            else
-                WriteLog "Already has //timeout tag !" "${PERF_TEST_LOG}"
-            fi
-        done < "${TIMEOUTED_FILE_LIST_NAME}"
-    
-        cd ${myPwd}
-    fi
+#    WriteLog "Patch testcase(s) which previously run timeout if any ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+#
+#    if [ -f ${TIMEOUTED_FILE_LIST_NAME} ]
+#    then
+#        WriteLog "There is some timeouted testcases ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+#        myPwd=$( pwd )
+#
+#        cd ${PERF_TEST_HOME}/ecl
+#
+#        while read file
+#        do
+#            WriteLog "File:${file}" "${PERF_TEST_LOG}"
+#
+#            patched=$( grep '//timeout' ${file}.ecl )
+#
+#            if [[ -z ${patched} ]]
+#            then
+#                WriteLog "Patching..." "${PERF_TEST_LOG}"
+#                (echo ${TIMEOUT_TAG}; cat ${file}'.ecl') >${file}.new
+#                mv ${file}{.new,.ecl}
+#            else
+#                WriteLog "Already has //timeout tag !" "${PERF_TEST_LOG}"
+#            fi
+#        done < "${TIMEOUTED_FILE_LIST_NAME}"
+#
+#        cd ${myPwd}
+#    fi
 
     #
     #----------------------------------------------------
