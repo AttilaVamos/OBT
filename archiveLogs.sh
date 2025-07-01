@@ -422,14 +422,14 @@ then
             WriteLog "corename: ${corename}, comp: ${comp}, compnamepart: ${compnamepart}, component name: ${compname}" "${ARCHIVE_LOG_DIR}"
             eval ${GDB_CMD} "/opt/HPCCSystems/bin/${compname}" $core | sudo tee "$core.trace"
 
-            zip $ARCHIVE_TARGET$core.trace >> $ARCHIVE_TARGET.log
-            zip $ARCHIVE_TARGET"/opt/HPCCSystems/bin/${comp}" >> $ARCHIVE_TARGET.log
+            zip $ARCHIVE_TARGET $core.trace >> $ARCHIVE_TARGET.log
+            zip $ARCHIVE_TARGET "/opt/HPCCSystems/bin/${comp}" >> $ARCHIVE_TARGET.log
 
 
             if [[ (${coreIndex} -le $maxNumberOfCoresStored) && (${coreSize} -lt 1073741824) ]]      # <1GB
             then
                 WriteLog "Add $core (${coreSizeHuman}) to archive" "${ARCHIVE_LOG_DIR}"
-                zip $ARCHIVE_TARGET$core >> $ARCHIVE_TARGET.log
+                zip $ARCHIVE_TARGET $core >> $ARCHIVE_TARGET.log
             else
                 WriteLog "Skip to add $core (${coreSizeHuman}) to archive" "${ARCHIVE_LOG_DIR}"
             fi
