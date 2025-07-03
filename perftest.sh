@@ -674,23 +674,29 @@ then
     #
 
     cd ${BUILD_HOME}
-    BASE_VERSION=${BRANCH_ID#candidate-}
-    BASE_VERSION=${BASE_VERSION%.*}
-    [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-    VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
-    WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$PERF_TEST_LOG"
+    
+    if [[ $PERF_SKIP_VCPKG_HANDLING -ne 1 ]]
+    then 
+        BASE_VERSION=${BRANCH_ID#candidate-}
+        BASE_VERSION=${BASE_VERSION%.*}
+        [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+        VCPKG_DOWNLOAD_ARCHIVE=~/vcpkg_downloads-${BASE_VERSION}.zip
+        WriteLog "BRANCH_ID: $BRANCH_ID, BASE_VERSION: $BASE_VERSION, VCPKG_DOWNLOAD_ARCHIVE: $VCPKG_DOWNLOAD_ARCHIVE" "$PERF_TEST_LOG"
 
-    if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
-    then
-        WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$PERF_TEST_LOG"
-        
-        res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
-        retCode=$?
-        
-        [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "$PERF_TEST_LOG"
-        WriteLog "   Done."  "$PERF_TEST_LOG"
+        if [[ -f  $VCPKG_DOWNLOAD_ARCHIVE ]]
+        then
+            WriteLog "Extract $VCPKG_DOWNLOAD_ARCHIVE into build directory" "$PERF_TEST_LOG"
+            
+            res=$( unzip $VCPKG_DOWNLOAD_ARCHIVE 2>&1 )
+            retCode=$?
+            
+            [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "$PERF_TEST_LOG"
+            WriteLog "   Done."  "$PERF_TEST_LOG"
+        else
+            WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$PERF_TEST_LOG"
+        fi
     else
-        WriteLog "The $VCPKG_DOWNLOAD_ARCHIVE not found." "$PERF_TEST_LOG"
+        WriteLog "Skip vcpkg handling." "$PERF_TEST_LOG"
     fi
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
@@ -791,46 +797,51 @@ then
                 popd
             fi
             
-            if [[ -d ${BUILD_HOME}/vcpkg_installed  ]]
-            then
-                BASE_VERSION=${BRANCH_ID#candidate-}
-                BASE_VERSION=${BASE_VERSION%.*}
-                [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
-                WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${PERF_TEST_LOG}"
-                # We need relative paths to use this archive in Smoketest as well
-                pushd ${BUILD_HOME}
-                rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
-                [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
-
-                changesInInstalled=1
-                changesInDownloads=1
-                if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
+            if [[ $PERF_SKIP_VCPKG_HANDLING -ne 1 ]]
+            then 
+                if [[ -d ${BUILD_HOME}/vcpkg_installed  ]]
                 then
-                    cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
-                    changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
-                    WriteLog "Changes in installed: '$changesInInstalled'." "${PERF_TEST_LOG}"
-                                    
-                    changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
-                    WriteLog "Changes in downloads: '$changesInDownloads'." "${PERF_TEST_LOG}"
-                fi
+                    BASE_VERSION=${BRANCH_ID#candidate-}
+                    BASE_VERSION=${BASE_VERSION%.*}
+                    [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+                    WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${PERF_TEST_LOG}"
+                    # We need relative paths to use this archive in Smoketest as well
+                    pushd ${BUILD_HOME}
+                    rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
+                    [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
 
-                if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
-                then
-                    # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
-                    # because it can contain older version of components along with the new one and
-                    # its size can grows more than necessary.
-                    WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
-                    [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
+                    changesInInstalled=1
+                    changesInDownloads=1
+                    if [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]]
+                    then
+                        cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
+                        changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
+                        WriteLog "Changes in installed: '$changesInInstalled'." "${PERF_TEST_LOG}"
+                                        
+                        changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
+                        WriteLog "Changes in downloads: '$changesInDownloads'." "${PERF_TEST_LOG}"
+                    fi
 
-                    res=$(zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* vcpkg_downloads/*  2>&1)
-                    retCode=$?
-                    [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "${PERF_TEST_LOG}"
-                    WriteLog "  Done." "${PERF_TEST_LOG}"
+                    if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
+                    then
+                        # Don't use the local vcpkg_downloads-${BASE_VERSION}.zip  file updated above,
+                        # because it can contain older version of components along with the new one and
+                        # its size can grows more than necessary.
+                        WriteLog "Something changed, generate a new '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
+                        [[ -f ~/vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ~/vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
+
+                        res=$(zip -r ~/vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* vcpkg_downloads/*  2>&1)
+                        retCode=$?
+                        [[ $retCode -ne 0 ]] && WriteLog "retCode: ${retCode}\nRes: $res" "${PERF_TEST_LOG}"
+                        WriteLog "  Done." "${PERF_TEST_LOG}"
+                    else
+                        WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
+                    fi
+                    [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
                 else
-                    WriteLog "Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/vcpkg_downloads-${BASE_VERSION}.zip'." "${PERF_TEST_LOG}"
+                    WriteLog "Skip vcpkg handling." "$PERF_TEST_LOG"
                 fi
-                [[ -f ./vcpkg_downloads-${BASE_VERSION}.zip ]] && WriteLog "Clean-up: $(rm -v ./vcpkg_downloads-${BASE_VERSION}.zip) 2>&1)." "${PERF_TEST_LOG}"
-
+                
                 WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${PERF_TEST_LOG}"
                 WriteLog "Before: $(df -h . | egrep -v 'Files')" "${PERF_TEST_LOG}"
                 for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp $RELEASE_TYPE
