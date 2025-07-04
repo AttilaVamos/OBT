@@ -702,49 +702,24 @@ then
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Start build at ${date}" "${PERF_TEST_LOG}"
 
-#    if [ ! -f  ${BUILD_DIR}/bin/build_perf.sh ]
-#    then
-#        C_CMD="/usr/local/bin/cmake -D CMAKE_BUILD_TYPE=$PERF_BUILD_TYPE -DMAKE_DOCS=0 -DUSE_CPPUNIT=1 -DTEST_PLUGINS=0 -DINCLUDE_PLUGINS=0 -DSUPPRESS_PY3EMBED=ON -DINCLUDE_PY3EMBED=OFF -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30 -DECLWATCH_BUILD_STRATEGY='IF_MISSING' ../HPCC-Platform ln -s ../HPCC-Platform"
-#        # C_CMD="cmake -D INCLUDE_PY3EMBED=OFF -D PY3EMBED=OFF -D SUPPRESS_PY3EMBED=ON -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30 -DECLWATCH_BUILD_STRATEGY='IF_MISSING' ../HPCC-Platform ln -s ../HPCC-Platform"
-#        WriteLog "${C_CMD}" "${PERF_TEST_LOG}"
-#
-#        res=( "$(${C_CMD} 2>&1)" )
-#        WriteLog "${res[*]}" "${PERF_TEST_LOG}"
-#    else
-        #WriteLog "Execute '${BUILD_DIR}/bin/build_perf.sh'" "${PERF_TEST_LOG}"
+    WriteLog "Create makefiles $(date +%Y-%m-%d_%H-%M-%S)" "${PERF_TEST_LOG}"
+    CMAKE_CMD=$'cmake'
+    CMAKE_CMD+=$' -D CMAKE_BUILD_TYPE='$PERF_BUILD_TYPE
+    CMAKE_CMD+=$' -D INCLUDE_PLUGINS=0'
+    CMAKE_CMD+=${SUPRESS_PLUGINS}
+    CMAKE_CMD+=$' -D MAKE_DOCS=0'
+    CMAKE_CMD+=$' -D USE_CPPUNIT=1'
+    CMAKE_CMD+=$' -D CMAKE_EXPORT_COMPILE_COMMANDS=ON'
+    CMAKE_CMD+=$' -D USE_LIBXSLT=ON -D XALAN_LIBRARIES='
+    CMAKE_CMD+=$' -D VCPKG_ECLBLAS_DYNAMIC_ARCH=OFF'
+    CMAKE_CMD+=$' -D USE_NATIVE_LIBRARIES=ON'
+    CMAKE_CMD+=$' ../HPCC-Platform'
 
-        #C_CMD="/usr/local/bin/cmake -DCMAKE_BUILD_TYPE=$PERF_BUILD_TYPE -DTEST_PLUGINS=0 -DINCLUDE_PLUGINS=0 -DSUPPRESS_PY3EMBED=ON -DINCLUDE_PY3EMBED=OFF -DMAKE_DOCS=0 -DUSE_CPPUNIT=1 -DINCLUDE_SPARK=0 -DSUPPRESS_SPARK=1 -DSPARK=0 -DGENERATE_COVERAGE_INFO=0 -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= -DMYSQL_LIBRARIES=/usr/lib64/mysql/libmysqlclient.so  -DMYSQL_INCLUDE_DIR=/usr/include/mysql -DMAKE_MYSQLEMBED=1 -DECLWATCH_BUILD_STRATEGY=SKIP ../HPCC-Platform ln -s ../HPCC-Platform"
-        # C_CMD="cmake -D INCLUDE_PY3EMBED=OFF -D PY3EMBED=OFF -D SUPPRESS_PY3EMBED=ON -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= -D CMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30 -DECLWATCH_BUILD_STRATEGY='IF_MISSING' ../HPCC-Platform ln -s ../HPCC-Platform"
+    WriteLog "CMAKE_CMD:'${CMAKE_CMD}'\\n" "${PERF_TEST_LOG}"
 
-        WriteLog "Create makefiles $(date +%Y-%m-%d_%H-%M-%S)" "${PERF_TEST_LOG}"
-        GENERATOR="Eclipse CDT4 - Unix Makefiles"
-        CMAKE_CMD=$'cmake'
-        #CMAKE_CMD+=$' -G "'${GENERATOR}$'"'
-        CMAKE_CMD+=$' -D CMAKE_BUILD_TYPE='$PERF_BUILD_TYPE
-        CMAKE_CMD+=$' -D INCLUDE_PLUGINS=1'
-        #CMAKE_CMD+=$' -D SUPPRESS_PY3EMBED=ON -D INCLUDE_PY3EMBED=OFF'
-        CMAKE_CMD+=${SUPRESS_PLUGINS}
-        CMAKE_CMD+=$' -D MAKE_DOCS=0'
-        CMAKE_CMD+=$' -D USE_CPPUNIT=1'
-        #CMAKE_CMD+=$' -D ECLWATCH_BUILD_STRATEGY=SKIP'
-        #CMAKE_CMD+=$' -D INCLUDE_SPARK=0 -D SUPPRESS_SPARK=1 -D SPARK=0'
-        CMAKE_CMD+=$' -D CMAKE_EXPORT_COMPILE_COMMANDS=ON'
-        CMAKE_CMD+=$' -D USE_LIBXSLT=ON -D XALAN_LIBRARIES='
-        #CMAKE_CMD+=$' -D MAKE_CASSANDRAEMBED=1'
-        CMAKE_CMD+=$' -D VCPKG_ECLBLAS_DYNAMIC_ARCH=OFF'
-        CMAKE_CMD+=$' -D USE_NATIVE_LIBRARIES=ON'
-        #CMAKE_CMD+=$' -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30 ../HPCC-Platform ln -s '
-        CMAKE_CMD+=$' ../HPCC-Platform'
+    res=$( eval ${CMAKE_CMD} 2>&1 )
 
-        WriteLog "CMAKE_CMD:'${CMAKE_CMD}'\\n" "${PERF_TEST_LOG}"
-
-        #eval ${CMAKE_CMD} >> "${PERF_TEST_LOG}" 2>&1
-
-        res=$( eval ${CMAKE_CMD} 2>&1 )
-
-        #res=( "$(${C_CMD} 2>&1)" )
-        WriteLog "${res[*]}" "${PERF_TEST_LOG}"
-#    fi
+    WriteLog "${res[*]}" "${PERF_TEST_LOG}"
 
     # Control TBB and TBBMALLOC stuff
 
@@ -760,16 +735,9 @@ then
 
     # Let's build
     CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
-    #CMD="make -j 1 package"
-
     WriteLog "cmd: ${CMD}" "${PERF_TEST_LOG}"
 
     ${CMD} >> ${BUILD_LOG_FILE} 2>&1
-
-    #WriteLog "Execute it again: ${CMD}" "${PERF_TEST_LOG}"
-
-    #res=$( ${CMD} 2>&1 )
-    #WriteLog "build result:${res}" "${PERF_TEST_LOG}"
 
     if [ $? -ne 0 ] 
     then
