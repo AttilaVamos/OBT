@@ -15,6 +15,8 @@ then
     RUN_2[@]    # candidate-9.14.x (1 ch/th sl)
     RUN_3[@]    # candidate-9.12.x (1 ch/th sl)
     RUN_4[@]    # candidate-9.10.x (1 ch/th sl)
+    RUN_5[@]    # candidate-9.8.x (1 ch/th sl)
+    RUN_6[@]    # candidate-9.6.x (1 ch/th sl)
   )
 else
   # The debug testing is slow, use less branches and versions
