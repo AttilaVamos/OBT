@@ -8,6 +8,9 @@ clear
 #
 # Git branch
 
+[[ -f ~/.bash_profile ]] && . ~/.bash_profile
+
+
 . ./settings.sh
 
 # WriteLog() function
@@ -19,6 +22,8 @@ clear
 . ./UninstallHPCC.sh
 
 
+. ./cloneRepo.sh
+
 #
 #------------------------------
 #
@@ -26,9 +31,9 @@ clear
 #
 
 COVERAGE_ROOT=~/coverage
-TEST_ROOT=~/build/CE/platform
+#TEST_ROOT=~/build/CE/platform
 TEST_HOME=${TEST_ROOT}/HPCC-Platform/testing/regress
-BUILD_HOME=~/build/CE/platform/build
+#BUILD_HOME=~/build/CE/platform/build
 BUILD_LOG=${COVERAGE_ROOT}/build_log
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 COVERAGE_LOG_FILE=${OBT_LOG_DIR}/coverage-${LONG_DATE}.log
