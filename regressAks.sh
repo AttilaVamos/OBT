@@ -867,7 +867,7 @@ then
     else
         ERROR_STR=$(echo "$res" | egrep -A 4 'Error: ')
         VNET_START_ERROR_STR="\n      - Error: $ERROR_STR"
-        VNET_START_RESULT_STR="VNet deployment failed(retCode: $retCode)."
+        VNET_START_RESULT_STR="VNet deployment failed (retCode: $retCode)."
         VNET_START_RESULT_REPORT_STR="$VNET_START_RESULT_STR in $VNET_START_TIME_STR, $VNET_START_ERROR_STR"
 
         WriteLog "  $VNET_START_RESULT_REPORT_STR" "$logFile"
@@ -903,7 +903,7 @@ then
         WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
     else
-        STORAGE_START_RESULT_STR="Storage account deployment failed(retCode: $retCode)."
+        STORAGE_START_RESULT_STR="Storage account deployment failed (retCode: $retCode)."
         STORAGE_START_RESULT_REPORT_STR="$STORAGE_START_RESULT_STR in $STORAGE_START_TIME__STR, $STORAGE_NUM_OF_RESOURCES_STR"
         WriteLog "  $STORAGE_START_RESULT_REPORT_STR" "$logFile"
         popd > /dev/null
