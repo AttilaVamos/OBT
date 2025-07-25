@@ -619,6 +619,16 @@ class TrendReport(object):
         diagramFileName =''
         try:
 #            print("cluster:%s, test: %s" % (cluster,  test))
+            self.diagramWidth = 16
+            if self.useAllData == True:
+                dataPoints = len(self.results2[cluster][test]['Days'])
+            else:
+                dataPoints = min(len(self.results2[cluster][test]['Days']), self.maxDatapoints)
+
+            if dataPoints > 35 :
+                # The number of data points is larger than the usual ~1 month (~30-35), increase the canvas width.
+                self.diagramWidth = int( self.diagramWidth * dataPoints / 30)
+
             fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
             fig.subplots_adjust(bottom=0.2)
             ax = fig.add_subplot(111)
@@ -626,7 +636,6 @@ class TrendReport(object):
 
             self.myPrint("\t\t",  self.results2[cluster][test])
             
-            dataPoints = min(len(self.results2[cluster][test]['Days']), self.maxDatapoints)
             dates = self.results2[cluster][test]['Dates'][-dataPoints:]
             
             for index in range(len(dates)):
@@ -982,7 +991,7 @@ class TrendReport(object):
                 pass
         
         summaryFile.close()
-        
+
         # Write out Performance Test totals
         try:
             totalsFileName = self.reportPath + "perftest-totals" + "-" + self.hpccVersion  + "-" + dateStr + ".csv"
@@ -1001,8 +1010,16 @@ class TrendReport(object):
             #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
             traceback.print_stack()
             pass
-        
+
+        # Summary diagram
+
         if plt:
+            self.diagramWidth = 16
+            maxDataPoints = self.numOfRuns[max(self.numOfRuns, key=self.numOfRuns.get)] # maximum value of the list elements
+            if maxDataPoints > 35 :
+                # The number of data points is larger than the usual ~1 month (~30-35), increase the canvas width.
+                self.diagramWidth = int( self.diagramWidth * maxDataPoints / 30)
+
             fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
             fig.subplots_adjust(bottom=0.2)
             ax = fig.add_subplot(111)

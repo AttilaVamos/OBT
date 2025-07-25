@@ -61,7 +61,7 @@ class TrendReport(object):
     # or decreased (<-threshold)
     threshold = 5.0  # %
     results2 = {}
-    maxDatapoints = 30 # 180
+    maxDatapoints = 180
     maxDataPointsOverhead = 5
 
     def myPrint(self, Msg, *Args):
@@ -92,21 +92,20 @@ class TrendReport(object):
         if not os.path.exists(self.reportPath):
             os.mkdir(self.reportPath)
 
-        if not os.path.exists(self.reportPath + 'Bad'):
-            os.mkdir(self.reportPath + 'Bad')
-
-        if not os.path.exists(self.reportPath + 'Good'):
-            os.mkdir(self.reportPath + 'Good')
-
-        if not os.path.exists(self.reportPath + 'Ugly'):
-            os.mkdir(self.reportPath + 'Ugly')
-
-        if not os.path.exists(self.reportPath + 'Neutral'):
-            os.mkdir(self.reportPath + 'Neutral')
-
         if not os.path.exists(self.reportPath):
             print("Fatal error: %s report path doesn't exist." % (self.reportPath))
             exit()
+
+        engines = [ 'hthor/',  'thor/', 'roxie/']
+        tags = ['Bad', 'Good', 'Neutral', 'Ugly']
+
+        for engine in engines:
+            if not os.path.exists(self.reportPath + engine):
+                os.mkdir(self.reportPath + engine)
+            for tag in tags:
+                if not os.path.exists(self.reportPath + engine + tag):
+                    os.mkdir(self.reportPath + engine + tag)
+
 
         self.enablePdfReport = True
         self.enablePdfReport = options.pdfReport
@@ -655,14 +654,13 @@ class TrendReport(object):
         diagramFileName =''
         try:
 #            print("cluster:%s, test: %s" % (cluster,  test))
-            fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
-            fig.subplots_adjust(bottom=0.2)
-            ax = fig.add_subplot(111)
-            diagramColors = { 'value': 'blue', 'mean': 'red', 'trend': 'black', 'movingAverage1' : 'green', 'movingAverage2' : 'purple',  'sigma':'yellow', 'min': 'lime',  'max' : 'red'}
+            if self.useAllData == True:
+                dataPoints = len(self.results2[cluster][test]['Days'])
+            else:
+                dataPoints = min(len(self.results2[cluster][test]['Days']), self.maxDatapoints)
 
             self.myPrint("\t\t",  self.results2[cluster][test])
             
-            dataPoints = min(len(self.results2[cluster][test]['Days']), self.maxDatapoints)
             dates = self.results2[cluster][test]['Dates'][-dataPoints:]
             
             for index in range(len(dates)):
@@ -677,6 +675,17 @@ class TrendReport(object):
             dataPoints = len(dates2)
             days = dates2[-1] - dates2[0] + 1
             
+            self.diagramWidth = 16
+            if int(days) > 35 :  # Perhaps int(days) would be better
+                # The number of data points is larger than the usual ~1 month (~30-35), increase the canvas width.
+                self.diagramWidth = int( self.diagramWidth * days / 30)
+
+            fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
+            fig.subplots_adjust(bottom=0.2)
+            ax = fig.add_subplot(111)
+            diagramColors = { 'value': 'blue', 'mean': 'red', 'trend': 'black', 'movingAverage1' : 'green', 'movingAverage2' : 'purple',  'sigma':'yellow', 'min': 'lime',  'max' : 'red'}
+
+
             try:
                 self.results2[cluster][test]['avg'] = numpy.nanmean(self.results2[cluster][test]['Values2'][-dataPoints:])
                 self.results2[cluster][test]['sigma'] = numpy.nanstd(self.results2[cluster][test]['Values2'][-dataPoints:])
@@ -806,7 +815,7 @@ class TrendReport(object):
                 ax.legend(loc = 'best')
                 
             #plt.show()
-            diagramFileName = self.reportPath  + tag +'/' + test +"-" + cluster + '-' + self.dateStr + ".png"
+            diagramFileName = self.reportPath + cluster + '/' + tag +'/' + test +"-" + cluster + '-' + self.dateStr + ".png"
             plt.savefig(diagramFileName)
             fig.clear()
             plt.close(fig)
@@ -1048,8 +1057,16 @@ class TrendReport(object):
             #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
             traceback.print_stack()
             pass
-        
+
+        # Summary diagram
+
         if plt:
+            self.diagramWidth = 16
+            maxDataPoints = self.numOfRuns[max(self.numOfRuns,  key=self.numOfRuns.get)] # maximum value of the dict elements
+            if maxDataPoints > 35 :
+                # The number of data points is larger than the usual ~1 month (~30-35), increase the canvas width.
+                self.diagramWidth = int( self.diagramWidth * maxDataPoints / 30)
+
             fig = plt.figure(figsize=(self.diagramWidth, self.diagramHeight), dpi=100)
             fig.subplots_adjust(bottom=0.2)
             ax = fig.add_subplot(111)

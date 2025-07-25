@@ -56,8 +56,10 @@ then
     echo "Done, $FILE_COUNT file(s) archived."
     echo " "
     
-    echo "Move file older than $PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
     PERFSTAT_DAYS_TO_KEEP=32
+    [[ -n $PERF_PERFSTAT_DAYS_TO_KEEP ]] && PERFSTAT_DAYS_TO_KEEP=PERF_PERFSTAT_DAYS_TO_KEEP
+    echo "Move file older than $PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
+
     FILE_COUNT=0
 
     while read fileName
