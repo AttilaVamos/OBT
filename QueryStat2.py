@@ -20,6 +20,9 @@ import time
 
 verbose = False
 
+def getLogTimeStamp():
+        return datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+
 class HThorPerfResultConfig():
    
     def __init__(self, iniFile = ''):
@@ -291,7 +294,7 @@ class WriteStatsToFile(object):
         
     def myPrint(self, Msg, *Args):
         if self.verbose:
-            format=''.join(['%s']*(len(Args)+1)) 
+            format = getLogTimeStamp() +": " + ''.join(['%s']*(len(Args)+1)) 
             print(format % tuple([Msg]+list(map(str,Args))) )
             
     def run(self):
@@ -627,7 +630,8 @@ class WriteStatsToFile(object):
         return times
         
     def queryStats(self, cluster,  dateStr = ''):
-        print("Process %s started." % (cluster))
+        print("Process %s started @%s." % (cluster,  getLogTimeStamp()))
+        startTime= time.time()
         url = self.url + "/WUQuery.json?PageSize=25000&Sortby=Jobname&Cluster=" + cluster
         if 'roxie' == cluster:
             url += '*'
@@ -693,7 +697,7 @@ class WriteStatsToFile(object):
             
             if'Workunits' not in resp['WUQueryResponse']:
                 state = "Workuint not found."
-                print("%s end.\n" % (cluster))
+                #print("%s end.\n" % (cluster))
                 return False
                
             stats= resp['WUQueryResponse']['Workunits']['ECLWorkunit']
@@ -816,6 +820,8 @@ class WriteStatsToFile(object):
             
         finally:
             print("State:" + state)
+            print("%s end @%s (took: %d seconds).\n" % (cluster,  getLogTimeStamp(), int(time.time() - startTime)))
+
             if wuCount == 0:
                 return False
                 
@@ -827,9 +833,7 @@ class WriteStatsToFile(object):
             self.resultConfigClass[cluster].set('Result',  'Status',  state)
         
             self.resultConfigClass[cluster].saveConfig(statFileName.replace('.csv',''))
-            
-            print("%s end.\n" % (cluster))
-        
+
         return True
 
 #
