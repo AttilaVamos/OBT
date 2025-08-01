@@ -1226,7 +1226,7 @@ then
         WriteLog "Run QueryStat2.py ..." "$logFile"
         pushd $QUERY_STAT2_DIR > /dev/null
         TIME_STAMP=$(date +%s)
-        ./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp > $logFile 2>&1
+        ./QueryStat2.py -a -t $ip --port $port --obtSystem=Azure --buildBranch=$base -p Azure/ --addHeader --compileTimeDetails 1 --timestamp >> $logFile 2>&1
         QUERY_STAT2_TIME=$(( $(date +%s) - $TIME_STAMP ))
         WriteLog "${res}" "$logFile"
 
