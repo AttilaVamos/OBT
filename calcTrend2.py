@@ -537,7 +537,7 @@ class TrendReport(object):
             startIndex = max (endIndex - numberOfDays, 0)
             dataSlice = numpy.array([])
             dataSlice = numpy.append(dataSlice, data[startIndex:endIndex]) 
-            movingMean =  dataSlice.mean()
+            movingMean =  numpy.nanmean(dataSlice)
             retArray.append(movingMean)
         pass
         return retArray
@@ -556,7 +556,7 @@ class TrendReport(object):
             startIndex = max (endIndex - numberOfDays, 0)
             dataSlice = numpy.array([])
             dataSlice = numpy.append(dataSlice, data[startIndex:endIndex]) 
-            movingStdDev =  numpy.std(dataSlice)
+            movingStdDev =  numpy.nanstd(dataSlice)
             retArray.append(movingStdDev)
         pass
         return retArray
@@ -819,7 +819,7 @@ class TrendReport(object):
             plt.savefig(diagramFileName)
             fig.clear()
             plt.close(fig)
-            print("\t %s created." % (diagramFileName))
+            print("\t%s created." % (diagramFileName))
             pass
         except Exception as e:
             PrintException(repr(e) + " No diagram generated for %s" %(diagramFileName))
@@ -842,7 +842,7 @@ class TrendReport(object):
         dateStr = today.strftime("%y%m%d")
         pageBreak = False
         for cluster in sorted(self.results2):
-            print ("Cluster:" + cluster + ' (' +str(self.numOfRuns[cluster]) + ' datasets )')
+            print ("Cluster: '" + cluster + "'  (" +str(self.numOfRuns[cluster]) + ' datasets )')
             if self.enablePdfReport:
                 pdfReport.startNewSection("Performance test result on cluster " + cluster + " on " + today.strftime("%d/%m/%y"),  pageBreak)
                 pdfShortReport.startNewSection("Performance test short result on cluster " + cluster + " on " + today.strftime("%d/%m/%y"),  pageBreak)
@@ -923,7 +923,7 @@ class TrendReport(object):
                         fluctuation = self.results2[cluster][test]['sigma'] / self.results2[cluster][test]['avg'] 
                     
                     #print("%3d/%3d: cluster:%s, test:%s, mean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (testIndex, numberOfTests, cluster, test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
-                    print("%3d/%3d: cluster:%s " % (testIndex, numberOfTests, cluster), end=' ')
+                    print("%3d/%3d: test: '%s' (on '%s')" % (testIndex, numberOfTests, test,  cluster))
                     
 #                    # Only for generate example diagram
 #                    if test.startswith('01da'):
@@ -935,23 +935,23 @@ class TrendReport(object):
 #                        if plt:
 #                            self.manageTestCase(cluster,  test,  'Result of ')
 #                        break
-                        
+
                     if (self.results2[cluster][test]['all']['alpha'] > self.badThreshold / 100.0) and (fluctuation >= 1.0):
-                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
+                        print("\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfUglyBadTests += 1
                         averageTimeOfUglyBadTests += self.results2[cluster][test]['avg']
                         if plt:
                             self.manageTestCase(cluster, test, self.uglyAndBadTag)
                             
                     elif self.results2[cluster][test]['all']['alpha'] > self.badThreshold / 100.0:
-                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
+                        print("\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfBadTests += 1
                         averageTimeOfBadTests += self.results2[cluster][test]['avg']
                         if plt:
                             self.manageTestCase(cluster,  test,  self.badTag)
                             
                     elif fluctuation >= 1.0:
-                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
+                        print("\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         numOfFluctTests += 1
                         averageTimeOfFlucTests += self.results2[cluster][test]['avg']
                         if plt:
@@ -961,11 +961,11 @@ class TrendReport(object):
 #                    elif test.startswith('05bc') or test.startswith('06bc'):
 #                        pass
                     elif self.results2[cluster][test]['all']['alpha'] < self.goodThreshold / 100.0:
-                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
+                        print("\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         if plt and self.enableReportGood:
                             self.manageTestCase(cluster,  test,  self.goodTag)
                     elif enableGood:
-                        print("test:%s\n\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (test, self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
+                        print("\t\tmean:%f sec, sigma:%f sec, fluctuation:%f, alpha:%f" % (self.results2[cluster][test]['avg'], self.results2[cluster][test]['sigma'], fluctuation, self.results2[cluster][test]['all']['alpha']))
                         if plt and self.enableReportGood:
                             self.manageTestCase(cluster,  test, self.neutralTag)
 
