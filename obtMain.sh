@@ -124,6 +124,11 @@ then
                 RUN_REGRESSION=0
                 RUN_COVERAGE=0
                 RUN_PERFORMANCE=0
+                RUN_UNITTESTS=0
+                RUN_WUTOOL_TESTS=0
+                RUN_ML_TESTS=0
+                RUN_WUTEST=0
+                RUN_COVERITY=0
                 ;;
 
         *)      # Dry run

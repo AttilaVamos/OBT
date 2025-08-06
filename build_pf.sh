@@ -68,7 +68,7 @@ echo "Create makefiles"
 #GENERATOR="Eclipse CDT4 - Unix Makefiles"
 GENERATOR="Unix Makefiles"    # not used
 
-CMAKE_CMD=$'/usr/local/bin/cmake'
+CMAKE_CMD=$'cmake'
 #CMAKE_CMD+=$' -G "'${GENERATOR}$'"'
 CMAKE_CMD+=$' -D CMAKE_BUILD_TYPE='$BUILD_TYPE
 

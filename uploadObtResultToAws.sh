@@ -57,7 +57,7 @@ then
     echo " "
     
     PERFSTAT_DAYS_TO_KEEP=32
-    [[ -n $PERF_PERFSTAT_DAYS_TO_KEEP ]] && PERFSTAT_DAYS_TO_KEEP=PERF_PERFSTAT_DAYS_TO_KEEP
+    [[ -n $PERF_PERFSTAT_DAYS_TO_KEEP ]] && PERFSTAT_DAYS_TO_KEEP=$PERF_PERFSTAT_DAYS_TO_KEEP
     echo "Move file older than $PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
 
     FILE_COUNT=0

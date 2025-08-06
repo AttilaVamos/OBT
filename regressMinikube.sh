@@ -272,8 +272,10 @@ RTE_TIMEOUT="--timeout 1200"
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall* teststdlib*'
 #RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
+#RTE_QUICK_TEST_SET='despray.ecl'
 RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_pke_lfn.ecl external.ecl javalibrary* library*'  # To generate errors as well
 
+#RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,proxy'
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray,proxy'
 
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
