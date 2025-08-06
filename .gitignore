@@ -16,4 +16,9 @@ __pycache__/
 *okenCloud.dat
 *.cpp
 Perfstat/
+*.csv
+*.json
+*.dat
+*.log
+perftest-*
 
