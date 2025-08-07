@@ -1552,8 +1552,9 @@ then
         WriteLog "Get Performance Test Boundle from github ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
         cd  ${PERF_TEST_ROOT}
+        rm -rf PerformanceTesting
     
-        WriteLog "Pwd: ${myPwd}" "${PERF_TEST_LOG}"
+        WriteLog "Pwd: $(pwd)" "${PERF_TEST_LOG}"
         
         cRes=$( CloneRepo "${PERF_TEST_REPO}" )
         if [[ 0 -ne  $? ]]
