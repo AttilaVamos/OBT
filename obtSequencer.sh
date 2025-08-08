@@ -203,12 +203,65 @@ then
     then
         ./regressMinikube.sh 
 
+        if [[ -d ~/Perfstat-Minikube ]]
+        then
+            #
+            # ZIP all  perfstat-*.c* files into teir corresonding monthly zip file
+            #
+            pushd ~/Perfstat-Minikube
+
+            FILE_COUNT=0
+            echo " "
+
+            echo "Add all perfstat files to monthly zip file."
+            while read fileName
+            do
+                FILE_COUNT=$(( FILE_COUNT + 1 ))
+                fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+                dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
+                dateStamp="${dStamp:0:2}-${dStamp:2:2}"
+                [[ $DEBUG -ne 0 ]] && printf "fName: %-40s, dateStamp: %-10s\n" "$fName" "$dateStamp"
+
+                res=$( zip -u perfstats-${dateStamp}.zip $fileName 2>&1)
+                retCode=$?
+                [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+                [[ $DEBUG -ne 0 ]] && echo "res: $res"
+
+            done< <( find . -iname 'perfstat-*.c*' -type f -print )
+            echo "Done, $FILE_COUNT file(s) archived."
+            echo " "
+
+            PERFSTAT_DAYS_TO_KEEP=2
+            [[ -n $PERF_PERFSTAT_DAYS_TO_KEEP ]] && PERFSTAT_DAYS_TO_KEEP=$PERF_PERFSTAT_DAYS_TO_KEEP
+            echo "Move file older than $PERFSTAT_DAYS_TO_KEEP into the monthly zip arcive"
+
+            FILE_COUNT=0
+
+            while read fileName
+            do
+                FILE_COUNT=$(( FILE_COUNT + 1 ))
+                fName=${fileName#./}                    # Delete leading './' from the fileName but keep the original, need it to zip and git
+                dStamp=$(echo "$fName" | awk -F '-' '{ print $3 }' )
+                dateStamp="${dStamp:0:2}-${dStamp:2:2}"
+                [[ $DEBUG -ne 0 ]] && printf "fName: %-40s, dateStamp: %-10s\n" "$fName" "$dateStamp"
+
+                res=$( zip -m perfstats-${dateStamp}.zip $fileName 2>&1)
+                retCode=$?
+                [[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
+                [[ $DEBUG -ne 0 ]] && echo "res: $res"
+
+            done< <( find . -iname 'perfstat-*.c*' -mtime +${PERFSTAT_DAYS_TO_KEEP} -type f -print )
+            echo "Done, $FILE_COUNT file(s) moved."
+            echo " "
+            popd
+        fi
+
         echo "Upload Perfstat-Minikube to SmoketestScheduler (CA - $SmoketestSchedulerIp) ..."
         rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/Perfstat-Minikube centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
 
         echo "Upload regressMinikube-*.log, .report and .json as well ..."
         rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.[jlr]* centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
-        
+
         echo "Upload regressMinikube-*.json to a result gists in GitHub as well ..."
         ./fixJson.sh . > fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
         ./uploadObtResultToGists.sh
