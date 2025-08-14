@@ -607,7 +607,7 @@ fi
 
 PERF_ENABLE_CALCTREND=1
 #PERF_CALCTREND_PARAMS="-v"
-PERF_CALCTREND_PARAMS="-v --enableTestPlotGeneration"
+PERF_CALCTREND_PARAMS="-v --enableTestPlotGeneration --enableBaseLine"
 
 #
 #----------------------------------------------------

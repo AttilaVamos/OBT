@@ -1259,7 +1259,7 @@ if __name__ == "__main__":
                       help="Enable to generate diagram for each test case. Default is False"
                       , metavar="ENABLETESTPLOTGENERATION")
                       
-    parser.add_option("--enableBaseLine", dest="enableBaseLine", default=True, action="store_true", 
+    parser.add_option("--enableBaseLine", dest="enableBaseLine", default=False, action="store_true", 
                       help="Enable to show baseline on diagrams. Default is True"
                       , metavar="ENABLEBASELINE")
                       
