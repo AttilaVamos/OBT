@@ -111,6 +111,14 @@ class TrendReport(object):
         self.diagramHeight = 10 # Original height 
         self.enableReportGood = True
         self.enableTestPlotGeneration = options.enableTestPlotGeneration
+        
+        self.enableBaseLine = options.enableBaseLine
+        self.baseLine = 0.0
+        self.baseLineLabel = ''
+        if self.enableBaseLine:
+            self.baseLine = options.baseLine
+            self.baseLineLabel = options.baseLineLabel
+            
         if smallDataSet:
             self.maxDatapoints = 4
         self.numberOfTestDays = 0
@@ -1067,6 +1075,13 @@ class TrendReport(object):
                     print("No data for %s." % (cluster) )
                     pass
 
+            if self.enableBaseLine:
+                # plot the base line
+                xb = [dates2[0],  dates2[-1]]
+                yb = [self.baseLine,  self.baseLine ]
+                ax.plot(xb, yb, label=self.baseLineLabel, marker ='^', linestyle = '-', linewidth=2.0, color='red')
+
+            
             ax.grid(True, which='both')
             myTitle = 'Performance Suite execution time trends on ' +  self.hpccVersion +' in the last '+ str(dataPoints) +' days'
             myTitle += self.getTestInfo(cluster)
@@ -1196,6 +1211,17 @@ if __name__ == "__main__":
     parser.add_option("--enableTestPlotGeneration", dest="enableTestPlotGeneration", default=False, action="store_true", 
                       help="Enable to generate diagram for each test case. Default is False"
                       , metavar="ENABLETESTPLOTGENERATION")
+                      
+    parser.add_option("--enableBaseLine", dest="enableBaseLine", default=True, action="store_true", 
+                      help="Enable to show baseline on diagrams. Default is True"
+                      , metavar="ENABLEBASELINE")
+                      
+    parser.add_option("-b", "--baseLine", dest="baseLine", default=16300.0, type="float", 
+                      help="Base line of perfromance.Default is 16,300.0 (average performance before early April 20205)"
+                      , metavar="BASELINE")
+                      
+    parser.add_option("--baseLineLabel", dest="baseLineLabel", default = "Baseline (April 2025)",  type="string", 
+                      help="Default base line label for legend.", metavar="BASELINELABEL")
 
     (options, args) = parser.parse_args()
 

@@ -1094,42 +1094,44 @@ then
 
         cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 
-        if [ $PERF_ENABLE_CALCTREND -eq 1 ]
-        then
-            WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
+# Moved to perftest.sh
+#        if [ $PERF_ENABLE_CALCTREND -eq 1 ]
+#        then
+#            WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
+#
+#            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
+#            #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+#            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+#            retCode=$?
+#            WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
+#
+#            WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
+#
+#            mkdir -p   ${TARGET_DIR}/test/diagrams
+#            mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
+#            mkdir -p   ${TARGET_DIR}/test/diagrams/thor
+#            mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
+#
+#            cp perftest*.png ${TARGET_DIR}/test/diagrams/
+#            cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
+#            cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
+#            cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+#            [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
+#            pushd ${TARGET_DIR}/test
+#            zip -r ~/diagrams.zip diagrams/
+#            popd
+#        else
+#             WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
+#        fi
 
-            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
-            #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
-            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
-            retCode=$?
-            WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
-
-            WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
-
-            mkdir -p   ${TARGET_DIR}/test/diagrams
-            mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
-            mkdir -p   ${TARGET_DIR}/test/diagrams/thor
-            mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
-
-            cp perftest*.png ${TARGET_DIR}/test/diagrams/
-            cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
-            cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
-            cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
-            [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
-            pushd ${TARGET_DIR}/test
-            zip -r ~/diagrams.zip diagrams/
-            popd
-        else
-             WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
-        fi
-
-        cp ./perftest*.summary ./perftest.summary
-
-        WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
-
-        res=$( ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} -v  2>&1)
-        retCode=$?
-        WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
+# Moved to perftest.sh
+#        cp ./perftest*.summary ./perftest.summary
+#
+#        WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
+#
+#        res=$( ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} -v  2>&1)
+#        retCode=$?
+#        WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
     else
         WriteLog "Build for performance test is failed." "${OBT_LOG_FILE}"
     fi

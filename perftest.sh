@@ -618,56 +618,56 @@ then
     #       URL https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.gz
     #
     #BOOST_URL="https://dl.bintray.com/boostorg/release/1.71.0/source/$BOOST_PKG"
-    BOOST_URL=$( egrep 'URL ' $SOURCE_HOME/cmake_modules/buildBOOST_REGEX.cmake| awk '{print $2}')
+#    BOOST_URL=$( egrep 'URL ' $SOURCE_HOME/cmake_modules/buildBOOST_REGEX.cmake| awk '{print $2}')
+#
+#    #BOOST_PKG="boost_1_71_0.tar.gz"
+#    BOOST_PKG=${BOOST_URL##*/}; 
+#
+#    WriteLog "Check if $BOOST_PKG cached" "${PERF_TEST_LOG}"
+#    if [[ ! -f $HOME/$BOOST_PKG ]]
+#    then
+#        WriteLog "It is not, download it." "${PERF_TEST_LOG}"
+#        BOOST_DOWNLOAD_TRY_COUNT=5
+#        BOOST_DOWNLOAD_TRY_DELAY=2m
+#
+#        while [[ $BOOST_DOWNLOAD_TRY_COUNT -gt 0 ]]
+#        do 
+#            WriteLog "Try count: $BOOST_DOWNLOAD_TRY_COUNT" "${PERF_TEST_LOG}"
+#            BOOST_DOWNLOAD_TRY_COUNT=$(( $BOOST_DOWNLOAD_TRY_COUNT - 1 ))
+#
+#            download_res=$( wget -v  -O  $HOME/$BOOST_PKG  $BOOST_URL 2>&1 )
+#            retCode=$?
+#            if [[  $retCode -ne 0 ]]
+#            then 
+#                WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${PERF_TEST_LOG}"
+#                sleep ${BOOST_DOWNLOAD_TRY_DELAY}
+#                [[ -f $HOME/$BOOST_PKG ]] && rm $HOME/$BOOST_PKG
+#            else
+#                WriteLog "The $BOOST_PKG downloaded." "${PERF_TEST_LOG}"
+#                WriteLog "Ping: ${download_res}" "${PERF_TEST_LOG}"
+#
+#                DOWNL=$( echo "$download_res" | tail -nhead -n 2)
+#                WriteLog "${DOWNL}" "${OBT_LOG_DIR}/$BOOST_PKG.download"
+#                break
+#            fi
+#        done
+#    fi
+#
+#    if [[ ! -f $HOME/$BOOST_PKG ]]
+#    then
+#        WriteLog "The $BOOST_PKG download attempts were unsuccessful." "${PERF_TEST_LOG}"
+#    else
+#        WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${PERF_TEST_LOG}"
+#        mkdir -p ${BUILD_HOME}/downloads
+#        res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/  2>&1 )
+#        WriteLog "res: ${res}" "${PERF_TEST_LOG}"
+#    fi
 
-    #BOOST_PKG="boost_1_71_0.tar.gz"
-    BOOST_PKG=${BOOST_URL##*/}; 
-
-    WriteLog "Check if $BOOST_PKG cached" "${PERF_TEST_LOG}"
-    if [[ ! -f $HOME/$BOOST_PKG ]]
-    then
-        WriteLog "It is not, download it." "${PERF_TEST_LOG}"
-        BOOST_DOWNLOAD_TRY_COUNT=5
-        BOOST_DOWNLOAD_TRY_DELAY=2m
-
-        while [[ $BOOST_DOWNLOAD_TRY_COUNT -gt 0 ]]
-        do 
-            WriteLog "Try count: $BOOST_DOWNLOAD_TRY_COUNT" "${PERF_TEST_LOG}"
-            BOOST_DOWNLOAD_TRY_COUNT=$(( $BOOST_DOWNLOAD_TRY_COUNT - 1 ))
-
-            download_res=$( wget -v  -O  $HOME/$BOOST_PKG  $BOOST_URL 2>&1 )
-            retCode=$?
-            if [[  $retCode -ne 0 ]]
-            then 
-                WriteLog "Error: $retCode '${download_res}'. Wait ${BOOST_DOWNLOAD_TRY_DELAY} for retry." "${PERF_TEST_LOG}"
-                sleep ${BOOST_DOWNLOAD_TRY_DELAY}
-                [[ -f $HOME/$BOOST_PKG ]] && rm $HOME/$BOOST_PKG
-            else
-                WriteLog "The $BOOST_PKG downloaded." "${PERF_TEST_LOG}"
-                WriteLog "Ping: ${download_res}" "${PERF_TEST_LOG}"
-
-                DOWNL=$( echo "$download_res" | tail -nhead -n 2)
-                WriteLog "${DOWNL}" "${OBT_LOG_DIR}/$BOOST_PKG.download"
-                break
-            fi
-        done
-    fi
-
-    if [[ ! -f $HOME/$BOOST_PKG ]]
-    then
-        WriteLog "The $BOOST_PKG download attempts were unsuccessful." "${PERF_TEST_LOG}"
-    else
-        WriteLog "The $BOOST_PKG downloaded, copy it into the source tree." "${PERF_TEST_LOG}"
-        mkdir -p ${BUILD_HOME}/downloads
-        res=$( cp -v  $HOME/$BOOST_PKG ${BUILD_HOME}/downloads/  2>&1 )
-        WriteLog "res: ${res}" "${PERF_TEST_LOG}"
-    fi
-
-    removeLog4j=$( find $SOURCE_HOME/ -iname '*log4j*' -type f -exec rm -fv {} \; )
-    WriteLog "Remove LOG4J items result:\n${removeLog4j}" "${PERF_TEST_LOG}"
-
-    removeCommonsText=$( find $SOURCE_HOME/ -iname 'commons-text-*.jar' -type f -exec rm -fv {} \; )
-    WriteLog "Remove 'commons-text-*.jar' items result:\n${removeCommonsText}" "${PERF_TEST_LOG}"
+#    removeLog4j=$( find $SOURCE_HOME/ -iname '*log4j*' -type f -exec rm -fv {} \; )
+#    WriteLog "Remove LOG4J items result:\n${removeLog4j}" "${PERF_TEST_LOG}"
+#
+#    removeCommonsText=$( find $SOURCE_HOME/ -iname 'commons-text-*.jar' -type f -exec rm -fv {} \; )
+#    WriteLog "Remove 'commons-text-*.jar' items result:\n${removeCommonsText}" "${PERF_TEST_LOG}"
 
     #
     # Prepare to build
@@ -2152,7 +2152,43 @@ then
     retCode=$( echo $? )
     WriteLog "retcode: ${retCode}"  "${PERF_TEST_LOG}"
 
+    if [ $PERF_ENABLE_CALCTREND -eq 1 ]
+    then
+        WriteLog "Calculate and report results" "${OBT_LOG_FILE}"
 
+        WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${OBT_LOG_FILE}"
+        #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${OBT_LOG_FILE}" 2>&1
+        res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+        retCode=$?
+        WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
+
+        WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${OBT_LOG_FILE}"
+
+        mkdir -p   ${TARGET_DIR}/test/diagrams
+        mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
+        mkdir -p   ${TARGET_DIR}/test/diagrams/thor
+        mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
+
+        cp perftest*.png ${TARGET_DIR}/test/diagrams/
+        cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
+        cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
+        cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+        [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
+        pushd ${TARGET_DIR}/test
+        zip -r ~/diagrams.zip diagrams/
+        popd
+    else
+         WriteLog "Calculate and report results skiped" "${OBT_LOG_FILE}"
+    fi
+
+    cp ./perftest*.summary ./perftest.summary
+
+    WriteLog "Send Email notification about Performance test" "${OBT_LOG_FILE}"
+
+    res=$( ./ReportPerfTestResult.py -d ${OBT_DATESTAMP} -t ${OBT_TIMESTAMP} -v  2>&1)
+    retCode=$?
+    WriteLog "retCode:${retCode}\nres:\n${res}" "${OBT_LOG_FILE}"
+    
     ARCH_CMD=archivePerfStat.sh
     if [[ -f ../../Perfstat/${ARCH_CMD} ]]
     then
