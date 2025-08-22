@@ -1165,6 +1165,12 @@ res=$( ./uploadObtResultToGists.sh 2>&1)
 retCode=$?
 WriteLog "retCode: $retCode" "${OBT_LOG_FILE}"
 WriteLog "res:'$res'" "${OBT_LOG_FILE}"
+
+WriteLog "Upload results to GitHub" "${OBT_LOG_FILE}"
+res=$( ./uploadObtResultToGitHub.sh 2>&1)
+retCode=$?
+WriteLog "retCode: $retCode" "${OBT_LOG_FILE}"
+WriteLog "res:'$res'" "${OBT_LOG_FILE}"
 popd
 #-----------------------------------------------------------------------------
 #

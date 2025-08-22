@@ -265,6 +265,8 @@ then
         echo "Upload regressMinikube-*.json to a result gists in GitHub as well ..."
         ./fixJson.sh . > fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
         ./uploadObtResultToGists.sh
+        
+        ./uploadObtResultToGitHub.sh
 
         zip -m RegressMinkubeLogs-$(date "+%Y-%m") regressMinikube-*.[jlr]*
 
