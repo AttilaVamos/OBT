@@ -216,7 +216,7 @@ popd
 
 if [[ $FILES_ARCHIVED -ne 0 ]]
 then
-    [[ -n "$CURRENT_README" ]] && $echo "$CURRENT_README" > README.rst
+    [[ -n "$CURRENT_README" ]] && echo "$CURRENT_README" > README.rst
     # Update README.rst
     echo " " >>  README.rst
     echo "$FILES_ARCHIVED result files (older than $DAYS_TO_KEEP days) archived." >> README.rst

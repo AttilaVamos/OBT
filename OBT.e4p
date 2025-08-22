@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-05-23, 19:26:27 -->
+<!-- Saved: 2025-08-21, 20:46:20 -->
 <!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -142,6 +142,7 @@
     <Source>uploadCoverity.sh</Source>
     <Source>uploadObtResultToAws.sh</Source>
     <Source>uploadObtResultToGists.sh</Source>
+    <Source>uploadObtResultToGitHub.sh</Source>
     <Source>utils.sh</Source>
     <Source>wutoolTest.sh</Source>
   </Sources>
