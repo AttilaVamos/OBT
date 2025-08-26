@@ -102,12 +102,14 @@ retCode=$?
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
 
+echo "  Done."
+
 # Store diagrams.zip
 if [[ -f ~/diagrams.zip ]]
 then
     echo "Copy  '~/diagrams.zip' into  'Performance/${OBT_ID}'."
     [[ ! -d Performance/${OBT_ID} ]] && mkdir -p Performance/${OBT_ID}
-    
+
     res=$(cp -v ~/diagrams.zip Performance/${OBT_ID}/diagrams.zip  2>&1)
     retCode=$?
 
