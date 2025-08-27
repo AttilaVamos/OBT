@@ -2155,24 +2155,34 @@ then
     if [ $PERF_ENABLE_CALCTREND -eq 1 ]
     then
         WriteLog "Calculate and report results" "${PERF_TEST_LOG}"
-
-        WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
-        #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${PERF_TEST_LOG}" 2>&1
-        res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
-        retCode=$?
-        WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
-
-        WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${PERF_TEST_LOG}"
-
         mkdir -p   ${TARGET_DIR}/test/diagrams
-        mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
-        mkdir -p   ${TARGET_DIR}/test/diagrams/thor
-        mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
+        useOldCalcTrend=1
+        if [ $useOldCalcTrend -eq 1 ]
+        then
+            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
+            #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${PERF_TEST_LOG}" 2>&1
+            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+            retCode=$?
+            WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
 
-        cp perftest*.png ${TARGET_DIR}/test/diagrams/
-        cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
-        cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
-        cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+            WriteLog "Copy diagrams to ${TARGET_DIR}/test/diagrams" "${PERF_TEST_LOG}"
+
+            mkdir -p   ${TARGET_DIR}/test/diagrams/hthor
+            mkdir -p   ${TARGET_DIR}/test/diagrams/thor
+            mkdir -p   ${TARGET_DIR}/test/diagrams/roxie
+
+            cp perftest*.png ${TARGET_DIR}/test/diagrams/
+            cp *-hthor-*.png ${TARGET_DIR}/test/diagrams/hthor/
+            cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
+            cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
+        else
+            WriteLog "python3 ./calcTrend2.py --datapath ../../Perfstat/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
+            
+            res=$( python3 ./calcTrend2.py -d ../../Perfstat/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS} 2>&1 )
+            retCode=$?
+            WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
+        fi
+        
         [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
         pushd ${TARGET_DIR}/test
         zip -r ~/diagrams.zip diagrams/
@@ -2194,10 +2204,10 @@ then
     then
         pushd  ../../Perfstat 
         cmd="./${ARCH_CMD}"
-    WriteLog "Arcieve old stat files: ${cmd}" "${PERF_TEST_LOG}"
+        WriteLog "Arcieve old stat files: ${cmd}" "${PERF_TEST_LOG}"
         res=$( ${cmd} 2>&1 )
-    popd
-    WriteLog "res: ${res}" "${PERF_TEST_LOG}" 
+        popd
+        WriteLog "res: ${res}" "${PERF_TEST_LOG}" 
     fi
     
     coreFiles=$(find /var/lib/HPCCSystems/ /opt/HPCCSystems/ -iname 'core_*.[0-9]*' -type f -print )
