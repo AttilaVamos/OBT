@@ -9,6 +9,7 @@ fi
 
 echo "Checking files in '$CHECK_PATH'."
 
+ERROR_FILE=fixJson.err
 FILES_CHECKED=0
 FILES_FIXED=0
 
@@ -18,7 +19,10 @@ do
     res=$(cat $fn | python3 -m json.tool > /dev/null 2>&1)
     if [[ $? -ne 0 ]]
     then
-        printf "%-70s -> Bad\n" "$fn" 
+        echo "File: $fn" >> $ERROR_FILE 
+        echo "$res" >> ERROR_FILE
+        echo "------------------------" >> ERROR_FILE
+        printf "%-70s -> Bad\n" "$fn"
         res=$(mv -v $fn $fn-bkp;  )
         printf "%-70s -> Rename\n" "$fn" 
         cat $fn-bkp | python3 -c "import sys, json, yaml; print(json.dumps(yaml.safe_load(sys.stdin)))" | jq '.' > $fn ; 

@@ -2156,7 +2156,7 @@ then
     then
         WriteLog "Calculate and report results" "${PERF_TEST_LOG}"
         mkdir -p   ${TARGET_DIR}/test/diagrams
-        useOldCalcTrend=1
+        useOldCalcTrend=0
         if [ $useOldCalcTrend -eq 1 ]
         then
             WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
