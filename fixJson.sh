@@ -20,8 +20,8 @@ do
     if [[ $? -ne 0 ]]
     then
         echo "File: $fn" >> $ERROR_FILE 
-        echo "$res" >> ERROR_FILE
-        echo "------------------------" >> ERROR_FILE
+        echo "$res" >> $ERROR_FILE
+        echo "------------------------" >> $ERROR_FILE
         printf "%-70s -> Bad\n" "$fn"
         res=$(mv -v $fn $fn-bkp;  )
         printf "%-70s -> Rename\n" "$fn" 
