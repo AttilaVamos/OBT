@@ -21,12 +21,15 @@ do
     then
         echo "File: $fn" >> $ERROR_FILE 
         echo "$res" >> $ERROR_FILE
-        echo "------------------------" >> $ERROR_FILE
+
         printf "%-70s -> Bad\n" "$fn"
         res=$(mv -v $fn $fn-bkp;  )
         printf "%-70s -> Rename\n" "$fn" 
         cat $fn-bkp | python3 -c "import sys, json, yaml; print(json.dumps(yaml.safe_load(sys.stdin)))" | jq '.' > $fn ; 
         
+        diff $fn-bkp $fn >> $ERROR_FILE 2>&1
+        echo "------------------------" >> $ERROR_FILE
+
         cat $fn | python3 -m json.tool > /dev/null
         if [[ $? -eq 0 ]] 
         then
