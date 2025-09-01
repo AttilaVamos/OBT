@@ -1,178 +1,178 @@
 {
-    \"OBTResult\":{
-        \"Env\":{
-            \"BuildSystem\":\"$SYSTEM_ID\",
-            \"Hardware\":\"vCPU: 8, RAM: 16 GB\",
-            \"IPAddress\":\"$LOCAL_IP\"
+    \"OBTResult\": {
+        \"Env\": {
+            \"BuildSystem\": \"$SYSTEM_ID\",
+            \"Hardware\": \"vCPU: 8, RAM: 16 GB\",
+            \"IPAddress\": \"$LOCAL_IP\"
         },
-        \"Remote\" : {
-            \"System\" : \"Minikube\",
+        \"Remote\": {
+            \"System\": \"Minikube\",
             \"Hardware\": \"CPU/Cores: 16, RAM: 64 GB\",
-            \"HthorConfig\" : {
-                \"Replicas\" : \"3\",
-                \"MaxActive\" : \"4\",
-                \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"*\"
+            \"HthorConfig\": {
+                \"Replicas\": \"3\",
+                \"MaxActive\": \"4\",
+                \"UseChildProcesses\": \"true\",
+                \"AllowedPipePrograms\": \"*\"
             },
-            \"ThorConfig\" : {
-                \"NumWorkers\" : \"2\",
-                \"MaxJobs\" : \"4\",
-                \"MaxGraph\" : \"2\",
-                \"MultiJobLinger\" : \"true\",
-                \"LingerPeriod\" : \"200\",
-                \"AllowedPipePrograms\" : \"*\"
+            \"ThorConfig\": {
+                \"NumWorkers\": \"2\",
+                \"MaxJobs\": \"4\",
+                \"MaxGraph\": \"2\",
+                \"MultiJobLinger\": \"true\",
+                \"LingerPeriod\": \"200\",
+                \"AllowedPipePrograms\": \"*\"
             },
-            \"RoxieWorkunitConfig\" : {
-                \"Replicas\" : \"1\",
-                \"MaxActive\" : \"20\",
-                \"UseChildProcesses\" : \"true\",
-                \"AllowedPipePrograms\" : \"*\"
+            \"RoxieWorkunitConfig\": {
+                \"Replicas\": \"1\",
+                \"MaxActive\": \"20\",
+                \"UseChildProcesses\": \"true\",
+                \"AllowedPipePrograms\": \"*\"
             },
         },
-        \"BuildSet\":{
-            \"Branch\" : \"$TAG_TO_TEST\",
-            \"BranchDate\" : \"N/A\",
-            \"BranchSHA\" : \"N/A\",
-            \"BuildType\" : \"Release\",
-            \"Target\" : \"K8s\"
+        \"BuildSet\": {
+            \"Branch\": \"$TAG_TO_TEST\",
+            \"BranchDate\": \"N/A\",
+            \"BranchSHA\": \"N/A\",
+            \"BuildType\": \"Release\",
+            \"Target\": \"K8s\"
         },
-        \"Exclusion\":{
-            \"Build\" : \"N/A\",
-            \"Documentation\" : \"N/A\",
-            \"Unittest\" : \"N/A\",
-            \"MLtest\" : \"N/A\",
-            \"Regression\" : \"$RTE_EXCLUSIONS\"
+        \"Exclusion\": {
+            \"Build\": \"N/A\",
+            \"Documentation\": \"N/A\",
+            \"Unittest\": \"N/A\",
+            \"MLtest\": \"N/A\",
+            \"Regression\": \"$RTE_EXCLUSIONS\"
         },
-        \"Tasks\" : [
+        \"Tasks\": [
             {
-                \"UpdateHelmRepo\" : {
-                    \"Result\" : \"$HELM_UPDATE_RESULT_STR\",
-                    \"Elaps\" : {
-                        \"Formatted\":\"$HELM_UPDATE_TIME_STR\",
-                        \"RawSec\":\"$HELM_UPDATE_TIME\"
+                \"UpdateHelmRepo\": {
+                    \"Result\": \"$HELM_UPDATE_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$HELM_UPDATE_TIME_STR\",
+                        \"RawSec\": \"$HELM_UPDATE_TIME\"
                     }
                 }
             },
             {
-                \"CheckLocalPlatform\":{
-                    \"Result\":\"$PLATFORM_INSTALL_RESULT_STR\",
-                    \"Version\":\"$CURRENT_PKG\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$PLATFORM_INSTALL_TIME_STR\",
-                        \"RawSec\":\"$PLATFORM_INSTALL_TIME\"
+                \"CheckLocalPlatform\": {
+                    \"Result\": \"$PLATFORM_INSTALL_RESULT_STR\",
+                    \"Version\": \"$CURRENT_PKG\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$PLATFORM_INSTALL_TIME_STR\",
+                        \"RawSec\": \"$PLATFORM_INSTALL_TIME\"
                     }
                 }
             },
             {
                 \"StartMinikube\":{
-                    \"Result\":\"$MINIKUBE_START_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$MINIKUBE_START_TIME_STR\",
-                        \"RawSec\":\"$MINIKUBE_START_TIME\"
+                    \"Result\": \"$MINIKUBE_START_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$MINIKUBE_START_TIME_STR\",
+                        \"RawSec\": \"$MINIKUBE_START_TIME\"
                     }
                 }
             },
             {
-                \"DeployHPCC\":{
-                    \"Result\":\"$PLATFORM_DEPLOY_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$PLATFORM_DEPLOY_TIME_STR\",
-                        \"RawSec\":\"$PLATFORM_DEPLOY_TIME\"
+                \"DeployHPCC\": {
+                    \"Result\": \"$PLATFORM_DEPLOY_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$PLATFORM_DEPLOY_TIME_STR\",
+                        \"RawSec\": \"$PLATFORM_DEPLOY_TIME\"
                     }
                 }
             },
             {
-                \"WaitForPODs\":{
-                    \"Result\":\"$PODS_START_RESULT_STR\",
+                \"WaitForPODs\": {
+                    \"Result\": \"$PODS_START_RESULT_STR\",
                     \"NumberOfPODs\": ${NUMBER_OF_RUNNING_PODS:-0},
-                    \"Elaps\":{
-                        \"Formatted\":\"$PODS_START_TIME_STR\",
-                        \"RawSec\":\"$PODS_START_TIME\"
+                    \"Elaps\": {
+                        \"Formatted\": \"$PODS_START_TIME_STR\",
+                        \"RawSec\": \"$PODS_START_TIME\"
                     }
                 }
             },
             {
-                \"ECLWatchAnnotation\":{
-                    \"Result\":\"$ECLWATCH_START_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$ECLWATCH_START_TIME_STR\",
-                        \"RawSec\":\"$ECLWATCH_START_TIME\"
+                \"ECLWatchAnnotation\": {
+                    \"Result\": \"$ECLWATCH_START_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$ECLWATCH_START_TIME_STR\",
+                        \"RawSec\": \"$ECLWATCH_START_TIME\"
                     }
                 }
             },
             {
-                \"Setup\":{
-                    \"Result\":\"$SETUP_RESULT_STR\",
-                    \"hthor\":{
-                        \"Elaps\":{
-                            \"Formatted\":\"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
-                            \"RawSec\":\"${HTHOR_SETUP_TIME:-0}\"
+                \"Setup\": {
+                    \"Result\": \"$SETUP_RESULT_STR\",
+                    \"hthor\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"${HTHOR_SETUP_TIME_STR:-0 sec (00:00:00)}\",
+                            \"RawSec\": \"${HTHOR_SETUP_TIME:-0}\"
                         },
                         \"Total\": ${HTHOR_SETUP_QUERIES:-0},
                         \"Pass\": ${HTHOR_SETUP_PASS:-0},
                         \"Fail\": ${HTHOR_SETUP_FAIL:-0},
-                        \"Result\":\"${HTHOR_SETUP_RESULT_STR:-N/A}\"
+                        \"Result\": \"${HTHOR_SETUP_RESULT_STR:-N/A}\"
                     },
-                    \"thor\":{
-                        \"Elaps\":{
-                            \"Formatted\":\"$THOR_SETUP_TIME_STR\",
-                            \"RawSec\":\"$THOR_SETUP_TIME\"
+                    \"thor\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"$THOR_SETUP_TIME_STR\",
+                            \"RawSec\": \"$THOR_SETUP_TIME\"
                         },
                         \"Total\": ${THOR_SETUP_QUERIES:-0},
                         \"Pass\": ${THOR_SETUP_PASS:-0},
                         \"Fail\": ${THOR_SETUP_FAIL:-0},
-                        \"Result\": ${THOR_SETUP_RESULT_STR:-0}
+                        \"Result\": \"${THOR_SETUP_RESULT_STR:-N/A}\"
                     },
-                    \"roxie\":{
-                        \"Elaps\":{
-                            \"Formatted\":\"$ROXIE_SETUP_TIME_STR\",
-                            \"RawSec\":\"$ROXIE_SETUP_TIME\"
+                    \"roxie\": {
+                        \"Elaps\": {
+                            \"Formatted\": \"$ROXIE_SETUP_TIME_STR\",
+                            \"RawSec\": \"$ROXIE_SETUP_TIME\"
                         },
                         \"Total\": ${ROXIE_SETUP_QUERIES:-0},
                         \"Pass\": ${ROXIE_SETUP_PASS:-0},
                         \"Fail\": ${ROXIE_SETUP_FAIL:-0},
-                        \"Result\":\"$ROXIE_SETUP_RESULT_STR\"
+                        \"Result\": \"$ROXIE_SETUP_RESULT_STR:-N/A\"
                     }
                 }
             },
             {
-                \" PublishQueries\":{
-                    \"Result\":\"$QUERIES_PUBLISH_RESULT_STR\",
+                \" PublishQueries\": {
+                    \"Result\": \"$QUERIES_PUBLISH_RESULT_STR\",
                     \"Total\": ${NUMBER_OF_PUBLISHED:-0},
-                    \"Elaps\":{
-                        \"Formatted\":\"$QUERIES_PUBLISH_TIME_STR\",
-                        \"RawSec\":\"$QUERIES_PUBLISH_TIME\"
+                    \"Elaps\": {
+                        \"Formatted\": \"$QUERIES_PUBLISH_TIME_STR\",
+                        \"RawSec\": \"$QUERIES_PUBLISH_TIME\"
                     }
                 }
             },
             {
-                \"Regress\":{
-                    \"Result\":\"$REGRESS_RESULT_STR\",
-                    \"Hthor\":{
-                        \"Result\":\"$HTHOR_REGRESS_RESULT_STR\",
-                        \"Elaps\":{
-                            \"Formatted\":\"$HTHOR_REGRESS_TIME_STR\",
-                            \"RawSec\":\"$HTHOR_REGRESS_TIME\"
+                \"Regress\": {
+                    \"Result\": \"$REGRESS_RESULT_STR\",
+                    \"Hthor\": {
+                        \"Result\": \"$HTHOR_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$HTHOR_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$HTHOR_REGRESS_TIME\"
                         },
                         \"Total\": ${HTHOR_REGRESS_QUERIES:-0},
                         \"Pass\": ${HTHOR_REGRESS_PASS:-0},
                         \"Fail\": ${HTHOR_REGRESS_FAIL:-0}
                     },
-                    \"Thor\":{
-                        \"Result\":\"$THOR_REGRESS_RESULT_STR\",
-                        \"Elaps\":{
-                            \"Formatted\":\"$THOR_REGRESS_TIME_STR\",
-                            \"RawSec\":\"$THOR_REGRESS_TIME\"
+                    \"Thor\": {
+                        \"Result\": \"$THOR_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$THOR_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$THOR_REGRESS_TIME\"
                         },
                         \"Total\": ${THOR_REGRESS_QUERIES:-0},
                         \"Pass\": ${THOR_REGRESS_PASS:-0},
                         \"Fail\": ${THOR_REGRESS_FAIL:-0}
                     },
-                    \"Roxie\":{
-                        \"Result\":\"$ROXIE_REGRESS_RESULT_STR\",
-                        \"Elaps\":{
-                            \"Formatted\":\"$ROXIE_REGRESS_TIME_STR\",
-                            \"RawSec\":\"$ROXIE_REGRESS_TIME\"
+                    \"Roxie\": {
+                        \"Result\": \"$ROXIE_REGRESS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$ROXIE_REGRESS_TIME_STR\",
+                            \"RawSec\": \"$ROXIE_REGRESS_TIME\"
                         },
                         \"Total\": ${ROXIE_REGRESS_QUERIES:-0},
                         \"Pass\": ${ROXIE_REGRESS_PASS:-0},
@@ -181,52 +181,52 @@
                 }
             },
             {
-                \"CollectTimings\":{
-                    \"Result\":\"$QUERY_STAT2_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$QUERY_STAT2_TIME_STR\",
-                        \"RawSec\":\"$QUERY_STAT2_TIME\"
+                \"CollectTimings\": {
+                    \"Result\": \"$QUERY_STAT2_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$QUERY_STAT2_TIME_STR\",
+                        \"RawSec\": \"$QUERY_STAT2_TIME\"
                     }
                 }
             },
             {
-                \"CollectPODLogs\":{
-                    \"Result\":\"$COLLECT_POD_LOGS_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$COLLECT_POD_LOGS_TIME_STR\",
-                        \"RawSec\":\"$COLLECT_POD_LOGS_TIME\"
+                \"CollectPODLogs\": {
+                    \"Result\": \"$COLLECT_POD_LOGS_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$COLLECT_POD_LOGS_TIME_STR\",
+                        \"RawSec\": \"$COLLECT_POD_LOGS_TIME\"
                     }
                 }
             },
             {
-                \"UninstallPODs\":{
-                    \"Result\":\"$UNINSTALL_PODS_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$UNINSTALL_PODS_TIME_STR\",
-                        \"RawSec\":\"$UNINSTALL_PODS_TIME\"
+                \"UninstallPODs\": {
+                    \"Result\": \"$UNINSTALL_PODS_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$UNINSTALL_PODS_TIME_STR\",
+                        \"RawSec\": \"$UNINSTALL_PODS_TIME\"
                     }
                 }
             },
             {
-                \"StopMinikube\":{
-                    \"Result\":\"$MINIKUBE_STOP_TIME_RESULT\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$MINIKUBE_STOP_TIME_STR\",
-                        \"RawSec\":\"$MINIKUBE_STOP_TIME\"
+                \"StopMinikube\": {
+                    \"Result\": \"$MINIKUBE_STOP_TIME_RESULT\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$MINIKUBE_STOP_TIME_STR\",
+                        \"RawSec\": \"$MINIKUBE_STOP_TIME\"
                     }
                 }
             },
             {
-                \"RunLogProcessor\":{
-                    \"Result\":\"$REGRESS_LOG_PROCESSING_RESULT_STR\",
-                    \"Elaps\":{
-                        \"Formatted\":\"$REGRESS_LOG_PROCESSING_TIME_STR\",
-                        \"RawSec\":\"$REGRESS_LOG_PROCESSING_TIME\"
+                \"RunLogProcessor\": {
+                    \"Result\": \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
+                    \"Elaps\": {
+                        \"Formatted\": \"$REGRESS_LOG_PROCESSING_TIME_STR\",
+                        \"RawSec\": \"$REGRESS_LOG_PROCESSING_TIME\"
                     }
                 }
             }
         ],
-        \"Errors\":[
+        \"Errors\": [
             $HTHOR_SETUP_ERROR_STR
             $THOR_SETUP_ERROR_STR
             $ROXIE_SETUP_ERROR_STR
