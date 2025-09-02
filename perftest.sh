@@ -898,11 +898,13 @@ then
 
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
-    ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE}
-    
-    if [ $? -ne 0 ]
+    # TO-DO Should check if it is already installed
+    res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
+    retCode=$?
+    if [ $retCode -ne 0 ]
     then
-        WriteLog "Error in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        WriteLog "Error ($retCode) in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        WriteLog "res: $res" "${PERF_TEST_LOG}"
         exit 1
     fi
 
@@ -1379,11 +1381,12 @@ then
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
     # TO-DO Should check if it is already installed
-    ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE}
-    
-    if [ $? -ne 0 ]
+    res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
+    retCode=$?
+    if [ $retCode -ne 0 ]
     then
-        WriteLog "Error in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        WriteLog "Error ($retCode) in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+        WriteLog "res: $res" "${PERF_TEST_LOG}"
         exit 1
     fi
         
@@ -1852,14 +1855,15 @@ then
             sudo rm /etc/HPCCSystems/environment.xml
         fi
 
-
         WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
-        ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE}
-    
-        if [ $? -ne 0 ]
+       # TO-DO Should check if it is already installed
+        res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
+        retCode=$?
+        if [ $retCode -ne 0 ]
         then
-            WriteLog "Error in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+            WriteLog "Error ($retCode) in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+            WriteLog "res: $res" "${PERF_TEST_LOG}"
             exit 1
         fi
 #    else
