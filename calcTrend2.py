@@ -42,6 +42,7 @@ except ImportError as e:
         print("Import error %s" % (repr(e)))
         ReportedTestCasesHistory = None
 
+# Enable to run with a subset of data
 debug = False
 smallDataSet = False
 # To enable diagram generation for "only good" cases as well
@@ -63,6 +64,8 @@ class TrendReport(object):
     results2 = {}
     maxDatapoints = 180
     maxDataPointsOverhead = 5
+    digest = {}
+    baseLines = {}
 
     def myPrint(self, Msg, *Args):
         if self.verbose:
@@ -135,6 +138,20 @@ class TrendReport(object):
             self.baseLine = options.baseLine
             self.baseLineLabel = options.baseLineLabel
             
+        self.generateBaseLine = options.generateBaseLine
+        self.baseLineDate = options.baseLineDate
+        if self.generateBaseLine:
+           if self.baseLineDate == "":
+                today = dt.date.today()
+                self.baseLineDate = today.strftime("%Y-%m-%d")
+                self.baseLineDateNum = mpl.dates.date2num(today)
+           else:
+               yearStr= self.baseLineDate[0:4]
+               monthStr = self.baseLineDate[5:7]
+               dayStr = self.baseLineDate[8:10]
+               date1 = dt.datetime(int(yearStr), int(monthStr),int(dayStr))
+               self.baseLineDateNum = mpl.dates.date2num(date1)
+
         if smallDataSet:
             self.maxDatapoints = 4
         self.numberOfTestDays = 0
@@ -144,13 +161,15 @@ class TrendReport(object):
         self.useAllData = True
         
         if self.verbose:
-            print("self.dataPath       :%s" % (self.dataPath))
-            print("self.reportPath     :%s" % (self.reportPath))
-            print("self.enablePdfReport:%s" % (str(self.enablePdfReport)))
-            print("self.badThreshold   :%3.0f %%" % (self.badThreshold))
-            print("self.goodThreshold  :%3.0f %%" % (self.goodThreshold))
-            print("self.maxDatapoints  :%3d " % (self.maxDatapoints))
-        
+            print("self.dataPath                : %s" % (self.dataPath))
+            print("self.reportPath              : %s" % (self.reportPath))
+            print("self.enablePdfReport         : %s" % (str(self.enablePdfReport)))
+            print("self.badThreshold            : %3.0f %%" % (self.badThreshold))
+            print("self.goodThreshold           : %3.0f %%" % (self.goodThreshold))
+            print("self.maxDatapoints           : %3d " % (self.maxDatapoints))
+            print("self.enableTestPlotGeneration: %s" % (self.enableTestPlotGeneration))
+            print("self.enableBaseLine          : %s" % (self.enableBaseLine))
+
         self.defaultHeaderData = [
                 ['Test case','Last two run',  '', '', 'Last five run',  '', '',  'All runs', '' , '' ], 
                 ['','Trend\nsec/run','Trend','%','Trend\nsec/run','Trend','%','Trend\nsec/run','Trend','%'],
@@ -531,15 +550,19 @@ class TrendReport(object):
         data1 = [32.53, 31.74,  32.45,  32.38,  31.75,  32.18,  31.71,  31.9]
         self.CalcTrend(data1)
     
-    def calcMovingAverage(self, numberOfDays, data):
+    def calcMovingAverage(self, numberOfDays, data,  dates = [],  testName='',  cluster=''):
         self.myPrint("\t\t calcMovingAverage with number of days:%d" % (numberOfDays))
         self.myPrint("\t\t",  data)
+        self.myPrint("\t\t",  dates)
+        self.myPrint("\t\t",  testName)
+
         n = len(data)
         if n == 0:
             print("Not enough data!")
             return []
 
         retArray = []
+        movingMean = 0.0
         for i in range(0,  n):
             endIndex = i + 1
             startIndex = max (endIndex - numberOfDays, 0)
@@ -547,6 +570,20 @@ class TrendReport(object):
             dataSlice = numpy.append(dataSlice, data[startIndex:endIndex]) 
             movingMean =  numpy.nanmean(dataSlice)
             retArray.append(movingMean)
+            if self.generateBaseLine and len(dates) > 0:
+                endDate = dates[i]
+                if endDate == self.baseLineDateNum and not numpy.isnan(movingMean):
+                    print("The moving average value for %s (%s) on date: %s is %f." % (testName, cluster,  self.baseLineDate, movingMean))
+                    try:
+                        self.baseLines[testName][cluster] = movingMean
+                    except KeyError:
+                        self.baseLines[testName] = {cluster: movingMean }
+
+        if self.generateBaseLine and len(dates) > 0: 
+            if testName not in self.baseLines:
+                print("There is not test date: %s in test: '%s' (%s) results. Use the last average value: %f." % (self.baseLineDate,  testName, cluster,  movingMean))
+                self.baseLines[testName] = {cluster: movingMean }
+
         pass
         return retArray
 
@@ -746,7 +783,7 @@ class TrendReport(object):
             # plot the moving average 2 (default: on 30 days)
             if not self.disableMovingAverage2:
                 movingAverage2Label = 'Moving average with %d days window' % (self.movingAverageWindow2)
-                movingAverages = self.calcMovingAverage(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:])
+                movingAverages = self.calcMovingAverage(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:], dates2, test, cluster)
                 ax.plot_date(dates2, movingAverages, label=movingAverage2Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage2'])
 
             # plot the moving std dev 2 (default: on 30 days)
@@ -823,10 +860,22 @@ class TrendReport(object):
                 ax.legend(loc = 'best')
                 
             #plt.show()
-            diagramFileName = self.reportPath + cluster + '/' + tag +'/' + test +"-" + cluster + '-' + self.dateStr + ".png"
-            plt.savefig(diagramFileName)
+            diagramFileName =   test +"-" + cluster + '-' + self.dateStr + ".png"
+            diagramFileNameFullPath = self.reportPath + cluster + '/' + tag +'/' + diagramFileName
+            plt.savefig(diagramFileNameFullPath)
             fig.clear()
             plt.close(fig)
+
+            try:
+                self.digest[cluster][tag].append(diagramFileName)
+            except Exception as e:
+                if cluster not in self.digest:
+                    self.digest[cluster]={ tag:[diagramFileName]}
+                elif tag not in self.digest[cluster]:
+                    self.digest[cluster][tag]=[diagramFileName]
+                else:
+                    PrintException(repr(e) + " There is an old matplotlib.")
+
             print("\t%s created." % (diagramFileName))
             pass
         except Exception as e:
@@ -883,7 +932,7 @@ class TrendReport(object):
                 testIndex += 1
                 if debug:
                     # Only for generate an example diagram
-                    if (not test.startswith('04ad_')) and (not test.startswith('07dc_')) and (not test.startswith('80ab_scalesort-scale(16)')):
+                    if (not test.startswith('15bb')) and (not test.startswith('16')) :
                         continue
                     
                     
@@ -1118,6 +1167,11 @@ class TrendReport(object):
                         #print("Unexpected error:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
                         traceback.print_stack()
                     pass
+
+                    if self.generateBaseLine:
+                        # Execute it only for base line
+                        self.calcMovingAverage(self.movingAverageWindow2, dataSet, dates2, "perftest", cluster)
+
                 else:
                     print("No data for %s." % (cluster) )
                     pass
@@ -1142,7 +1196,12 @@ class TrendReport(object):
             pass
             
         self.handleIssues()
-    
+
+        self.generateDigest()
+
+        if self.generateBaseLine:
+            self.generateBaselines()
+
     def handleIssues(self):
         if os.path.exists(self.issueFileName):
             print("Remove old issue file '%s'" % (self.issueFileName))
@@ -1156,52 +1215,140 @@ class TrendReport(object):
         if len(self.newIssues) > 0:
             file = open(self.issueFileName,  "w")
         
-        print ("New issues")
-        newRecord = []
-        for test in sorted(self.newIssues):
-            for cluster in sorted(self.newIssues[test]):
-                print ("%s, %s, %s, %s" % (test, cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])) )
-            
-                # Back up if it is known issue
-                if test in self.currentIssues:
-                    if cluster in self.currentIssues[test]:
-                        if self.currentIssues[test][cluster]['tag'] == self.newIssues[test][cluster]['tag']:
-                            # Same issue
-                            self.myPrint("self.currentIssues[%s][%s]: %s, self.newIssues[%s][%s]: %s " % (test, cluster, self.currentIssues[test][cluster], test, cluster, self.newIssues[test][cluster]))
-                            if self.currentIssues[test][cluster]['known']:
-                                self.newIssues[test][cluster]['known'] = True 
+            print ("New issues")
+            newRecord = []
+            for test in sorted(self.newIssues):
+                for cluster in sorted(self.newIssues[test]):
+                    print ("%s, %s, %s, %s" % (test, cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])) )
                 
-                # Write out the self.newIssues as PerformanceIssues.csv
-                file.write("%s,%s,%s,%s\n" % (test,  cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])))
-                # Add this item to athe newRecord
-                newRecord.append(("%s,%s,%s,%s" % (test,  cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known']))))
-        try:
-            file.close()
-            if os.path.exists(self.issueFileName):
-                today = dt.datetime.today()
-                dateStr = today.strftime("%y-%m-%d_%H-%M-%S")
-                dstFile = self.issueFileName.replace('.csv', '-'+ dateStr + '.csv')
-                print("Copy issue file '%s' to '%s'" % (self.issueFileName,  dstFile))
-                copyfile(self.issueFileName, dstFile)
-                
-                try:
-                    # Add new record to PerformanceIssues-all.csv
-                    allFile = self.issueFileName.replace('.csv', '-all.csv')
-                    rtch = ReportedTestCasesHistory(allFile)
-                    newDate = today.strftime("%Y-%m-%d")
-                    newRecordStr = ','.join(newRecord)
-                    print("Add a new record with date:%s to file %s" % (str(newDate),  allFile))
-                    rtch.updateHistoryFile(newDate, newRecordStr)
-                except Exception as e:
-                    PrintException(repr(e) + " Add new record to PerformanceIssues-all.csv" )
-                    print("No rtch")
+                    # Back up if it is known issue
+                    if test in self.currentIssues:
+                        if cluster in self.currentIssues[test]:
+                            if self.currentIssues[test][cluster]['tag'] == self.newIssues[test][cluster]['tag']:
+                                # Same issue
+                                self.myPrint("self.currentIssues[%s][%s]: %s, self.newIssues[%s][%s]: %s " % (test, cluster, self.currentIssues[test][cluster], test, cluster, self.newIssues[test][cluster]))
+                                if self.currentIssues[test][cluster]['known']:
+                                    self.newIssues[test][cluster]['known'] = True
                     
-        except IOError as e:
-            PrintException(repr(e) + " No diagram generated")
-        except Exception as e:
-            PrintException(repr(e) + " No diagram generated")
-            pass
-    
+                    # Write out the self.newIssues as PerformanceIssues.csv
+                    file.write("%s,%s,%s,%s\n" % (test,  cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known'])))
+                    # Add this item to athe newRecord
+                    newRecord.append(("%s,%s,%s,%s" % (test,  cluster, self.newIssues[test][cluster]['tag'], str(self.newIssues[test][cluster]['known']))))
+            try:
+                file.close()
+                if os.path.exists(self.issueFileName):
+                    today = dt.datetime.today()
+                    dateStr = today.strftime("%y-%m-%d_%H-%M-%S")
+                    dstFile = self.issueFileName.replace('.csv', '-'+ dateStr + '.csv')
+                    print("Copy issue file '%s' to '%s'" % (self.issueFileName,  dstFile))
+                    copyfile(self.issueFileName, dstFile)
+
+                    try:
+                        # Add new record to PerformanceIssues-all.csv
+                        allFile = self.issueFileName.replace('.csv', '-all.csv')
+                        rtch = ReportedTestCasesHistory(allFile)
+                        newDate = today.strftime("%Y-%m-%d")
+                        newRecordStr = ','.join(newRecord)
+                        print("Add a new record with date:%s to file %s" % (str(newDate),  allFile))
+                        rtch.updateHistoryFile(newDate, newRecordStr)
+                    except Exception as e:
+                        PrintException(repr(e) + " Add new record to PerformanceIssues-all.csv" )
+                        print("No rtch")
+
+            except IOError as e:
+                PrintException(repr(e) + " No diagram generated")
+            except Exception as e:
+                PrintException(repr(e) + " No diagram generated")
+                pass
+
+        else:
+            print ("There is no new issue.")
+
+    def generateDigest(self):
+        def writeDigest():
+            today = dt.datetime.today()
+            dateStr = today.strftime("%y%m%d")
+            imageName =  "perftest-" + self.hpccVersion + "-" + dateStr + ".png"
+            digest   = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Frameset//EN">\n'
+            digest += '<HTML>\n'
+            digest += '<HEAD>\n'
+            digest += '<TITLE>A frameset document</TITLE>\n'
+            digest += '</HEAD>\n'
+            digest += '<FRAMESET rows="140,*">\n'
+            digest += '  <FRAMESET cols="10%,10%,80%">'
+            digest += '      <FRAME name="engines" src="engines.html">\n'
+            digest += '      <FRAME name="categories" src="empty.html">\n'
+            digest += '      <FRAME name="tests" src="empty.html">\n'
+            digest += '  </FRAMESET>\n'
+            digest += '  <FRAME name="diagram" src="diagram.png">\n'
+            digest += '</FRAMESET>\n'
+            digest += '</HTML>\n'
+
+            if not self.enableTestPlotGeneration:
+                digest = digest.replace("engines.html",  "empty.html")
+
+            digest = digest.replace("diagram.png",  imageName)
+            digestFile = open( self.reportPath + "digest.html",  "w" )
+            digestFile.write("%s\n" % (digest))
+            digestFile.close()
+
+        def writePreamble(file,  title):
+            preamble   = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Frameset//EN">\n'
+            preamble += '<HTML>\n'
+            preamble += '<HEAD>\n'
+            preamble += '<TITLE>%s</TITLE>\n'
+            preamble += '</HEAD>\n'
+            preamble += '<BODY>\n'
+
+            preamble = preamble.replace('Title',  title)
+            file.write(preamble %( title))
+
+        def writeEpiloque(file):
+            epiloque   = '</BODY>\n'
+            epiloque += '</HTML>\n'
+
+            file.write("%s\n" % (epiloque))
+
+        if self.enableTestPlotGeneration:
+            enginesFile = open( self.reportPath + "engines.html",  "w" )
+            writePreamble(enginesFile,  "Engines")
+            enginesFile.write('<A href="digest.html" target="\" >Home</A><BR><HR>\n')
+            for cluster in self.digest.keys():
+                enginesFile.write('<A href="%s-categories.html" target="categories">%s</A><BR>\n' % (cluster,  cluster))
+                print("cluster:", cluster)
+                tagFile = open(self.reportPath + cluster + "-categories.html",  "w" )
+                writePreamble(tagFile,  "Tags")
+                for tag in sorted(self.digest[cluster].keys()):
+                    tagFile.write('<A href="%s-%s-tests.html" target="tests">%s (%d)</A><BR>\n' %(cluster, tag,  tag,  len(self.digest[cluster][tag])))
+                    print("  tag:",  tag)
+                    testFile = open(self.reportPath + cluster + '-' + tag + "-tests.html",  "w" )
+                    writePreamble(testFile,  "Tags")
+                    for test in self.digest[cluster][tag]:
+                        testFile.write('<A href="%s/%s/%s" target="diagram">%s</A><BR>\n' % (cluster,  tag, test, test))
+                        print("    test:", test)
+                    writeEpiloque(testFile)
+                    testFile.close()
+                writeEpiloque(tagFile)
+                tagFile.close()
+            writeEpiloque(enginesFile)
+            enginesFile.close()
+
+        emptyFile= open( self.reportPath + "empty.html",  "w" )
+        writePreamble(emptyFile,  "Empty")
+        writeEpiloque(emptyFile)
+        emptyFile.close()
+
+        writeDigest()
+
+    def generateBaselines(self):
+        print("Generate baseline CSV file.")
+        baseLineFile = open( self.reportPath + "baseline-" + self.baseLineDate + ".csv",  "w" )
+        baseLineFile.write("testName,cluster,baseline\n")
+        for test in sorted(self.baseLines.keys()):
+            for cluster in self.baseLines[test].keys():
+                baseLineFile.write("%s,%s,%f\n" % (test, cluster, self.baseLines[test][cluster]))
+        baseLineFile.close()
+        print("  Done.")
 
 #
 # Main
@@ -1260,15 +1407,23 @@ if __name__ == "__main__":
                       , metavar="ENABLETESTPLOTGENERATION")
                       
     parser.add_option("--enableBaseLine", dest="enableBaseLine", default=False, action="store_true", 
-                      help="Enable to show baseline on diagrams. Default is True"
+                      help="Enable to show baseline on diagrams. Default is False"
                       , metavar="ENABLEBASELINE")
-                      
+
     parser.add_option("-b", "--baseLine", dest="baseLine", default=16300.0, type="float", 
                       help="Base line of perfromance.Default is 16,300.0 (average performance before early April 20205)"
                       , metavar="BASELINE")
-                      
+
     parser.add_option("--baseLineLabel", dest="baseLineLabel", default = "Baseline (April 2025)",  type="string", 
                       help="Default base line label for legend.", metavar="BASELINELABEL")
+
+    parser.add_option("--generateBaseLine", dest="generateBaseLine", default=False, action="store_true",
+                      help="Enable to generate baseline CSV file for items.  Default is False"
+                      , metavar="GENERATEBASELINE")
+
+    parser.add_option("--baseLineDate", dest="baseLineDate", default = "",  type="string", 
+                      help="Use date to generate/use base line values. Effective only with convolution of '--enableBaseLine' or '--generateBaseLine' parameter. Default value is: current date."
+                      , metavar="BASELINEDATE")
 
     (options, args) = parser.parse_args()
 

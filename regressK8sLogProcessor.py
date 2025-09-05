@@ -5,6 +5,10 @@ import glob
 from optparse import OptionParser
 import errno
 
+#If True then execute the whole process only a limited number of files to help debug and fix problems.
+# see: "# Process all log files" in Main
+debug = True
+
 def readLogFileNames(path='',  opts=None):
     fileNames = []
     curDir = os.getcwd()
@@ -51,7 +55,7 @@ def readSystemLog(systemName):
         logItems = splitAndStrip(logLine)
         # The first item is the timestamp, that will be the key and
         # use the rest as a related list.'
-        systemLogs[logItems[0]] = { 'testItems' :  [],  'errors' : {}}
+        systemLogs[logItems[0]] = { 'testItems' :  [],  'errors' : {} ,  'tag': logItems[1]}
         systemLogs[logItems[0]]['testItems'] = list(logItems[2:])  # Skip the datestamp and tag
 
     systemErrorsLogFileName = systemName+'-errors.csv'
@@ -78,13 +82,14 @@ def readSystemLog(systemName):
             print("%s is missing from systemLogs" % (key))
             continue
 
-        if tag not in systemLogs[key]:
+        if 'tag' not in systemLogs[key]:
             systemLogs[key]['tag'] = tag
 
         if engine not in systemLogs[key]['errors']:
                 systemLogs[key]['errors'][engine] = []
 
-        for error in errorItems[3:]:
+        # Skip the number of errors in errorItems[3:]
+        for error in errorItems[4:]:
             systemLogs[key]['errors'][engine].append(error)
 
     return systemLogs
@@ -93,7 +98,7 @@ def writeSystemLog(systemName,  systemLog):
     systemLogFileName = systemName+'.csv'
     try:
         outFile = open(systemLogFileName, "w")
-        for timestamp in systemLogs:
+        for timestamp in sorted(systemLogs.keys()):
             tag = 'n/a'
             try:
                 tag = systemLog[timestamp]['tag']
@@ -114,7 +119,7 @@ def writeSystemLog(systemName,  systemLog):
     systemErrorsLogFileName = systemName+'-errors.csv'
     try:
         outFile = open(systemErrorsLogFileName, "w")
-        for timestamp in systemLogs:
+        for timestamp in sorted(systemLogs.keys()):
             if len(systemLog[timestamp]['errors']) == 0:
                 # No error registered, skip this item
                 continue
@@ -126,7 +131,8 @@ def writeSystemLog(systemName,  systemLog):
                 outFile.write( "%s,%s,%s,%s," % (timestamp, tag, engine, numOfErrors))
                 # Create a string, a coma separated values from the list associated
                 # to the timestamp
-                outFile.write(','.join(systemLog[timestamp]['errors'][engine]))
+                errors = ','.join(systemLog[timestamp]['errors'][engine])
+                outFile.write(errors)
                 outFile.write('\n')
         outFile.close()
     except IOError:
@@ -204,14 +210,19 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
             error = items[3]
             if 'version:' in items:
                 error += ''.join( items[4:items.index(')')+1])
+                # This is important to prevent confusion when read CSV file back
+                # because originally the version parameters are separated by ',' as well.
+                error = error.replace(',',';')
             
-            if suite not in sysLogs[timestamp]['errors']:
-                sysLogs[timestamp]['errors'] [suite] = []
+            try:
+                sysLogs[timestamp]['errors'][suite].append(error)
+            except KeyError:
+                sysLogs[timestamp]['errors'] [suite] = [ error]
 
-            sysLogs[timestamp]['errors'][suite].append(error)
             print("\t%s error:'%s'" % (suite, error))
         pass
-    
+
+
     # Keywords function directory
     funcDict = {
          # Keyword   related line processing fuction
@@ -300,6 +311,10 @@ print("%d log files  found in %s." % (len(logFileNames), logFilePath))
 
 # Process all log files
 for logFileName in logFileNames:
+    if debug:
+        if len(systemLogs) == 4:
+            break
+
     # Get the timestamp from the log file name
     timestamp= getLogFileTimestamp(logFileName)
     
@@ -311,7 +326,7 @@ for logFileName in logFileNames:
         
     print("Processing: '%s'" %(logFileName))
     # Initialise the dictionary item
-    systemLogs[timestamp] = { 'testItems' :  [],  'errors' : {}}
+    systemLogs[timestamp] = { 'testItems' :  [],  'errors' : {},  'tag' : 'n/a'}
     processLogFile(logFilePath + '/' + logFileName,  timestamp,  systemLogs)
     
 writeSystemLog(systemName,  systemLogs)
