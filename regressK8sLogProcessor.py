@@ -7,7 +7,7 @@ import errno
 
 #If True then execute the whole process only a limited number of files to help debug and fix problems.
 # see: "# Process all log files" in Main
-debug = True
+debug = False
 
 def readLogFileNames(path='',  opts=None):
     fileNames = []
