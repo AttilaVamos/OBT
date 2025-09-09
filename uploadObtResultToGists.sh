@@ -61,10 +61,20 @@ echo "Clone OBT results into gists directory"
 res=$(git clone https://$token@gist.github.com/$gistId.git gists 2>&1)
 retCode=$?
 
-[[ $DEBUG -ne 0 ]] && echo "ret code: $retCode"
-[[ $DEBUG -ne 0 ]] && echo "res : $res"
+[[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+[[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
 
-cd gists
+res=$( cd gists 2>&1 )
+retCode=$?
+
+[[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+[[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
+
+if [[ $retCode -ne 0 ]]
+then
+    echo "The 'gists' directory is missing. Exit."
+    exit -1
+fi
 
 echo "  Synch result files from $OBT_RESULT_DIR."
 res=$(rsync -va $OBT_RESULT_DIR/[rO]*.json . 2>&1)
