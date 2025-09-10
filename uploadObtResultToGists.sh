@@ -2,6 +2,8 @@
 
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
+. ./settings.sh
+
 #
 # The process is:
 # 1. get parameters and token
@@ -64,13 +66,13 @@ retCode=$?
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
 
-res=$( cd gists 2>&1 )
+cd gists
 retCode=$?
 
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
 [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
 
-if [[ $retCode -ne 0 ]]
+if [[ "$(pwd)" != "$HOME/gists" ]]
 then
     echo "The 'gists' directory is missing. Exit."
     exit -1
