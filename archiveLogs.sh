@@ -306,7 +306,8 @@ CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DI
 CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "uploadObtResultToGists-*.log" "$ARCHIVE_TARGET.log"
 CheckAndZip "-m"                                 "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "fixJson-*.log"                        "$ARCHIVE_TARGET.log"
 CheckAndZip "${MOVE_TO_ZIP_FLAG}" "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "sar-*.log"                             "$ARCHIVE_TARGET.log"
-
+CheckAndZip " "                                   "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "*.json"                       "$ARCHIVE_TARGET.log"
+CheckAndZip " "                                   "$ARCHIVE_TARGET" "${OBT_LOG_DIR}" "*.txt"                        "$ARCHIVE_TARGET.log"
 
 echo '' >> $ARCHIVE_TARGET.log
 

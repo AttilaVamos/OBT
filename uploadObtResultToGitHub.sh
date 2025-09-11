@@ -2,6 +2,8 @@
 
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
+. ./setttings.sh
+
 #
 # The process is:
 # 1. get parameters and token
@@ -76,8 +78,15 @@ else
 
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
-    
+
     cd $LOCAL_TEST_RESULT_REPO_DIR
+
+    if [[ "$(pwd)" != "$LOCAL_TEST_RESULT_REPO_DIR" ]]
+    then
+        echo "The '$LOCAL_TEST_RESULT_REPO_DIR' directory is missing. Exit."
+        exit -1
+    fi
+
     res=$(git remote remove origin 2>&1)
     retCode=$?
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"

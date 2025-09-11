@@ -152,7 +152,9 @@ class TrendReport(object):
                 print("to specify base line CSV file.")
                 self.enableBaseLine = False
             try:
-                baseLineFile = open("baseline-"+ self.baseLineDate +".csv",  "r")
+                baseLineFileName = "./baseline-"+ self.baseLineDate +".csv"
+                print("  base line file: ", baseLineFileName)
+                baseLineFile = open(baseLineFileName,  "r")
                 for line in baseLineFile:
                     if line.startswith('testName'):
                         continue
@@ -161,9 +163,11 @@ class TrendReport(object):
                     #                    testName       cluster   movingMean
                     self.baseLines[items[0]] = {items[1]: float(items[2]) }
                 baseLineFile.close()
+                print("  Read %s file is done." % (baseLineFileName))
             except FileNotFoundError:
                 PrintException("Base line CSV file not found. Disable base line feature.")
                 self.enableBaseLine = False
+                pass
             except Exception as e:
                 baseLineFile.close()
                 PrintException("Exception '%s' in processing base line CSV file." % (str(e)))
@@ -851,12 +855,19 @@ class TrendReport(object):
                     ax.plot_date(dates2, values, label=loopLabel, linestyle = (markers[loop], (2, (loop +1), (loop +1), (loop +1) )), color=colours[loop])
             
             if self.enableBaseLine:
-                # plot the base line
-                baseLine = self.baseLines[test][cluster]
-                print("\tBase line: ",  baseLine)
-                xb = [dates2[0],  dates2[-1]]
-                yb = [baseLine, baseLine]
-                ax.plot(xb, yb, label=self.baseLineLabel, marker ='^', linestyle = '--', linewidth=4.0, color='red')
+                # plot the base line it there is a value (test added after the baseline file generated there is no value)
+                # TO-DO: Perhaps we can use the first not 'nan' rolling averege value for baseline
+                # In this case consider to update the current baseline file, add this new test cluster and value.
+                try:
+                    baseLine = self.baseLines[test][cluster]
+                    print("\tBase line: ",  baseLine)
+                    xb = [dates2[0],  dates2[-1]]
+                    yb = [baseLine, baseLine]
+                    ax.plot(xb, yb, label=self.baseLineLabel, marker ='^', linestyle = '--', linewidth=4.0, color='red')
+                except KeyError:
+                    PrintException("There is not base line value for test: %s on %s, skip to generate baseline graph.\n" % (test,  cluster))
+                except Exception as e:
+                    PrintException("Unexpected error: '%s'.\n" % (repr(e)))
 
             # Format X labels ans ticks
             dateFmt = mpl.dates.DateFormatter('%Y-%m-%d')
