@@ -220,12 +220,13 @@ SubmoduleUpdate()
         res=''
         err=$NO_ERROR
 
-        
+        git submodule deinit --force --all
         while read line
            do
                WriteLog "${line}" "${SUBMODULE_LOG_FILE}" # >> "${SUBMODULE_LOG_FILE}"
                if [ $err -ne  $NO_ERROR ] 
                then
+                    git submodule deinit --force --all
                     continue
                 fi
 
