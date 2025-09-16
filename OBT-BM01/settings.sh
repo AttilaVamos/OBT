@@ -293,7 +293,7 @@ GDB_CMD='gdb --batch --quiet -ex "set interactive-mode off" -ex "echo \nBacktrac
 # Doc build macros
 #
 
-BUILD_DOCS=1
+BUILD_DOCS=0
 
 
 #

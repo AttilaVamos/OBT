@@ -863,7 +863,7 @@ class TrendReport(object):
                     print("\tBase line: ",  baseLine)
                     xb = [dates2[0],  dates2[-1]]
                     yb = [baseLine, baseLine]
-                    ax.plot(xb, yb, label=self.baseLineLabel, marker ='^', linestyle = '--', linewidth=4.0, color='red')
+                    ax.plot(xb, yb, label="%s (%f sec)" % (self.baseLineLabel,  baseLine), marker ='^', linestyle = '--', linewidth=4.0, color='red')
                 except KeyError:
                     PrintException("There is not base line value for test: %s on %s, skip to generate baseline graph.\n" % (test,  cluster))
                 except Exception as e:
@@ -1231,9 +1231,10 @@ class TrendReport(object):
 
             if self.enableBaseLine:
                 # plot the base line
+                baseLine = self.baseLines['perftest'][cluster]
                 xb = [dates2[0],  dates2[-1]]
-                yb = [self.baseLines['perftest'][cluster], self.baseLines['perftest'][cluster] ]
-                ax.plot(xb, yb, label=self.baseLineLabel, marker ='^', linestyle = '-', linewidth=2.0, color='red')
+                yb = [baseLine, baseLine]
+                ax.plot(xb, yb, label="%s (%f sec)" % (self.baseLineLabel,  baseLine), marker ='^', linestyle = '-', linewidth=2.0, color='red')
 
             
             ax.grid(True, which='both')
