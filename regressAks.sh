@@ -378,28 +378,28 @@ MyExit()
 
         VNET)          STORAGE_START_RESULT_STR="$ERROR_MSG"
                             STORAGE_START_RESULT_REPORT_STR="$ERROR_MSG"
-                            ;&
+                            ;&  # Along with the nex one
 
         STORAGE)    AKS_START_RESULT_STR="$ERROR_MSG"
                             AKS_START_RESULT_REPORT_STR="$ERROR_MSG"
-                            ;&
+                            ;& # Along with the nex one
 
         AKS)            ECLWATCH_START_RESULT_STR="$ERROR_MSG"
                             ECLWATCH_START_RESULT_REPORT_STR="$ERROR_MSG"
 
                             COLLECT_POD_LOGS_RESULT_STR="$ERROR_MSG"
                             COLLECT_POD_LOGS_RESULT_REPORT_STR="$ERROR_MSG"
-                            ;&
+                            ;& # Along with the nex one
 
         ECLWATCH)  SETUP_RESULT_STR="$ERROR_MSG"
                             SETUP_RESULT_REPORT_STR="$ERROR_MSG"
                             QUERY_STAT2_RESULT_STR="$ERROR_MSG"
                             QUERY_STAT2_RESULT_REPORT_STR="$ERROR_MSG"
-                            ;&
+                            ;& # Along with the nex one
 
         SETUP)        QUERIES_PUBLISH_RESULT_STR="$ERROR_MSG"
                             QUERIES_PUBLISH_RESULT_REPORT_STR="$ERROR_MSG"
-                            ;&
+                            ;& # Along with the nex one
 
         QUERIES)     REGRESS_START_TIME=$( date "+%H:%M:%S")
                             REGRESS_RESULT_STR="$ERROR_MSG"

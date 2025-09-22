@@ -84,7 +84,7 @@ do
 
   branchIndex=$(( branchIndex + 1 ))
 
-done < <(git branch -r | egrep -v '\->|origin' | egrep 'candidate\-[1-9]*.[0-9]*.x' | sort -rV | head -n $maxAutoBranch | cut -d '/' -f 2)
+done < <(git branch -r | egrep -v '\->|origin' | egrep 'candidate\-[0-9]*.[0-9]*.x' | sort -rV | head -n $maxAutoBranch | cut -d '/' -f 2)
 
 popd > /dev/null
 
