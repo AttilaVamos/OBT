@@ -1234,7 +1234,7 @@ class TrendReport(object):
                 baseLine = self.baseLines['perftest'][cluster]
                 xb = [dates2[0],  dates2[-1]]
                 yb = [baseLine, baseLine]
-                ax.plot(xb, yb, label="%s (%f sec)" % (self.baseLineLabel,  baseLine), marker ='^', linestyle = '-', linewidth=2.0, color='red')
+                ax.plot(xb, yb, label="%s (%f sec)" % (self.baseLineLabel,  baseLine), marker ='^', linestyle = '-', linewidth=4.0, color='red')
 
             
             ax.grid(True, which='both')
