@@ -55,6 +55,8 @@ REGRESS_LOG_FILE=${OBT_LOG_DIR}/regress-${LONG_DATE}.log
 
 WriteLog "Regression test started" "${REGRESS_LOG_FILE}"
 
+WriteLog "Called from: [$( caller )] with '$*'." "${REGRESS_LOG_FILE}"
+
 trap 'WriteLog "The $0 $@ EXIT with $?" "${REGRESS_LOG_FILE}"' EXIT
 trap 'WriteLog "The $0 $@ RETURN with $?" "${REGRESS_LOG_FILE}"' RETURN
 
@@ -618,6 +620,7 @@ cd  $REGRESSION_TEST_ENGINE_HOME
 WriteLog "Setup phase" "${REGRESS_LOG_FILE}"
 
 exitCode=0
+obtMainProcessId=$(pgrep "obtMain.sh")
 echo -n "TestResult:" > ${TEST_ROOT}/setup.summary 
 ./ecl-test list | grep -v "Cluster" |
 while read cluster
@@ -678,6 +681,9 @@ do
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/setup.summary
             WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
             
+            WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
+            WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
+
             WriteLog "Exit with code 7" "${REGRESS_LOG_FILE}"
             exitCode=7
             exit 7
@@ -687,6 +693,9 @@ do
         WriteLog "                                                    " "${REGRESS_LOG_FILE}"        
     fi
 done
+
+WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
+WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
 
 if [ $exitCode -ne 0 ]
 then
