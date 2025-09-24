@@ -622,7 +622,7 @@ WriteLog "Setup phase" "${REGRESS_LOG_FILE}"
 exitCode=0
 obtMainProcessId=$(pgrep "obtMain.sh")
 echo -n "TestResult:" > ${TEST_ROOT}/setup.summary 
-./ecl-test list | grep -v "Cluster" |
+#./ecl-test list | grep -v "Cluster" |
 while read cluster
 do
     CMD="./ecl-test setup --target ${cluster} --suiteDir $TEST_HOME ${REGRESSION_SETUP_TIMEOUT} --pq ${REGRESSION_SETUP_PARALLEL_QUERIES} ${REGRESSION_GENERATE_STACK_TRACE} ${REGRESSION_PREABORT} ${REGRESSION_EXTRA_PARAM}"
@@ -692,7 +692,7 @@ do
         WriteLog "Skip regression suite setup execution on ${cluster}!" "${REGRESS_LOG_FILE}"
         WriteLog "                                                    " "${REGRESS_LOG_FILE}"        
     fi
-done
+done< <(./ecl-test list | grep -v "Cluster")
 
 WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
 WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
@@ -719,7 +719,7 @@ fi
 WriteLog "COUCHBASE_SERVER_VAR:'${COUCHBASE_SERVER_VAR}'" "${REGRESS_LOG_FILE}"
 
 
-./ecl-test list | grep -v "Cluster" |
+#./ecl-test list | grep -v "Cluster" |
 while read cluster
 do
 
@@ -779,7 +779,7 @@ do
         WriteLog "Skip regression suite execution on ${cluster}!" "${REGRESS_LOG_FILE}"
         WriteLog "                                              " "${REGRESS_LOG_FILE}"    
     fi
-done
+done< <(./ecl-test list | grep -v "Cluster" )
 
 # Get tests stat
 if [[ -f $OBT_BIN_DIR/QueryStat2.py ]]
