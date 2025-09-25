@@ -681,12 +681,12 @@ do
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/setup.summary
             WriteLog "${cluster}:total:${total} passed:${passed} failed:${failed} elapsed:${elapsed} " "${REGRESS_LOG_FILE}"
             
-            WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
-            WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
+            # Only for debug
+            # WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
+            # WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
 
             WriteLog "Exit with code 7" "${REGRESS_LOG_FILE}"
             exitCode=7
-            exit 7
         fi
     else
         WriteLog "Skip regression suite setup execution on ${cluster}!" "${REGRESS_LOG_FILE}"
@@ -694,13 +694,14 @@ do
     fi
 done< <(./ecl-test list | grep -v "Cluster")
 
-WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
-WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
+# Only for debug
+# WriteLog "Process tree:" "${REGRESS_LOG_FILE}"
+# WriteLog "$(ps xjf -p $obtMainProcessId)" "${REGRESS_LOG_FILE}"
 
 if [ $exitCode -ne 0 ]
 then
-    WriteLog "Error in Setup, exit with code $exitCode" "${REGRESS_LOG_FILE}"
-    exit $exitCode
+    WriteLog "Error in Setup, skip Regression Suite" "${REGRESS_LOG_FILE}"
+    EXECUTE_REGRESSION_SUITE=0
 fi
 
 # -----------------------------------------------------
@@ -773,11 +774,11 @@ do
             echo -n "TestResult:Total:${total} passed:${passed} failed:${failed} elapsed:${elapsed}" > ${OBT_LOG_DIR}/${cluster}.summary 
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/${cluster}.summary 
 
-            exit -1
+            #exit -1  # Commented out to keep it running
         fi
     else
-        WriteLog "Skip regression suite execution on ${cluster}!" "${REGRESS_LOG_FILE}"
-        WriteLog "                                              " "${REGRESS_LOG_FILE}"    
+        WriteLog "Skip regression suite execution on ${cluster}!\n" "${REGRESS_LOG_FILE}"
+        echo "TestResult:Total:0 passed:0 failed:0 elapsed:0" > ${OBT_LOG_DIR}/${cluster}.summary
     fi
 done< <(./ecl-test list | grep -v "Cluster" )
 
