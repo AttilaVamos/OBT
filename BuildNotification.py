@@ -967,9 +967,11 @@ class BuildNotification( object ):
                             self.logFiles.append(file)
 
                 elif (task.name == 'Unittests'):
-                    result = task.errorMsg.replace('Unittests:', '').replace('<br>', '').strip()
-                    lines = result.split('\n')
-                    self.jsonReport["OBTResult"]["Errors"].append( { 'Unittests': lines } )
+                    result = task.result
+                    if task._failed >= 0:
+                        errors = task.errorMsg.replace('Unittests:', '').replace('<br>', '').strip()
+                        lines = errors.split('\n')
+                        self.jsonReport["OBTResult"]["Errors"].append( { 'Unittests': lines } )
 
                 else:
                     result = "<span style=\"color:red\">" + task.result + "</span>" 
@@ -1283,7 +1285,8 @@ class BuildNotification( object ):
             logRecordFile.close()
 
     def storeJsonResult(self):
-        with open(self.config.reportObtSystem +'-' + self.results[self.buildTaskIndex].gitBranchName +'-'+self.config.buildDate+'-'+self.config.buildTime.replace(':',  '-')+'.json',  'w') as outfile:
+        jsonFileName = self.config.reportObtSystem +'-' + self.results[self.buildTaskIndex].gitBranchName +'-'+self.config.buildDate+'-'+self.config.buildTime.replace(':',  '-')+'.json'
+        with open(jsonFileName, 'w') as outfile:
                json.dump( self.jsonReport, outfile, indent=4)
         
 if __name__ == "__main__":
