@@ -31,7 +31,7 @@ WriteLog()
         printf "%s: %s\n" "${TIMESTAMP}" "$i"
         if [ "$logFile." == "." ]
         then
-            echo ${TIMESTAMP}": ERROR: WriteLog() target log file name is empty! ($0)"
+            echo ${TIMESTAMP}": ERROR: WriteLog() target log file name is empty! ($( caller))"
         else 
             echo -e "${TIMESTAMP}: $i" >> $logFile
         fi
