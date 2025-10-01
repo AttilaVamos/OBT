@@ -69,97 +69,137 @@ echo "Clean system" > ${BUILD_LOG} 2>&1
 ${SUDO} rm -rf ${COVERAGE_ROOT}/*
 #cd  ${COVERAGE_ROOT}
 
-#----------------------------------------------------
-#
-# Uninstall HPCC
-#
-
-WriteLog "Uninstall HPCC-Platform" "${COVERAGE_LOG_FILE}"
-
-UninstallHPCC "$WIPE_OUT" "${COVERAGE_LOG_FILE}"
-
-
-# --------------------------------------------------------------
-#
-# Build HPCC with coverage
-#
-
-WriteLog "Build HPCC with coverage in ${BUILD_HOME}" "${COVERAGE_LOG_FILE}"
-
-cd ${BUILD_HOME}
-
-CMD="cmake -DGENERATE_COVERAGE_INFO=ON -DCMAKE_BUILD_TYPE=Release -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= -DMYSQL_LIBRARIES=/usr/lib64/mysql/libmysqlclient.so -DMYSQL_INCLUDE_DIR=/usr/include/mysql -DMAKE_MYSQLEMBED=1 ../HPCC-Platform"
-
-WriteLog "cdm:${CMD}" "${COVERAGE_LOG_FILE}"
-
-${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
-
-#make -j 8 package >> ${COVERAGE_LOG_FILE} 2>&1
-# Won't work with 
-CMD="make -j ${NUMBER_OF_CPUS} package"
-    
-${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
-
-if [ $? -ne 0 ] 
+if [[ $PERF_BUILD -eq 1 ]]
 then
-   WriteLog "Build failed: no rpm package found" "${COVERAGE_LOG_FILE}"
-   echo "Build failed: build has errors " >> ${BUILD_LOG}
-   buildResult=FAILED
-else
-   ls -l hpcc*.rpm >/dev/null 2>&1
-   if [ $? -ne 0 ] 
-   then
-      WriteLog "Build failed: no rpm package found" "${COVERAGE_LOG_FILE}"
-      echo "Build failed: no rpm package found " >> ${BUILD_LOG}
-      buildResult=FAILED
-   else
-      WriteLog "Build succeed" "${COVERAGE_LOG_FILE}"
-      echo "Build succeed" >> ${BUILD_LOG}
-      buildResult=SUCCEED
-   fi
+    WriteLog "                                           " "${PERF_TEST_LOG}"
+    WriteLog "*******************************************" "${PERF_TEST_LOG}"
+    WriteLog " Build HPCC Platform from ${BUILD_HOME} ..." "${PERF_TEST_LOG}"
+    WriteLog "                                           " "${PERF_TEST_LOG}"
+
+
+    #----------------------------------------------------
+    #
+    # Uninstall HPCC
+    #
+
+    WriteLog "Uninstall HPCC-Platform" "${COVERAGE_LOG_FILE}"
+
+    UninstallHPCC "$WIPE_OUT" "${COVERAGE_LOG_FILE}"
+
+
+    # --------------------------------------------------------------
+    #
+    # Build HPCC with coverage
+    #
+
+    WriteLog "Build HPCC with coverage in ${BUILD_HOME}" "${COVERAGE_LOG_FILE}"
+
+    cd ${BUILD_HOME}
+
+    #CMD="cmake -DGENERATE_COVERAGE_INFO=ON -DCMAKE_BUILD_TYPE=Release"
+    #CMD+=" -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES="
+    #CMD+=" -DMYSQL_LIBRARIES=/usr/lib64/mysql/libmysqlclient.so -DMYSQL_INCLUDE_DIR=/usr/include/mysql -DMAKE_MYSQLEMBED=1"
+    #CMD+="  ../HPCC-Platform"
+
+    GENERATOR="Unix Makefiles"
+    CMAKE_CMD=$'cmake  -G "'${GENERATOR}$'"'
+    #CMAKE_CMD+=$' --debug-output'
+    #CMAKE_CMD+=$' --trace'
+    CMAKE_CMD+=$' -D CMAKE_BUILD_TYPE='$BUILD_TYPE
+    CMAKE_CMD+=$' -DINCLUDE_PLUGINS=1 -DTEST_PLUGINS=1'
+    CMAKE_CMD+=$' -DMAKE_DOCS='${MAKE_DOCS}
+    CMAKE_CMD+=$' -DUSE_CPPUNIT='${USE_CPPUNIT}
+    CMAKE_CMD+=$' -DWSSQL_SERVICE='${MAKE_WSSQL}
+    #CMAKE_CMD+=$' -DUSE_LIBMEMECACHED='${USE_LIBMEMCACHED}
+    #CMAKE_CMD+=$' -DECLWATCH_BUILD_STRATEGY='${ECLWATCH_BUILD_STRATEGY}
+    #CMAKE_CMD+=$' -DINCLUDE_SPARK='${ENABLE_SPARK}' -DSUPPRESS_SPARK='${SUPPRESS_SPARK}' -DSPARK='${ENABLE_SPARK}
+    CMAKE_CMD+=$' '${PYTHON_PLUGIN}
+    CMAKE_CMD+=$' -DCONTAINERIZED='${BUILD_FOR_CLOUD}
+    #CMAKE_CMD+=$' -DMAKE_REMBED=1 -D SUPPRESS_REMBED=0'
+    CMAKE_CMD+=$' -DUSE_ADDRESS_SANITIZER='${LEAK_CHECK}
+    CMAKE_CMD+=$' -DSUPPRESS_MONGODBEMBED='${SUPPRESS_MONGODB}' -DSUPPRESS_NLP='${SUPPRESS_NLP}
+    CMAKE_CMD+=$' -DSUPPRESS_WASMEMBED='${SUPPRESS_WASMEMBED}
+    CMAKE_CMD+=$' -DGENERATE_COVERAGE_INFO='$BUILD_WITH_COVERAGE
+    CMAKE_CMD+=$' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= '
+    CMAKE_CMD+=$' -DCUSTOM_PACKAGE_SUFFIX='$PKG_SUFFIX
+    CMAKE_CMD+=$' -DUSE_MYSQL=OFF -DUSE_MYSQLEMBED=OFF -DSUPPRESS_MYSQLEMBED=ON'
+    CMAKE_CMD+=$' -DPHONENUMBER=OFF -DSUPPRESS_PHONENUMBER=ON'
+    CMAKE_CMD+=$' -DUSE_OPENTEL_GRPC=OFF'
+    CMAKE_CMD+=$' -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30 ../HPCC-Platform'
+
+    WriteLog "CMake cmd:${CMAKE_CMD}" "${COVERAGE_LOG_FILE}"
+
+    TIME_STAMP=$(date +%s)
+    ${CMAKE_CMD} >> ${COVERAGE_LOG_FILE} 2>&1
+
+    #make -j 8 package >> ${COVERAGE_LOG_FILE} 2>&1
+    # Won't work with 
+    CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
+        
+    ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
+
+    if [ $? -ne 0 ] 
+    then
+       WriteLog "Build failed: no $PKG_EXT package found" "${COVERAGE_LOG_FILE}"
+       echo "Build failed: build has errors " >> ${BUILD_LOG}
+       buildResult=FAILED
+    else
+       ls -l hpcc*.${PKG_EXT} >/dev/null 2>&1
+       if [ $? -ne 0 ] 
+       then
+          WriteLog "Build failed: no $PKG_EXT  package found" "${COVERAGE_LOG_FILE}"
+          echo "Build failed: no $PKG_EXT  package found " >> ${BUILD_LOG}
+          buildResult=FAILED
+       else
+          WriteLog "Build succeed" "${COVERAGE_LOG_FILE}"
+          echo "Build succeed" >> ${BUILD_LOG}
+          buildResult=SUCCEED
+          HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )    
+       fi
+    fi
+
+    CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
+    WriteLog "Build ${buildResult} at ${CURRENT_DATE}" "${COVERAGE_LOG_FILE}"
+    echo "Build ${buildResult} at "${CURRENT_DATE} >> ${BUILD_LOG} 2>&1
+
+    if [ "$buildResult" = "FAILED" ]
+    then
+
+        echo "No Coverage result." >> ./coverage.summary
+
+        cp ./coverage.summary $COVERAGE_ROOT/
+
+        # send email to Agyi
+            echo "Coverage build Failed! Check the logs!" | mailx -s "Problem with Coverage" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+        
+        exit
+    fi
+
+    #----------------------------------------------------
+    #
+    # Install HPCC
+    #
+
+    WriteLog "Install HPCC-Platform" "${COVERAGE_LOG_FILE}"
+    echo "Install HPCC-Platform"  >> ${BUILD_LOG} 2>&1
+
+    #${SUDO} rpm -i --nodeps ${BUILD_HOME}/hpccsystems-platform?community*.rpm
+    res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
+
+    if [ $? -ne 0 ]
+    then
+       echo "TestResult:FAILED" >> $TEST_ROOT/install.summary
+       echo "TestResult:FAILED" >> ${BUILD_LOG} 2>&1
+       WriteLog "Install HPCC-Platform FAILED" "${COVERAGE_LOG_FILE}"
+
+       exit
+    else
+       echo "TestResult:PASSED" >> $TEST_ROOT/install.summary
+       echo "TestResult:PASSED" >> ${BUILD_LOG} 2>&1
+       WriteLog "Install HPCC-Platform PASSED" "${COVERAGE_LOG_FILE}"
+
+    fi
 fi
-
-CURRENT_DATE=$( date "+%Y-%m-%d %H:%M:%S")
-WriteLog "Build ${buildResult} at ${CURRENT_DATE}" "${COVERAGE_LOG_FILE}"
-echo "Build ${buildResult} at "${CURRENT_DATE} >> ${BUILD_LOG} 2>&1
-
-if [ "$buildResult" = "FAILED" ]
-then
-
-    echo "No Coverage result." >> ./coverage.summary
-
-    cp ./coverage.summary $COVERAGE_ROOT/
-
-    # send email to Agyi
-        echo "Coverage build Failed! Check the logs!" | mailx -s "Problem with Coverage" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-    
-    exit
-fi
-
-#----------------------------------------------------
-#
-# Install HPCC
-#
-
-WriteLog "Install HPCC-Platform" "${COVERAGE_LOG_FILE}"
-echo "Install HPCC-Platform"  >> ${BUILD_LOG} 2>&1
-
-${SUDO} rpm -i --nodeps ${BUILD_HOME}/hpccsystems-platform?community*.rpm
-
-if [ $? -ne 0 ]
-then
-   echo "TestResult:FAILED" >> $TEST_ROOT/install.summary
-   echo "TestResult:FAILED" >> ${BUILD_LOG} 2>&1
-   WriteLog "Install HPCC-Platform FAILED" "${COVERAGE_LOG_FILE}"
-
-   exit
-else
-   echo "TestResult:PASSED" >> $TEST_ROOT/install.summary
-   echo "TestResult:PASSED" >> ${BUILD_LOG} 2>&1
-   WriteLog "Install HPCC-Platform PASSED" "${COVERAGE_LOG_FILE}"
-
-fi
-
 
 #
 #----------------------------------------------------
