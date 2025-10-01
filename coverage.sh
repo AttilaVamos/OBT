@@ -42,6 +42,7 @@ LOGDIR=~/HPCCSystems-regression/log
 BUILD_ONLY=1
 #NUMBER_OF_CPUS=1
 WIPE_OUT=1
+COVERAGE_BUILD=1
 
 DEFAULT_UMASK=$(umask)
 
@@ -69,7 +70,7 @@ echo "Clean system" > ${BUILD_LOG} 2>&1
 ${SUDO} rm -rf ${COVERAGE_ROOT}/*
 #cd  ${COVERAGE_ROOT}
 
-if [[ $PERF_BUILD -eq 1 ]]
+if [[ $COVERAGE_BUILD -eq 1 ]]
 then
     WriteLog "                                           " "${PERF_TEST_LOG}"
     WriteLog "*******************************************" "${PERF_TEST_LOG}"
@@ -202,7 +203,7 @@ then
 fi
 
 #
-#----------------------------------------------------
+#----------------------------------------------------dif
 #
 # Tremporarily remove cassandra-simple.ecl test
 #
