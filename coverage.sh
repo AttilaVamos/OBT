@@ -32,21 +32,48 @@ clear
 
 COVERAGE_ROOT=~/coverage
 #TEST_ROOT=~/build/CE/platform
-TEST_HOME=${TEST_ROOT}/HPCC-Platform/testing/regress
+RTE_HOME=~/RTE
+TEST_HOME=~/HPCC-Platform/testing/regress
 #BUILD_HOME=~/build/CE/platform/build
 BUILD_LOG=${COVERAGE_ROOT}/build_log
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 COVERAGE_LOG_FILE=${OBT_LOG_DIR}/coverage-${LONG_DATE}.log
 LOGDIR=~/HPCCSystems-regression/log
 
-BUILD_ONLY=1
-#NUMBER_OF_CPUS=1
+ENABLE_JAVA2=0
 WIPE_OUT=1
-COVERAGE_BUILD=1
+COVERAGE_BUILD=0
 COVERAGE_SOURCE_HOME=~/HPCC-Platform
 PKG_SUFFIX="coverage-$(date +%Y-%m-%d)"
 
 DEFAULT_UMASK=$(umask)
+
+CLEAN_UP=0 #0   # If coverage build, always clean up first.
+BUILD_TYPE=RelWithDebInfo
+USE_CPPUNIT=1
+SLAVES=4
+ECLWATCH_BUILD_STRATEGY=0 #IF_MISSING
+TEST_PLUGINS=1  # Need for deploy java queries in Setup
+NEW_ECLWATCH_BUILD_MODE=1
+SKIP_PLAYWRIGHT_TEST=1
+MAKE_DOCS=0
+MAKE_WSSQL=0
+ENABLE_SPARK=0
+SUPPRESS_SPARK=1
+USE_LIBMEMCACHED=0
+SUPPRESS_MONGODB=1
+SUPPRESS_NLP=1
+BUILD_FOR_CLOUD=0
+MAKE_PACKAGE=1
+INSTALL_USER=ati
+INSTALL_DIR=/home/ati/hpcc
+SUPPRESS_WASMEMBED=ON
+LEAK_CHECK=0
+
+
+BUILD_ONLY=0
+RUN_SETUP=1
+RUN_REGRESS=0
 
 #
 #----------------------------------------------------
@@ -73,20 +100,16 @@ WriteLog "Clean system!" ${BUILD_LOG}
 
 [ ! -e $COVERAGE_ROOT ] && mkdir -p $COVERAGE_ROOT
 
-#${SUDO} rm -rf ${COVERAGE_ROOT}/*
-#cd  ${COVERAGE_ROOT}
 
 
-CLEAN_UP=0 #0   # If coverage build, always clean up first.
-BUILD_TYPE=RelWithDebInfo
-USE_CPPUNIT=1
-SLAVES=4
-ECLWATCH_BUILD_STRATEGY=0 #IF_MISSING
-TEST_PLUGINS=1  # Need for deploy java queries in Setup
-SKIP_PLAYWRIGHT_TEST=1
 # Check and patch source files
 
 pushd $COVERAGE_SOURCE_HOME
+
+WriteLog "Restore source tree to avoid multiple patches." "${COVERAGE_LOG_FILE}"
+res=$(git restore . 2>&1)
+retCode=$?
+WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
 if [[ $(egrep -c 'D_COVERAGE' cmake_modules/commonSetup.cmake) -eq 0 ]]
@@ -156,56 +179,78 @@ WriteLog "  Done"  "${COVERAGE_LOG_FILE}"
 # The '-fprofile-update=atomic' PR merged, but need to do with this linker stuff as well:
 # SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
 # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
-
-
 # With '0' skip the patch to check whether this caused the coverage degradation or not. (2025-06-17)
-isCoverageFixed=0  # $(egrep -c 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake)
+isCoverageFixed=0   # $(egrep -c 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake)
 if [[ $isCoverageFixed -eq 1 ]]
 then
     sed -i '/fprofile-update=atomic/a \
           # Inserted by build.sh \
           SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic") \
           SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")' ~/HPCC-Platform/cmake_modules/commonSetup.cmake
+else
+    WriteLog "  Already patched." "${COVERAGE_LOG_FILE}"
 fi
 egrep 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake
 
 
-#--------------------------------------------
-# This TinyProxy related part needs to be move after the build is success
-# Check if Tinyproxy is running. If yes stop it
-if [[ -n "$(pgrep tinyproxy)" ]]
-then
-    WriteLog "Tinyproxy is running, but probably with default configuration. Stop it."  "${COVERAGE_LOG_FILE}"
-    sudo systemctl stop tinyproxy
-fi
-
-# Check if Tinyproxy is isntalled, if yes start it
-res=$(type "tinyproxy" 2>&1 )
-if [[ $? -eq 0 ]]
-then
-    WriteLog "Tinyproxy is installed, start it with our configuration." "${COVERAGE_LOG_FILE}"
-    pushd ~/OBT
-    ./checkTinyproxy.sh
-    popd
-fi
 #---------------------------------
 
-
 pushd $BUILD_HOME
-WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
-sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
-
-WriteLog "lcov --zerocounters --directory ." "${COVERAGE_LOG_FILE}"
-lcov --zerocounters --directory .
 
 if [[ $CLEAN_UP -eq 1 ]]
 then
     WriteLog "Do 'make clean'" "${COVERAGE_LOG_FILE}"
     make clean
     WriteLog "  done." "${COVERAGE_LOG_FILE}"
+
+    pushd ../HPCC-Platform
+    git clean -f -fd
+    rm -rf ./esp/src/node_modules
+    popd
+
+    rm -f ${BUILD_ROOT}/CMakeCache.txt
+    if [ ! -f ${BUILD_ROOT}/CMakeCache.txt ]
+    then
+        WriteLog "${BUILD_ROOT}/CMakeCache.txt removed!" "${COVERAGE_LOG_FILE}"
+    fi
+
+    DIRS_TO_BE_DELETE="${BUILD_TYPE} tools generated system plugins esp ecl ecllibrary _CPack_Packages vcpkg_buildtrees vcpkg_packages"
+    for dir in ${DIRS_TO_BE_DELETE[@]}
+    do 
+        WriteLog "$(printf "Remove: %-20s" "$dir")" "${COVERAGE_LOG_FILE}"
+        rm -rf $dir
+        if [[ ! -d $dir ]]
+        then
+            WriteLog "Directory '$dir removed!" "${COVERAGE_LOG_FILE}"
+        fi
+    done
+
+    if [ -f ~/vcpkg_downloads-$BRANCH_VERSION.zip ]
+    then
+        WriteLog "Remove current 'vcpkg_downloads' 'vcpkg_installed' directories."  "${COVERAGE_LOG_FILE}"
+        rm -rf vcpkg_downloads vcpkg_installed
+        WriteLog "Unzip vcpkg_downloads-$BRANCH_VERSION.zip" "${COVERAGE_LOG_FILE}"
+        res=$( unzip ~/vcpkg_downloads-$BRANCH_VERSION.zip 2>&1 )
+        retCode=$?
+        WriteLog "retCode: $retCode" "${COVERAGE_LOG_FILE}"
+    fi
+
+    if [[ $BUILD_WITH_COVERAGE -eq 1 ]]
+    then
+        WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
+        sudo find . -name "*.dir" -type d -exec rm -rf {} \;
+        WriteLog "  Done" "${COVERAGE_LOG_FILE}"
+    fi
 else
     WriteLog "Skip 'make clean'" "${COVERAGE_LOG_FILE}"
 fi
+
+WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
+sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+
+WriteLog "lcov --zerocounters --directory ." "${COVERAGE_LOG_FILE}"
+lcov --zerocounters --directory .
+
 
 popd
 
@@ -263,12 +308,25 @@ then
     CMAKE_CMD+=$' -DUSE_ADDRESS_SANITIZER='${LEAK_CHECK}
     CMAKE_CMD+=$' -DSUPPRESS_MONGODBEMBED='${SUPPRESS_MONGODB}' -DSUPPRESS_NLP='${SUPPRESS_NLP}
     CMAKE_CMD+=$' -DSUPPRESS_WASMEMBED='${SUPPRESS_WASMEMBED}
-    CMAKE_CMD+=$' -DGENERATE_COVERAGE_INFO='$COVERAGE_BUILD
+    CMAKE_CMD+=$' -DGENERATE_COVERAGE_INFO=1'
     CMAKE_CMD+=$' -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES= '
     CMAKE_CMD+=$' -DCUSTOM_PACKAGE_SUFFIX='$PKG_SUFFIX
 #    CMAKE_CMD+=$' -DUSE_MYSQL=OFF -DUSE_MYSQLEMBED=OFF -DSUPPRESS_MYSQLEMBED=ON'
 #    CMAKE_CMD+=$' -DPHONENUMBER=OFF -DSUPPRESS_PHONENUMBER=ON'
 #    CMAKE_CMD+=$' -DUSE_OPENTEL_GRPC=OFF'
+    # JAVA stuff
+    jv=$(java --version | head -n 1 | awk '{ print $2 }')
+    # Is Java version 2x?
+    if [[ (${jv:0:1} -eq 2) && ($ENABLE_JAVA2 -eq 1) ]]
+    then
+        # Yes, set the parameters
+        CMAKE_CMD+=$' -DJAVA_AWT_INCLUDE_PATH=/usr/lib/jvm/java-21-openjdk-amd64/include'
+        CMAKE_CMD+=$' -DJAVA_AWT_LIBRARY=/usr/lib/jvm/java-21-openjdk-amd64/lib/libjawt.so'
+        CMAKE_CMD+=$' -DJAVA_INCLUDE_PATH=/usr/lib/jvm/java-21-openjdk-amd64/include'
+        CMAKE_CMD+=$' -DJAVA_INCLUDE_PATH2=/usr/lib/jvm/java-21-openjdk-amd64/include/linux'
+        CMAKE_CMD+=$' -DJAVA_JVM_LIBRARY=/usr/lib/jvm/java-17-openjdk-amd64/lib/server/libjvm.so'
+    fi
+
     CMAKE_CMD+=$' -D CMAKE_ECLIPSE_MAKE_ARGUMENTS=-30'
     CMAKE_CMD+=$' '$COVERAGE_SOURCE_HOME
 
@@ -299,7 +357,7 @@ then
           WriteLog "Build succeed" "${COVERAGE_LOG_FILE}"
           echo "Build succeed" >> ${BUILD_LOG}
           buildResult=SUCCEED
-          HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )    
+          HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f | sort -rV | head -n 1)
        fi
     fi
 
@@ -332,12 +390,12 @@ then
 
     if [ $? -ne 0 ]
     then
-       echo "TestResult:FAILED" >> $TEST_ROOT/install.summary
+       echo "TestResult:FAILED" >> $COVERAGE_ROOT/install.summary
        WriteLog "Install HPCC-Platform FAILED" "${COVERAGE_LOG_FILE}"
 
        exit
     else
-       echo "TestResult:PASSED" >> $TEST_ROOT/install.summary
+       echo "TestResult:PASSED" >> $COVERAGE_ROOT/install.summary
        WriteLog "Install HPCC-Platform PASSED" "${COVERAGE_LOG_FILE}"
     fi
 fi
@@ -352,8 +410,15 @@ WriteLog "Set up coverage environment" "${COVERAGE_LOG_FILE}"
 
 WriteLog "Set environment to coverage" "${COVERAGE_LOG_FILE}"
 
+pushd $BUILD_HOME
+
 WriteLog "  sudo chmod -R 0777 /opt/HPCCSystems /var/lib/HPCCSystems " "${COVERAGE_LOG_FILE}"
 sudo chmod -R 0777 /opt/HPCCSystems /var/lib/HPCCSystems
+
+WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
+sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+
+popd
 
 cnt=$(grep -c "^umask" /etc/HPCCSystems/environment.conf)
 if [[ $cnt -eq 0 ]]
@@ -367,16 +432,39 @@ WriteLog "$(grep "^umask" /etc/HPCCSystems/environment.conf)" "${COVERAGE_LOG_FI
 WriteLog "sudo usermod -a -G $USER hpcc" "${COVERAGE_LOG_FILE}"
 sudo usermod -a -G $USER hpcc
 
-WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 777 {} \;" "${COVERAGE_LOG_FILE}"
-sudo find . -name "*.dir" -type d -exec chmod -R 777 {} \;
-
 WriteLog "Patch environment.xml for Roxie doesn't use local Slave (to utilise udplib)." "${COVERAGE_LOG_FILE}"
 sudo cp -v /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml-bak1
 WriteLog "  before: '"$(egrep -o 'localSlave=\"[a-z]*\"' /etc/HPCCSystems/environment.xml)"'." "${COVERAGE_LOG_FILE}"
 sudo sed -i -e 's/localSlave="true"/localSlave="false"/g' /etc/HPCCSystems/environment.xml
 WriteLog "  after : '"$(egrep -o 'localSlave=\"[a-z]*\"' /etc/HPCCSystems/environment.xml)"'." "${COVERAGE_LOG_FILE}"
 
+WriteLog "Patch /etc/HPCCSystems/environment.xml to set ${SLAVES} slaves and ${CHANNELS} per slave in Thor system" "${COVERAGE_LOG_FILE}"
+sudo cp /etc/HPCCSystems/environment.xml /etc/HPCCSystems/environment.xml.bak
+sudo sed -e 's/slavesPerNode="\(.*\)"/slavesPerNode="'${SLAVES}'"/g' -e 's/channelsPerSlave="\(.*\)"/channelsPerSlave="'${CHANNELS}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && sudo mv -f temp.xml "/etc/HPCCSystems/environment.xml"
 
+if [[ $CHANNELS -ne 1 ]]
+then
+    WriteLog "Patch environment.xml to use ${LOCAL_THOR_PORT_INC} for localThorPortInc for Thor because ${CHANNELS} channels per slave used" "${COVERAGE_LOG_FILE}"
+    sudo sed -e 's/localThorPortInc="\(.*\)"/localThorPortInc="'${LOCAL_THOR_PORT_INC}'"/g' "/etc/HPCCSystems/environment.xml" > temp.xml && sudo mv -f temp.xml "/etc/HPCCSystems/environment.xml"
+fi
+
+#--------------------------------------------
+# Check if Tinyproxy is running. If yes stop it
+if [[ -n "$(pgrep tinyproxy)" ]]
+then
+    WriteLog "Tinyproxy is running, but probably with default configuration. Stop it."  "${COVERAGE_LOG_FILE}"
+    sudo systemctl stop tinyproxy
+fi
+
+# Check if Tinyproxy is isntalled, if yes start it
+res=$(type "tinyproxy" 2>&1 )
+if [[ $? -eq 0 ]]
+then
+    WriteLog "Tinyproxy is installed, start it with our configuration." "${COVERAGE_LOG_FILE}"
+    pushd ~/OBT
+    ./checkTinyproxy.sh
+    popd
+fi
 
 # --------------------------------------------------------------
 #
@@ -391,16 +479,17 @@ WriteLog "Res:${res}" "${COVERAGE_LOG_FILE}"
 stat=$(sudo /etc/init.d/hpcc-init status 2>&1 )
 WriteLog "Stat:\n${stat}" "${COVERAGE_LOG_FILE}"
 
-# Test whether here (after the Platform started) is the better place for this
-# or it is necessary again
-WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
-sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
-WriteLog "  done." "${COVERAGE_LOG_FILE}"
-
-
 if [[ $BUILD_ONLY -eq 1 ]]
 then
     WriteLog "That was a build only run. Exit." "${COVERAGE_LOG_FILE}"
+    WriteLog "Stop the Platform" "${COVERAGE_LOG_FILE}"
+    res=$(sudo /etc/init.d/hpcc-init stop 2>&1 )
+    WriteLog "Res:${res}" "${COVERAGE_LOG_FILE}"
+
+    WriteLog "Set access right to collect and process coverage." "${COVERAGE_LOG_FILE}"
+    sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+    WriteLog "  Done." "${COVERAGE_LOG_FILE}"
+
     exit
 fi
 
@@ -414,13 +503,22 @@ WriteLog "Prepare regression test in coverage enviromnment" "${COVERAGE_LOG_FILE
 
 echo "Prepare reqgression test" >> ${BUILD_LOG} 2>&1
 
-logDir=${TEST_LOG_DIR}
-[ ! -d $logDir ] && mkdir -p $logDir
-rm -rf ${logDir}/*
+pushd $BUILD_HOME
+# Test whether here (after the Platform started) is the better place for this
+# or it is necessary again
+WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
+sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+WriteLog "  done." "${COVERAGE_LOG_FILE}"
+popd
 
-libDir=/var/lib/HPCCSystems/regression
-[ ! -d $libDir ] && mkdir  -p  $libDir
-rm -rf ${libDir}/*
+
+#logDir=${TEST_LOG_DIR}
+#[ ! -d $logDir ] && mkdir -p $logDir
+#rm -rf ${logDir}/*
+
+#libDir=/var/lib/HPCCSystems/regression
+#[ ! -d $libDir ] && mkdir  -p  $libDir
+#rm -rf ${libDir}/*
 
 #
 # --------------------------------------------------------------
@@ -431,7 +529,7 @@ rm -rf ${libDir}/*
 WriteLog "Run regression test" "${COVERAGE_LOG_FILE}"
 echo "Run reqgression test" >> ${BUILD_LOG} 2>&1
 
-cd  $TEST_HOME
+cd  $RTE_HOME
 
 
 WriteLog "Set and export coverage variable for create coverage build" "${COVERAGE_LOG_FILE}"
@@ -445,92 +543,103 @@ export coverage
 #From ecl-test v0.15 the 'setup' removed from clusters and it becomes separated sub command (See: HPCC-11071)
 #
 # Setup should run on all clusters
+if [[ $RUN_SETUP -eq 1 ]]
+then
+    WriteLog "Setup phase" "${COVERAGE_LOG_FILE}"
 
-WriteLog "Setup phase" "${COVERAGE_LOG_FILE}"
+    while read cluster
+    do
 
-./ecl-test list | grep -v "Cluster" |
-while read cluster
-do
+        echo ""
 
-  echo ""
+        CMD="./ecl-test setup --target $cluster --pq 6 --timeout 3600 -fthorConnectTimeout=3600 --suiteDir $TEST_HOME"
 
-  CMD="./ecl-test setup --target $cluster"
- 
-  echo "${CMD}" >> ${BUILD_LOG} 2>&1
-  WriteLog "${CMD}" "${COVERAGE_LOG_FILE}"
+        echo "${CMD}" >> ${BUILD_LOG} 2>&1
+        WriteLog "${CMD}" "${COVERAGE_LOG_FILE}"
 
-  ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
+        ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
 
-  # --------------------------------------------------
-  # temporarly fix for wrongly generated setup logfile
+        # --------------------------------------------------
+        # temporarly fix for wrongly generated setup logfile
 
-  for f in $(ls -1 ${logDir}/${cluster}.*.log)
-     do mv $f ${logDir}/setup_${cluster}.${f#*.}
-  done
+#      for f in $(ls -1 ${logDir}/${cluster}.*.log)
+#         do mv $f ${logDir}/setup_${cluster}.${f#*.}
+#      done
 
-  for f in $(ls -1 ${logDir}/${cluster}-exclusion.*.log)
-     do mv $f ${logDir}/setup_${cluster}-exclusion.${f#*.}
-  done
+#      for f in $(ls -1 ${logDir}/${cluster}-exclusion.*.log)
+#         do mv $f ${logDir}/setup_${cluster}-exclusion.${f#*.}
+#      done
 
-  # -------------------------------------------------
+        # -------------------------------------------------
 
-  #cp ${logDir}/thor.*.log ${COVERAGE_ROOT}/
-  cp ${logDir}/setup_${cluster}*.log ${COVERAGE_ROOT}/
+        #cp ${logDir}/thor.*.log ${COVERAGE_ROOT}/
+        #cp ${logDir}/setup_${cluster}*.log ${COVERAGE_ROOT}/
 
-  total=$(cat ${logDir}/setup_${cluster}*.log | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-  passed=$(cat ${logDir}/setup_${cluster}*.log | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-  failed=$(cat ${logDir}/setup_${cluster}*.log | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
+        total=$(cat $( ls -1 ${REGRESSION_RESULT_DIR}/log/setup_${cluster}*.log | sort -rV | head -n 1) | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
+        passed=$(cat $( ls -1 ${REGRESSION_RESULT_DIR}/log/setup_${cluster}*.log | sort -rV | head -n 1) | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
+        failed=$(cat $( ls -1 ${REGRESSION_RESULT_DIR}/log/setup_${cluster}*.log | sort -rV | head -n 1) | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
 
-  #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
-  #[ $failed -gt 0 ] && failed="<span style=\"color:#FF0000\">$passed</span>"
+        #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
+        #[ $failed -gt 0 ] && failed="<span style=\"color:#FF0000\">$passed</span>"
 
-  echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed" >> ${COVERAGE_ROOT}/setup.summary 
-  echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed" >> ${BUILD_LOG} 2>&1
-  echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed"
-  WriteLog "${cluster} Setup Result:Total:${total} passed:$passed failed:$failed" "${COVERAGE_LOG_FILE}"
+        echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed" >> ${COVERAGE_ROOT}/setup.summary
+        #echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed" >> ${BUILD_LOG} 2>&1
+        #echo ${cluster}" Setup Result:Total:${total} passed:$passed failed:$failed"
+        WriteLog "${cluster} Setup Result:Total:${total} passed:$passed failed:$failed" "${COVERAGE_LOG_FILE}"
 
-done
-
+    done< <(./ecl-test list | grep -v "Cluster" )
+    WriteLog "  done." "${COVERAGE_LOG_FILE}"
+else
+    WriteLog "Setup phase skipped." "${COVERAGE_LOG_FILE}"
+fi
 # -----------------------------------------------------
 #
 # Run tests
 #
 
-WriteLog "Regression Suite phase" "${COVERAGE_LOG_FILE}"
+if [[ $RUN_REGRESS -eq 1 ]]
+then
+    WriteLog "Regression Suite phase" "${COVERAGE_LOG_FILE}"
 
-./ecl-test list | grep -v "Cluster" |
-while read cluster
-do
+    while read cluster
+    do
 
-  CMD="./ecl-test run --target $cluster"
-  echo "${CMD}" >> ${BUILD_LOG} 2>&1
-  WriteLog "./ecl-test run --target $cluster" "${COVERAGE_LOG_FILE}"
+      CMD="./ecl-test run --target $cluster"
+      echo "${CMD}" >> ${BUILD_LOG} 2>&1
+      WriteLog "./ecl-test run --target $cluster" "${COVERAGE_LOG_FILE}"
 
-  ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
+      ${CMD} >> ${COVERAGE_LOG_FILE} 2>&1
 
-  cp ${logDir}/${cluster}*.log ${COVERAGE_ROOT}/
+      #cp ${logDir}/${cluster}*.log ${COVERAGE_ROOT}/
 
-  total=$(cat ${logDir}/${cluster}*.log | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-  passed=$(cat ${logDir}/${cluster}*.log | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
-  failed=$(cat ${logDir}/${cluster}*.log | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
+      total=$(cat ${REGRESSION_RESULT_DIR}/log/${cluster}*.log | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
+      passed=$(cat ${REGRESSION_RESULT_DIR}/log/${cluster}*.log | sed -n "s/^[[:space:]]*Passing:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
+      failed=$(cat ${REGRESSION_RESULT_DIR}/log/${cluster}*.log | sed -n "s/^[[:space:]]*Failure:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p" | tr -d $'\n')
 
-  #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
-  #[ $failed -gt 0 ] && failed="<span style=\"color:#FF0000\">$passed</span>"
+      #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
+      #[ $failed -gt 0 ] && failed="<span style=\"color:#FF0000\">$passed</span>"
 
-  echo "TestResult:Total:${total} passed:$passed failed:$failed" > ${COVERAGE_ROOT}/${cluster}.summary
-  echo "TestResult:Total:${total} passed:$passed failed:$failed" >> ${BUILD_LOG} 2>&1
-  echo ${cluster}" testResult:Total:${total} passed:$passed failed:$failed"
-  WriteLog "TestResult:Total:${total} passed:$passed failed:$failed" "${COVERAGE_LOG_FILE}"
+      echo "TestResult:Total:${total} passed:$passed failed:$failed" > ${COVERAGE_ROOT}/${cluster}.summary
+      #echo "TestResult:Total:${total} passed:$passed failed:$failed" >> ${BUILD_LOG} 2>&1
+      #echo ${cluster}" testResult:Total:${total} passed:$passed failed:$failed"
+      WriteLog "TestResult:Total:${total} passed:$passed failed:$failed" "${COVERAGE_LOG_FILE}"
 
-done
+    done< <(./ecl-test list | grep -v "Cluster")
+    WriteLog "  done." "${COVERAGE_LOG_FILE}"
+else
+    WriteLog "Regression Suite phase skipped." "${COVERAGE_LOG_FILE}"
+fi
 
-#service hpcc-init stop
+
+#----------------------------------------------
+#
+WriteLog "Stop the Platform" "${COVERAGE_LOG_FILE}"
 res=$(sudo service hpcc-init stop |grep 'still')
 # If the result is "Service dafilesrv, mydafilesrv is still running."
 if [[ -n $res ]]
 then
-   echo $res
-   sudo service dafilesrv stop
+    WriteLog "Res:${res}" "${COVERAGE_LOG_FILE}"
+    sudo service dafilesrv stop
 fi
 
 #
@@ -543,28 +652,43 @@ WriteLog "Generate coverage report" "${COVERAGE_LOG_FILE}"
 
 echo "Generate coverage report"  >> ${BUILD_LOG} 2>&1
 
-cd $BUILD_HOME
-${SUDO} lcov --capture --directory . --output-file $COVERAGE_ROOT/hpcc_coverage.lcov > $COVERAGE_ROOT/lcov.log 2>&1
+pushd $BUILD_HOME
 
-${SUDO} genhtml --highlight --legend --ignore-errors source --output-directory $COVERAGE_ROOT/hpcc_coverage $COVERAGE_ROOT/hpcc_coverage.lcov > $COVERAGE_ROOT/genhtml.log 2>&1
+WriteLog "Set access right to collect and process coverage." "${COVERAGE_LOG_FILE}"
+sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
-cd $COVERAGE_ROOT
+WriteLog "Capture coverage data started..." "${COVERAGE_LOG_FILE}"
+time lcov --capture --rc lcov_branch_coverage=1 --directory . --output-file ~/coverage/hpcc_coverage-$(date +%Y-%m-%d).lcov --ignore-errors inconsistent,source,mismatch,range --source-directory ~/HPCC-Platform --source-directory . 2>&1 | tee ~/coverage/lcov-capture-$(date +%Y-%m-%d).log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+WriteLog "  Done." "${COVERAGE_LOG_FILE}"
+
+WriteLog "Filtering coverage data started..." "${COVERAGE_LOG_FILE}"
+time lcov --rc lcov_branch_coverage=1 --remove ~/coverage/hpcc_coverage-$(date +%Y-%m-%d).lcov '*/vcpkg_installed/*' 'plugins/cassandra/*' 'plugins/cryptolib/*' 'plugins/couchbase/*' '/plugins/kafka/*' '/plugins/Rembed/*' '/plugins/memcached/*' '/plugins/mysql/*' 'plugins/redis/*' '/plugins/sqlite3/*' '/usr/*'  --output-file ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d).lcov 2>&1 | tee ~/coverage/lcov-capture-filtered-$(date +%Y-%m-%d).log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+WriteLog "  Done." "${COVERAGE_LOG_FILE}"
+
+WriteLog "Generate coverage HTML pages started..." "${COVERAGE_LOG_FILE}"
+time genhtml --highlight --legend --rc genhtml_hi_limit=80 --rc genhtml_med_limit=60 --rc branch_coverage=1 --ignore-errors source,range --synthesize-missing  --output-directory ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d) /home/ati/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d).lcov 2>&1 | tee ~/coverage/genhtml-filtered-$(date +%Y-%m-%d).log | sed -n '/Overall coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+WriteLog "  Done." "${COVERAGE_LOG_FILE}"
+
+popd
+
+pushd $COVERAGE_ROOT
 
 WriteLog "Generate coverage report summary" "${COVERAGE_LOG_FILE}"
 
 echo "Generate coverage summary" >> ${BUILD_LOG} 2>&1
 
-grep -i "coverage rate" -A3 ./genhtml.log > coverage.summary
+grep -i "coverage rate" -A4 ~/coverage/genhtml-filtered-$(date +%Y-%m-%d).log > coverage.summary
 echo "(This is an experimental result, yet. Use it carefully.)" >> coverage.summary
 
-cp coverage.summary ~/test/
+#cp coverage.summary ~/test/
 
+popd
 
-umask $DEFAULT_UMASK
+#umask $DEFAULT_UMASK
 
-WriteLog "Uninstall HPCC-Platform" "${COVERAGE_LOG_FILE}"
-
-UninstallHPCC "${COVERAGE_LOG_FILE}"
+#WriteLog "Uninstall HPCC-Platform" "${COVERAGE_LOG_FILE}"
+#UninstallHPCC "${COVERAGE_LOG_FILE}"
 
 
 #-----------------------------------------------------------------------------

@@ -123,19 +123,19 @@ ProcessLog()
     arrayName=''
     for item in ${errors[@]}
     do
-        if [[ "$item" =~ "hthor" ]]
+        if [[ "$item" =~ "Suite: hthor" ]]
         then
             arrayName="hthorErrors"
             continue
         fi
 
-        if [[ "$item" =~ "thor" ]]
+        if [[ "$item" =~ "Suite: thor" ]]
         then
             arrayName="thorErrors"
             continue
         fi
 
-        if [[ "$item" =~ "roxie" ]]
+        if [[ "$item" =~ "Suite: roxie" ]]
         then
             arrayName="roxieErrors"
             continue
