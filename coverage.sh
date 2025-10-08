@@ -42,13 +42,13 @@ LOGDIR=~/HPCCSystems-regression/log
 
 ENABLE_JAVA2=0
 WIPE_OUT=1
-COVERAGE_BUILD=0
+COVERAGE_BUILD=1
 COVERAGE_SOURCE_HOME=~/HPCC-Platform
 PKG_SUFFIX="coverage-$(date +%Y-%m-%d)"
 
 DEFAULT_UMASK=$(umask)
 
-CLEAN_UP=0 #0   # If coverage build, always clean up first.
+CLEAN_UP=1  # If coverage build, always clean up first.
 BUILD_TYPE=RelWithDebInfo
 USE_CPPUNIT=1
 SLAVES=4
@@ -101,15 +101,34 @@ WriteLog "Clean system!" ${BUILD_LOG}
 [ ! -e $COVERAGE_ROOT ] && mkdir -p $COVERAGE_ROOT
 
 
-
+# ------------------------------------------------------------
 # Check and patch source files
 
+WriteLog "Clean-up, catch-Up and patch source tree"  "${COVERAGE_LOG_FILE}"
 pushd $COVERAGE_SOURCE_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
-WriteLog "Restore source tree to avoid multiple patches." "${COVERAGE_LOG_FILE}"
-res=$(git restore . 2>&1)
-retCode=$?
-WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
+if [[ $CLEAN_UP -eq 1 ]]
+then
+
+    WriteLog "Restore source tree to avoid multiple patches." "${COVERAGE_LOG_FILE}"
+    #res=$(git restore . 2>&1)
+    retCode=$?
+    WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
+
+    WriteLog "git clean -f -df" "${COVERAGE_LOG_FILE}"
+    res=$(git clean -f -df 2>&1)
+    retCode=$?
+    WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
+
+    WriteLog "Pull latest version." "${COVERAGE_LOG_FILE}"
+    #res=$(git pull . 2>&1)
+    retCode=$?
+    WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
+else
+    WriteLog "  Skip source clean-up." "${COVERAGE_LOG_FILE}"
+fi
+
 
 WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
 if [[ $(egrep -c 'D_COVERAGE' cmake_modules/commonSetup.cmake) -eq 0 ]]
@@ -136,7 +155,6 @@ else
     WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
 fi
 
-
 filesToPatch=('ecl/eclcc/eclcc.cpp' 'system/jlib/jmisc.cpp' 'tools/start-stop-daemon/start-stop-daemon.c' 'roxie/ccd/ccdmain.cpp' 'system/jlib/jexcept.cpp')
 for fileToPatch in ${filesToPatch[*]}
 do
@@ -155,27 +173,7 @@ do
     fi
 done
 
-# Get the current branch information
-currentBranch=$( git branch | grep '^\*' | awk '{ print $2 }' )
-WriteLog "Current branch: ${currentBranch}" "${COVERAGE_LOG_FILE}"
-
-BRANCH_VERSION=${currentBranch//candidate-/}
-WriteLog "Current branch version: ${BRANCH_VERSION}" "${COVERAGE_LOG_FILE}"
-
-branchDate=$( git log -1 | grep '^Date' )
-WriteLog "Branch date   : ${branchDate}" "${COVERAGE_LOG_FILE}"
-
-branchCrc=$( git log -1 | grep '^commit' )
-WriteLog "Branch Crc    : ${branchCrc}" "${COVERAGE_LOG_FILE}"
-
-popd
-
-WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
-
-[ ! -d ~/coverage ] && mkdir ~/coverage
-export coverage=1
-WriteLog "  Done"  "${COVERAGE_LOG_FILE}"
-
+WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
 # The '-fprofile-update=atomic' PR merged, but need to do with this linker stuff as well:
 # SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
 # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
@@ -183,6 +181,7 @@ WriteLog "  Done"  "${COVERAGE_LOG_FILE}"
 isCoverageFixed=0   # $(egrep -c 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake)
 if [[ $isCoverageFixed -eq 1 ]]
 then
+    WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
     sed -i '/fprofile-update=atomic/a \
           # Inserted by build.sh \
           SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic") \
@@ -190,23 +189,46 @@ then
 else
     WriteLog "  Already patched." "${COVERAGE_LOG_FILE}"
 fi
-egrep 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake
+WriteLog "$(egrep 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake 2>&1)" "${COVERAGE_LOG_FILE}"
+
+# Get the current branch information
+currentBranch=$( git branch | grep '^\*' | awk '{ print $2 }' )
+WriteLog "Current branch        : ${currentBranch}" "${COVERAGE_LOG_FILE}"
+
+BRANCH_VERSION=${currentBranch//candidate-/}
+WriteLog "Current branch version: ${BRANCH_VERSION}" "${COVERAGE_LOG_FILE}"
+
+branchDate=$( git log -1 | grep '^Date' )
+WriteLog "Branch date           : ${branchDate}" "${COVERAGE_LOG_FILE}"
+
+branchCrc=$( git log -1 | grep '^commit' )
+WriteLog "Branch Crc            : ${branchCrc}" "${COVERAGE_LOG_FILE}"
+
+
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+
+WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
+
+[ ! -d ~/coverage ] && mkdir ~/coverage
+export coverage=1
+WriteLog "  Done"  "${COVERAGE_LOG_FILE}"
+
 
 
 #---------------------------------
 
+WriteLog "Prepare build"  "${COVERAGE_LOG_FILE}"
+
 pushd $BUILD_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 if [[ $CLEAN_UP -eq 1 ]]
 then
     WriteLog "Do 'make clean'" "${COVERAGE_LOG_FILE}"
     make clean
     WriteLog "  done." "${COVERAGE_LOG_FILE}"
-
-    pushd ../HPCC-Platform
-    git clean -f -fd
-    rm -rf ./esp/src/node_modules
-    popd
 
     rm -f ${BUILD_ROOT}/CMakeCache.txt
     if [ ! -f ${BUILD_ROOT}/CMakeCache.txt ]
@@ -232,27 +254,31 @@ then
         WriteLog "Unzip vcpkg_downloads-$BRANCH_VERSION.zip" "${COVERAGE_LOG_FILE}"
         res=$( unzip ~/vcpkg_downloads-$BRANCH_VERSION.zip 2>&1 )
         retCode=$?
-        WriteLog "retCode: $retCode" "${COVERAGE_LOG_FILE}"
+        WriteLog "  Done (retCode: $retCode)" "${COVERAGE_LOG_FILE}"
     fi
 
-    if [[ $BUILD_WITH_COVERAGE -eq 1 ]]
+    if [[ $COVERAGE_BUILD -eq 1 ]]
     then
         WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
         sudo find . -name "*.dir" -type d -exec rm -rf {} \;
         WriteLog "  Done" "${COVERAGE_LOG_FILE}"
     fi
 else
-    WriteLog "Skip 'make clean'" "${COVERAGE_LOG_FILE}"
+    WriteLog "Skip build clean -up." "${COVERAGE_LOG_FILE}"
 fi
 
+WriteLog "Prepare coverage data collection during build.." "${COVERAGE_LOG_FILE}"
 WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
 sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+WriteLog "  Done" "${COVERAGE_LOG_FILE}"
 
 WriteLog "lcov --zerocounters --directory ." "${COVERAGE_LOG_FILE}"
 lcov --zerocounters --directory .
+WriteLog "  Done" "${COVERAGE_LOG_FILE}"
 
-
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 
 if [[ $COVERAGE_BUILD -eq 1 ]]
@@ -282,7 +308,8 @@ then
 
     [[ ! -d ${BUILD_HOME} ]] && mkdir -p ${BUILD_HOME}
 
-    cd ${BUILD_HOME}
+    pushd ${BUILD_HOME}
+    WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
     #CMD="cmake -DGENERATE_COVERAGE_INFO=ON -DCMAKE_BUILD_TYPE=Release"
     #CMD+=" -DUSE_LIBXSLT=ON -DXALAN_LIBRARIES="
@@ -372,8 +399,10 @@ then
         cp ./coverage.summary $COVERAGE_ROOT/
 
         # send email to Agyi
-            echo "Coverage build Failed! Check the logs!" | mailx -s "Problem with Coverage" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-        
+        echo "Coverage build Failed! Check the logs!" | mailx -s "Problem with Coverage" -u $USER  ${ADMIN_EMAIL_ADDRESS}
+        WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+        popd
+        WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
         exit
     fi
 
@@ -392,12 +421,17 @@ then
     then
        echo "TestResult:FAILED" >> $COVERAGE_ROOT/install.summary
        WriteLog "Install HPCC-Platform FAILED" "${COVERAGE_LOG_FILE}"
-
+       WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+       popd
+       WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
        exit
     else
        echo "TestResult:PASSED" >> $COVERAGE_ROOT/install.summary
        WriteLog "Install HPCC-Platform PASSED" "${COVERAGE_LOG_FILE}"
     fi
+    WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+    popd
+    WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 fi
 
 
@@ -411,6 +445,7 @@ WriteLog "Set up coverage environment" "${COVERAGE_LOG_FILE}"
 WriteLog "Set environment to coverage" "${COVERAGE_LOG_FILE}"
 
 pushd $BUILD_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 WriteLog "  sudo chmod -R 0777 /opt/HPCCSystems /var/lib/HPCCSystems " "${COVERAGE_LOG_FILE}"
 sudo chmod -R 0777 /opt/HPCCSystems /var/lib/HPCCSystems
@@ -418,7 +453,9 @@ sudo chmod -R 0777 /opt/HPCCSystems /var/lib/HPCCSystems
 WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
 sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
 
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 cnt=$(grep -c "^umask" /etc/HPCCSystems/environment.conf)
 if [[ $cnt -eq 0 ]]
@@ -462,8 +499,11 @@ if [[ $? -eq 0 ]]
 then
     WriteLog "Tinyproxy is installed, start it with our configuration." "${COVERAGE_LOG_FILE}"
     pushd ~/OBT
+    WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
     ./checkTinyproxy.sh
+    WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
     popd
+    WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 fi
 
 # --------------------------------------------------------------
@@ -504,13 +544,17 @@ WriteLog "Prepare regression test in coverage enviromnment" "${COVERAGE_LOG_FILE
 echo "Prepare reqgression test" >> ${BUILD_LOG} 2>&1
 
 pushd $BUILD_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
+
 # Test whether here (after the Platform started) is the better place for this
 # or it is necessary again
 WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
 sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
 WriteLog "  done." "${COVERAGE_LOG_FILE}"
-popd
 
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 #logDir=${TEST_LOG_DIR}
 #[ ! -d $logDir ] && mkdir -p $logDir
@@ -529,8 +573,8 @@ popd
 WriteLog "Run regression test" "${COVERAGE_LOG_FILE}"
 echo "Run reqgression test" >> ${BUILD_LOG} 2>&1
 
-cd  $RTE_HOME
-
+pushd $RTE_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 WriteLog "Set and export coverage variable for create coverage build" "${COVERAGE_LOG_FILE}"
 echo "Set and export coverage variable for create coverage build" >> ${BUILD_LOG} 2>&1
@@ -630,6 +674,9 @@ else
     WriteLog "Regression Suite phase skipped." "${COVERAGE_LOG_FILE}"
 fi
 
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
+popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 #----------------------------------------------
 #
@@ -653,6 +700,7 @@ WriteLog "Generate coverage report" "${COVERAGE_LOG_FILE}"
 echo "Generate coverage report"  >> ${BUILD_LOG} 2>&1
 
 pushd $BUILD_HOME
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 WriteLog "Set access right to collect and process coverage." "${COVERAGE_LOG_FILE}"
 sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
@@ -670,9 +718,12 @@ WriteLog "Generate coverage HTML pages started..." "${COVERAGE_LOG_FILE}"
 time genhtml --highlight --legend --rc genhtml_hi_limit=80 --rc genhtml_med_limit=60 --rc branch_coverage=1 --ignore-errors source,range --synthesize-missing  --output-directory ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d) /home/ati/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d).lcov 2>&1 | tee ~/coverage/genhtml-filtered-$(date +%Y-%m-%d).log | sed -n '/Overall coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
 WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 pushd $COVERAGE_ROOT
+WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 WriteLog "Generate coverage report summary" "${COVERAGE_LOG_FILE}"
 
@@ -683,7 +734,9 @@ echo "(This is an experimental result, yet. Use it carefully.)" >> coverage.summ
 
 #cp coverage.summary ~/test/
 
+WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 popd
+WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
 #umask $DEFAULT_UMASK
 
