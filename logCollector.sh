@@ -30,34 +30,34 @@ pushd $HOME
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start hthor log collection..."
+    echo "Start Hthor log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | egrep $YM | sort | zip -u HthorLogCollection-$YM -@ > HthorLogCollection-$YM.log &
 else
-    echo "Hthor log not found, skip collection."
+    echo "Hthor log not found, delete $(rm -v HthorLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start thor log collection..."
+    echo "Start Thor log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | egrep $YM | sort | zip -u ThorLogCollection-$YM -@ > ThorLogCollection-$YM.log &
 else
-    echo "Thor log not found, skip collection."
+    echo "Thor log not found, delete $(rm -v ThorLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start roxie log collection..."
+    echo "Start Roxie log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | egrep $YM | sort | zip -u RoxieLogCollection-$YM -@  > RoxieLogCollection-$YM.log &
 else
-    echo "Roxie log not found, skip collection."
+    echo "Roxie log not found, delete $(rm -v RoxieLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'unittest.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start unit test log collection..."
+    echo "Start Unit test log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | egrep $YM | sort | zip -u UnittestsLogCollection-$YM -@  > UnittestsLogCollection-$YM.log &
 else
-    echo "Unit test log not found, skip collection."
+    echo "Unit test log not found, delete $(rm -v UnittestsLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'ml.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
@@ -65,7 +65,7 @@ then
     echo "Start ML test log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'ml*.log' -type f -print | egrep $YM | sort | zip -u MlLogCollection-$YM -@  > MlLogCollection-$YM.log &
 else
-    echo "ML test log not found, skip collection."
+    echo "ML test log not found, delete $(rm -v MlLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'wutooltest.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
@@ -73,23 +73,23 @@ then
     echo "Start WUTool test log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
 else
-    echo "WUTool test log not found, skip collection."
+    echo "WUTool test log not found, delete $(rm -v WutooltestLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname '*build.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start build log collection..."
+    echo "Start Build log collection..."
     exec find ${STAGING_DIR_ROOT} -iname '*build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
 else
-    echo "Build test log not found, skip collection."
+    echo "Build test log not found, delete $(rm -v BuildLogCollection-$YM.log) and skip collection."
 fi
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
-    echo "Start misc (report.htm, GlobalExclusion and git_2days) log collection..."
+    echo "Start Misc (report.htm, GlobalExclusion and git_2days) log collection..."
     exec find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f | egrep $YM | sort | zip -u MiscLogCollection-$YM  -@  > MiscLogCollection-$YM.log &
 else
-    echo "Misc (report.htm, GlobalExclusion and git_2days) test log not found, skip collection."
+    echo "Misc (report.htm, GlobalExclusion and git_2days) test log not found, delete $(rm -v MiscLogCollection-$YM.log) and skip collection."
 fi
 
 echo "Wait for processes finished."
@@ -101,7 +101,7 @@ popd
 
 echo "Upload results.."
 
-rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection-${YM)* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
+rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection-${YM}* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
 
 echo "Upload done."
 
