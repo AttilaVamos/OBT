@@ -101,7 +101,7 @@ popd
 
 echo "Upload results.."
 
-rsync -va -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection-${YM}* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
+rsync -va --min-size=1 -e "ssh -i  ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/*LogCollection-${YM}* centos@${SSH_TARGET}:/home/centos/OBT/${OBT_ID}
 
 echo "Upload done."
 
