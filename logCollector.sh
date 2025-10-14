@@ -25,7 +25,7 @@ fi
 
 YM=$(date +%Y-%m)
 echo "Current year and month: $YM"
-
+echo "......................."
 pushd $HOME
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
@@ -35,6 +35,7 @@ then
 else
     echo "Hthor log not found,$([ -f HthorLogCollection-$YM.log ] && rm -v HthorLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -43,6 +44,7 @@ then
 else
     echo "Thor log not found,$([ -f ThorLogCollection-$YM.log ] && rm -v ThorLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -51,6 +53,7 @@ then
 else
     echo "Roxie log not found,$([ -f RoxieLogCollection-$YM.log ] && rm -v RoxieLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'unittest.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -59,6 +62,7 @@ then
 else
     echo "Unit test log not found,$([ -f UnittestsLogCollection-$YM.log ] && rm -v UnittestsLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'ml.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -67,6 +71,7 @@ then
 else
     echo "ML test log not found,$([ -f MlLogCollection-$YM.log ] && rm -v MlLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'wutooltest.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -75,6 +80,7 @@ then
 else
     echo "WUTool test log not found,$([ -f WutooltestLogCollection-$YM.log ] && rm -v WutooltestLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname '*build.*.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
@@ -83,6 +89,7 @@ then
 else
     echo "Build test log not found,$([ -f BuildLogCollection-$YM.log ] && rm -v BuildLogCollection-$YM.log) skip collection."
 fi
+echo ""
 
 if [[ $(find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f -print | egrep -c $YM) -ne 0 ]]
 then
