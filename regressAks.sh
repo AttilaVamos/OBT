@@ -51,11 +51,11 @@ SecToTimeStr()
 
 ProcessLog()
 { 
-    result="$1"
-    local -n retString=$2
-    local action="$3"
-    actionCap=${action,,}
-    actionCap=${actionCap^}
+    result="$1"                     # Content of the result log or logs to process
+    local -n retString=$2      # Reference to the return variable (defined outside)
+    local action="$3"           # Action, actually either 'setup' or 'regression'
+    actionCap=${action,,}    # Convert it lower-case
+    actionCap=${actionCap^} # Capitalise the first char
     #echo "result:$result"
     #echo "action:$action"
     #set -x
@@ -102,8 +102,11 @@ ProcessLog()
 
         capEngine=${eng^^}_${action}
         #echo "capEngine: $capEngine"
+        # assign the output to shell variable VAR rather than display it on the standard output
+        # the variable name is the content of "$capEngine"
+        # and the result is something like this: 'HTHOR_SETUP_QUERIES=1078'
         printf -v "$capEngine"_QUERIES  '%s' "${queries[$eng]}"
-        #declare -g "${capEngine}_QUERIES"="${queries[$engine]}"    # An alternative
+
         printf -v "$capEngine"_PASS     '%s' "${passes[$eng]}"
         printf -v "$capEngine"_FAIL     '%s' "${fails[$eng]}"
         printf -v "$capEngine"_TIME_STR '%s' "${time_str[$eng]}"
