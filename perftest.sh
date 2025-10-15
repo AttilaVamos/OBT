@@ -278,7 +278,7 @@ SuppressAnalyserWarnings()
         if [[ ${patched} -eq 0 ]]
         then
             WriteLog "    Patching..." "${PERF_TEST_LOG}"
-            (echo "#onwarning(5820, ignore); // Suppress analyser warning" ; cat $file) >${file}.new
+            (echo "#onwarning(5820, ignore); // Suppress analyser warning" ; echo "#onwarning(30004, ignore); // Suppress Cost Optimizer warning" ; cat $file) >${file}.new
             mv ${file}.new $file
             WriteLog "      Done: $(egrep -H '#onwarning' $file | egrep -c '5820' )" "${PERF_TEST_LOG}"
         else
