@@ -488,7 +488,7 @@ PERF_SUPRESS_PLUGINS=' -D INCLUDE_PLUGINS=0 -D MAKE_CASSANDRAEMBED=1 -D SUPPRESS
 PERF_SAR_MONITOR_START=1
 
 # How many days keeps the perfstat files (.csv, .cfg) before move them into a monthly and archive.
-PERF_PERFSTAT_DAYS_TO_KEEP=120
+#PERF_PERFSTAT_DAYS_TO_KEEP=30  # Use the default 
 
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=0

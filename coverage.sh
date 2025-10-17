@@ -34,10 +34,7 @@ COVERAGE_ROOT=~/coverage
 #TEST_ROOT=~/build/CE/platform
 RTE_HOME=~/RTE
 TEST_HOME=~/HPCC-Platform/testing/regress
-
-# Experimental to test in this script after build
-#BUILD_HOME=~/HPCC-Platform-build
-
+#BUILD_HOME=~/build/CE/platform/build
 BUILD_LOG=${COVERAGE_ROOT}/build_log
 LONG_DATE=$(date "+%Y-%m-%d_%H-%M-%S")
 COVERAGE_LOG_FILE=${OBT_LOG_DIR}/coverage-${LONG_DATE}.log
@@ -45,14 +42,12 @@ LOGDIR=~/HPCCSystems-regression/log
 
 ENABLE_JAVA2=0
 WIPE_OUT=1
-# For testing whether the build is wrong or the rest of the script, uing a good build from coverage-2025-10-06_10.1.0
-COVERAGE_BUILD=1  # 1  
+COVERAGE_BUILD=1
 COVERAGE_SOURCE_HOME=~/HPCC-Platform
 PKG_SUFFIX="coverage-$(date +%Y-%m-%d)"
 
 DEFAULT_UMASK=$(umask)
 
-# Experoimental setup. Don't clean up and use already installed (good built) platfom
 CLEAN_UP=1  # If coverage build, always clean up first.
 BUILD_TYPE=RelWithDebInfo
 USE_CPPUNIT=1
@@ -117,7 +112,7 @@ if [[ $CLEAN_UP -eq 1 ]]
 then
 
     WriteLog "Restore source tree to avoid multiple patches." "${COVERAGE_LOG_FILE}"
-    #res=$(git restore . 2>&1)
+    res=$(git restore . 2>&1)
     retCode=$?
     WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
 
@@ -127,74 +122,75 @@ then
     WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
 
     WriteLog "Pull latest version." "${COVERAGE_LOG_FILE}"
-    res=$(git pull . 2>&1)
+    #res=$(git pull . 2>&1)
     retCode=$?
     WriteLog "  Done (retCode: $retCode)." "${COVERAGE_LOG_FILE}"
-
-    WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
-    if [[ $(egrep -c 'D_COVERAGE' cmake_modules/commonSetup.cmake) -eq 0 ]]
-    then
-        WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
-        sed -i 's/\(\s*\)if (GENERATE_COVERAGE_INFO)/\1if (GENERATE_COVERAGE_INFO)\
-    \1  add_definitions (-D_COVERAGE)/g' cmake_modules/commonSetup.cmake
-    else
-        WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
-    fi
-
-    WriteLog "Check 'system/jlib/jmisc.cpp'." "${COVERAGE_LOG_FILE}"
-    if [[ $(egrep -c 'Sleep\(5000\)' system/jlib/jmisc.cpp) -eq 0 ]]
-    then
-        WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
-        sed -i 's/\(\s*\)#ifdef _COVERAGE/\1#ifdef _COVERAGE\
-    \1        __gcov_dump();/g' system/jlib/jmisc.cpp
-
-        sed -i 's/\(\s*\)ClearModuleObjects/\1\/\/ClearModuleObjects/g' system/jlib/jmisc.cpp
-
-        sed -i '/static void UnixAbortHandler(int signo)/ { N; s/static void UnixAbortHandler(int signo)/\nextern "C" void  __gcov_dump(void);\n\n&/ }' system/jlib/jmisc.cpp
-
-    else
-        WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
-    fi
-
-    filesToPatch=('ecl/eclcc/eclcc.cpp' 'system/jlib/jmisc.cpp' 'tools/start-stop-daemon/start-stop-daemon.c' 'roxie/ccd/ccdmain.cpp' 'system/jlib/jexcept.cpp')
-    for fileToPatch in ${filesToPatch[*]}
-    do
-        WriteLog "Check '$fileToPatch'." "${COVERAGE_LOG_FILE}"
-        if [[ $(egrep -c '_COVERAGE' $fileToPatch) -eq 0 ]]
-        then
-            WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
-            sed -i 's/\(\s*\)_exit\(.*\)/\
-    #ifdef _COVERAGE\
-    \1exit\2\
-    #else\
-    \1_exit\2\
-    #endif/g' $fileToPatch
-        else
-            WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
-        fi
-    done
-
-    WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
-    # The '-fprofile-update=atomic' PR merged, but need to do with this linker stuff as well:
-    # SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
-    # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
-    # With '0' skip the patch to check whether this caused the coverage degradation or not. (2025-06-17)
-    isCoverageFixed=0   # $(egrep -c 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake)
-    if [[ $isCoverageFixed -eq 1 ]]
-    then
-        WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
-        sed -i '/fprofile-update=atomic/a \
-              # Inserted by build.sh \
-              SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic") \
-              SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")' ~/HPCC-Platform/cmake_modules/commonSetup.cmake
-    else
-        WriteLog "  Already patched." "${COVERAGE_LOG_FILE}"
-    fi
-WriteLog "$(egrep 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake 2>&1)" "${COVERAGE_LOG_FILE}"
-
 else
     WriteLog "  Skip source clean-up." "${COVERAGE_LOG_FILE}"
 fi
+
+
+WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
+if [[ $(egrep -c 'D_COVERAGE' cmake_modules/commonSetup.cmake) -eq 0 ]]
+then
+    WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
+    sed -i 's/\(\s*\)if (GENERATE_COVERAGE_INFO)/\1if (GENERATE_COVERAGE_INFO)\
+\1  add_definitions (-D_COVERAGE)/g' cmake_modules/commonSetup.cmake
+else
+    WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
+fi
+
+WriteLog "Check 'system/jlib/jmisc.cpp'." "${COVERAGE_LOG_FILE}"
+if [[ $(egrep -c 'Sleep\(5000\)' system/jlib/jmisc.cpp) -eq 0 ]]
+then
+    WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
+    sed -i 's/\(\s*\)#ifdef _COVERAGE/\1#ifdef _COVERAGE\
+\1        __gcov_dump();/g' system/jlib/jmisc.cpp
+
+
+    sed -i 's/\(\s*\)ClearModuleObjects/\1\/\/ClearModuleObjects/g' system/jlib/jmisc.cpp
+
+    sed -i '/static void UnixAbortHandler(int signo)/ { N; s/static void UnixAbortHandler(int signo)/\nextern "C" void  __gcov_dump(void);\n\n&/ }' system/jlib/jmisc.cpp
+
+else
+    WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
+fi
+
+filesToPatch=('ecl/eclcc/eclcc.cpp' 'system/jlib/jmisc.cpp' 'tools/start-stop-daemon/start-stop-daemon.c' 'roxie/ccd/ccdmain.cpp' 'system/jlib/jexcept.cpp')
+for fileToPatch in ${filesToPatch[*]}
+do
+    WriteLog "Check '$fileToPatch'." "${COVERAGE_LOG_FILE}"
+    if [[ $(egrep -c '_COVERAGE' $fileToPatch) -eq 0 ]]
+    then
+        WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
+        sed -i 's/\(\s*\)_exit\(.*\)/\
+#ifdef _COVERAGE\
+\1exit\2\
+#else\
+\1_exit\2\
+#endif/g' $fileToPatch
+    else
+        WriteLog "  Already patched" "${COVERAGE_LOG_FILE}"
+    fi
+done
+
+WriteLog "Check 'cmake_modules/commonSetup.cmake'." "${COVERAGE_LOG_FILE}"
+# The '-fprofile-update=atomic' PR merged, but need to do with this linker stuff as well:
+# SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
+# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")
+# With '0' skip the patch to check whether this caused the coverage degradation or not. (2025-06-17)
+isCoverageFixed=0   # $(egrep -c 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake)
+if [[ $isCoverageFixed -eq 1 ]]
+then
+    WriteLog "  Patch it." "${COVERAGE_LOG_FILE}"
+    sed -i '/fprofile-update=atomic/a \
+          # Inserted by build.sh \
+          SET (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs -ftest-coverage -fprofile-update=atomic") \
+          SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -fprofile-arcs -ftest-coverage -fprofile-update=atomic")' ~/HPCC-Platform/cmake_modules/commonSetup.cmake
+else
+    WriteLog "  Already patched." "${COVERAGE_LOG_FILE}"
+fi
+WriteLog "$(egrep 'profile-update=atomic' ~/HPCC-Platform/cmake_modules/commonSetup.cmake 2>&1)" "${COVERAGE_LOG_FILE}"
 
 # Get the current branch information
 currentBranch=$( git branch | grep '^\*' | awk '{ print $2 }' )
@@ -209,20 +205,17 @@ WriteLog "Branch date           : ${branchDate}" "${COVERAGE_LOG_FILE}"
 branchCrc=$( git log -1 | grep '^commit' )
 WriteLog "Branch Crc            : ${branchCrc}" "${COVERAGE_LOG_FILE}"
 
-branchStatus=$( git status )
-WriteLog "Branch status         : ${branchStatus}" "${COVERAGE_LOG_FILE}"
-
 
 WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 popd
 WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
 
-
-WriteLog "Check and create coverage environment..." "${COVERAGE_LOG_FILE}"
+WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
 
 [ ! -d ~/coverage ] && mkdir ~/coverage
 export coverage=1
 WriteLog "  Done"  "${COVERAGE_LOG_FILE}"
+
 
 
 #---------------------------------
@@ -236,12 +229,11 @@ if [[ $CLEAN_UP -eq 1 ]]
 then
     if [ True ]
     then
-        # Brute force, remove everything
-        WriteLog "Clean-up build ($BUILD_HOME) direcotry." "${COVERAGE_LOG_FILE}"
-        rm -rf $BUILD_HOME/*
-        WriteLog "  done." "${COVERAGE_LOG_FILE}"
+        WriteLog "Empty $BUILD_HOME directory" "${COVERAGE_LOG_FILE}"
+        rm -rf *
+        WriteLog "  done." "${COVERAGE_LOG_FILE}"  
+
     else
-            
         WriteLog "Do 'make clean'" "${COVERAGE_LOG_FILE}"
         make clean
         WriteLog "  done." "${COVERAGE_LOG_FILE}"
@@ -263,25 +255,30 @@ then
             fi
         done
 
-        WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
-        sudo find . -name "*.dir" -type d -exec rm -rf {} \;
-        WriteLog "  Done" "${COVERAGE_LOG_FILE}"
-        
-    fi
-    
-    if [ -f ~/vcpkg_downloads-$BRANCH_VERSION-coverage.zip ]
-    then
-        WriteLog "Remove current 'vcpkg_downloads' 'vcpkg_installed' directories."  "${COVERAGE_LOG_FILE}"
-        rm -rf vcpkg_downloads vcpkg_installed
-        WriteLog "Unzip vcpkg_downloads-$BRANCH_VERSION-coverage.zip" "${COVERAGE_LOG_FILE}"
-        #res=$( unzip ~/vcpkg_downloads-$BRANCH_VERSION-coverage.zip 2>&1 )
-        retCode=$?
-        WriteLog "  Done (retCode: $retCode)" "${COVERAGE_LOG_FILE}"
-    fi
+        if [ -f ~/vcpkg_downloads-$BRANCH_VERSION.zip ]
+        then
+            WriteLog "Remove current 'vcpkg_downloads' 'vcpkg_installed' directories."  "${COVERAGE_LOG_FILE}"
+            rm -rf vcpkg_downloads vcpkg_installed
+            WriteLog "Unzip vcpkg_downloads-$BRANCH_VERSION.zip" "${COVERAGE_LOG_FILE}"
+            res=$( unzip ~/vcpkg_downloads-$BRANCH_VERSION.zip 2>&1 )
+            retCode=$?
+            WriteLog "  Done (retCode: $retCode)" "${COVERAGE_LOG_FILE}"
+        fi
 
+        if [[ $COVERAGE_BUILD -eq 1 ]]
+        then
+            WriteLog "Clean-up coverage environment..." "${COVERAGE_LOG_FILE}"
+            sudo find . -name "*.dir" -type d -exec rm -rf {} \;
+            WriteLog "  Done" "${COVERAGE_LOG_FILE}"
+        fi
+    fi
 else
     WriteLog "Skip build clean -up." "${COVERAGE_LOG_FILE}"
 fi
+
+WriteLog "sudo chmod -R 777 ~/build" "${COVERAGE_LOG_FILE}"
+sudo chmod -R 777 ~/build
+WriteLog "  done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Prepare coverage data collection during build.." "${COVERAGE_LOG_FILE}"
 WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
@@ -448,8 +445,6 @@ then
     WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
     popd
     WriteLog "Current directory: $(pwd)" "${COVERAGE_LOG_FILE}"
-else
-    WriteLog "Use the already installed HPCC-Platform" "${COVERAGE_LOG_FILE}"
 fi
 
 
@@ -545,6 +540,7 @@ then
     WriteLog "Res:${res}" "${COVERAGE_LOG_FILE}"
 
     WriteLog "Set access right to collect and process coverage." "${COVERAGE_LOG_FILE}"
+    sudo chmod -R 777 ~/build
     sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
     WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
@@ -566,8 +562,13 @@ WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
 # Test whether here (after the Platform started) is the better place for this
 # or it is necessary again
+
+WriteLog "sudo chmod -R 777 ~/build" "${COVERAGE_LOG_FILE}"
+sudo chmod -R 777 ~/build
+WriteLog "  done." "${COVERAGE_LOG_FILE}"
+
 WriteLog "sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;" "${COVERAGE_LOG_FILE}"
-sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+sudo find ~/build -name "*.dir" -type d -exec chmod -R 6777 {} \;
 WriteLog "  done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"
@@ -720,20 +721,24 @@ echo "Generate coverage report"  >> ${BUILD_LOG} 2>&1
 pushd $BUILD_HOME
 WriteLog "Enter to $(pwd)" "${COVERAGE_LOG_FILE}"
 
+WriteLog "sudo chmod -R 777 ~/build" "${COVERAGE_LOG_FILE}"
+sudo chmod -R 777 ~/build
+WriteLog "  done." "${COVERAGE_LOG_FILE}"
+
 WriteLog "Set access right to collect and process coverage." "${COVERAGE_LOG_FILE}"
-sudo find . -name "*.dir" -type d -exec chmod -R 6777 {} \;
+sudo find ~/build -name "*.dir" -type d -exec chmod -R 6777 {} \;
 WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Capture coverage data started..." "${COVERAGE_LOG_FILE}"
-time lcov --capture --rc lcov_branch_coverage=1 --directory . --output-file ~/coverage/hpcc_coverage-$(date +%Y-%m-%d).lcov --ignore-errors inconsistent,source,mismatch,range --source-directory ~/HPCC-Platform --source-directory . 2>&1 | tee ~/coverage/lcov-capture-$(date +%Y-%m-%d).log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+time lcov --capture --rc lcov_branch_coverage=1 --directory . --output-file ~/coverage/hpcc_coverage-$(date +%Y-%m-%d)-script.lcov --ignore-errors inconsistent,source,mismatch,range --source-directory ~/HPCC-Platform --source-directory ~/HPCC-Platform-build --source-directory . 2>&1 | tee ~/coverage/lcov-capture-$(date +%Y-%m-%d)-script.log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
 WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Filtering coverage data started..." "${COVERAGE_LOG_FILE}"
-time lcov --rc lcov_branch_coverage=1 --remove ~/coverage/hpcc_coverage-$(date +%Y-%m-%d).lcov '*/vcpkg_installed/*' 'plugins/cassandra/*' 'plugins/cryptolib/*' 'plugins/couchbase/*' '/plugins/kafka/*' '/plugins/Rembed/*' '/plugins/memcached/*' '/plugins/mysql/*' 'plugins/redis/*' '/plugins/sqlite3/*' '/usr/*'  --output-file ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d).lcov 2>&1 | tee ~/coverage/lcov-capture-filtered-$(date +%Y-%m-%d).log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+time lcov --rc lcov_branch_coverage=1 --remove ~/coverage/hpcc_coverage-$(date +%Y-%m-%d)-script.lcov '*/vcpkg_installed/*' 'plugins/cassandra/*' 'plugins/cryptolib/*' 'plugins/couchbase/*' '/plugins/kafka/*' '/plugins/Rembed/*' '/plugins/memcached/*' '/plugins/mysql/*' 'plugins/redis/*' '/plugins/sqlite3/*' '/usr/*'  --output-file ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d)-script.lcov 2>&1 | tee ~/coverage/lcov-capture-filtered-$(date +%Y-%m-%d)-script.log | sed -n '/Summary coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
 WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Generate coverage HTML pages started..." "${COVERAGE_LOG_FILE}"
-time genhtml --highlight --legend --rc genhtml_hi_limit=80 --rc genhtml_med_limit=60 --rc branch_coverage=1 --ignore-errors source,range --synthesize-missing  --output-directory ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d) /home/ati/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d).lcov 2>&1 | tee ~/coverage/genhtml-filtered-$(date +%Y-%m-%d).log | sed -n '/Overall coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
+time genhtml --highlight --legend --rc genhtml_hi_limit=80 --rc genhtml_med_limit=60 --rc branch_coverage=1 --ignore-errors source,range --synthesize-missing  --output-directory ~/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d)-script /home/ati/coverage/hpcc_coverage-filtered-$(date +%Y-%m-%d)-script.lcov 2>&1 | tee ~/coverage/genhtml-filtered-$(date +%Y-%m-%d)-script.log | sed -n '/Overall coverage rate/,$p' >> ${COVERAGE_LOG_FILE}
 WriteLog "  Done." "${COVERAGE_LOG_FILE}"
 
 WriteLog "Leave directory: $(pwd)" "${COVERAGE_LOG_FILE}"

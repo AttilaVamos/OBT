@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-09-09, 22:16:38 -->
+<!-- Saved: 2025-10-15, 18:14:09 -->
 <!-- Copyright (C) 2025 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -15,6 +15,7 @@
   <Sources>
     <Source>BuildNotification.ini</Source>
     <Source>BuildNotification.py</Source>
+    <Source>Docs/ResultsUpload.ucase.violet.html</Source>
     <Source>GistLogHandler.py</Source>
     <Source>OBT-001/settings.sh</Source>
     <Source>OBT-002/settings.sh</Source>
@@ -150,6 +151,7 @@
   </Sources>
   <Others>
     <Other>.gitignore</Other>
+    <Other>Docs</Other>
     <Other>obt-vnet-admin.tfvars</Other>
     <Other>regressAksReport.templ</Other>
     <Other>regressMinikubeReport.templ</Other>
