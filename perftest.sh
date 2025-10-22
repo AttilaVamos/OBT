@@ -1858,13 +1858,33 @@ then
         WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
        # TO-DO Should check if it is already installed
-        res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
-        retCode=$?
-        if [ $retCode -ne 0 ]
+       installAttemptCount=5
+       installAttemptSleep=5m
+       installed=0
+       while [[ $installAtemptCount -gt 0 ]]
+       do
+            res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1)
+            retCode=$?
+            if [ $retCode -ne 0 ]
+            then
+                WriteLog "  Error ($retCode) in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+                WriteLog "  res: $res" "${PERF_TEST_LOG}"
+                installAtemptCount=$(( $installAtemptCount - 1 ))
+                WriteLog "  $installAtemptCount attempts left, wait $installAttemptSleep and try again." "${PERF_TEST_LOG}"
+                sleep $installAttemptSleep
+            else
+                WriteLog "  Sucessfully installed." "${PERF_TEST_LOG}"
+                installed=1
+                break
+            fi
+        done
+        if [[ $installed -eq 0 ]]
         then
-            WriteLog "Error ($retCode) in install! ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
-            WriteLog "res: $res" "${PERF_TEST_LOG}"
-            exit 1
+                WriteLog "  Install attempts count exhausted. Give it up!" "${PERF_TEST_LOG}"
+                WriteLog "  Archive ${TARGET_PLATFORM} performance logs ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
+                ${BIN_HOME}/archiveLogs.sh performance-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
+                WriteLog "  Exit." "${PERF_TEST_LOG}"
+                exit 1
         fi
 #    else
 #        WriteLog "Start HPCC Platform ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
