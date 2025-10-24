@@ -46,60 +46,52 @@
         },
         \"Tasks\": [
             {
-                \"UpdateHelmRepo\": {
-                    \"Result\" : \"$HELM_UPDATE_RESULT_STR\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$HELM_UPDATE_TIME_STR\",
-                        \"RawSec\": \"$HELM_UPDATE_TIME\"
-                    }
-                }
-            },
-            {
-                \"UpgradeTerraform\": {
-                    \"Result\" : \"$TERRAFORM_UPGRADE_RESULT_STR\",
-                    \"Version\" : \"$TERRAFORM_VERSION\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$TERRAFORM_UPGRADE_TIME_STR\",
-                        \"RawSec\": \"$TERRAFORM_UPGRADE_TIME\"
-                    }
-                }
-            },
-            {
-                \"CreateVirtualNetwork\": {
-                    \"Result\" : \"$VNET_START_RESULT_STR\",
-                    \"NumberOfResources\" : ${VNET_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$VNET_START_TIME_STR\",
-                        \"RawSec\": \"$VNET_START_TIME\"
-                    }
-                }
-            },
-            {
-                \"CreateStorage\": {
-                    \"Result\" : \"$STORAGE_START_RESULT_STR\",
-                    \"NumberOfResources\" : ${STORAGE_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$STORAGE_START_TIME__STR\",
-                        \"RawSec\": \"$STORAGE_START_TIME\"
-                    }
-                }
-            },
-            {
-                \"CreateAKS\": {
-                    \"Result\" : \"$AKS_START_RESULT_STR\",
-                    \"NumberOfResources\" : ${AKS_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$AKS_START_TIME_STR\",
-                        \"RawSec\": \"$AKS_START_TIME\"
-                    }
-                }
-            },
-            {
-                \"ECLWatchAnnotation\": {
-                    \"Result\": \"$ECLWATCH_START_RESULT_STR\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$ECLWATCH_START_TIME_STR\",
-                        \"RawSec\": \"$ECLWATCH_START_TIME\"
+                "Preparation" : {
+                    \"UpdateHelmRepo\": {
+                        \"Result\" : \"$HELM_UPDATE_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$HELM_UPDATE_TIME_STR\",
+                            \"RawSec\": \"$HELM_UPDATE_TIME\"
+                        }
+                    },
+                    \"UpgradeTerraform\": {
+                        \"Result\" : \"$TERRAFORM_UPGRADE_RESULT_STR\",
+                        \"Version\" : \"$TERRAFORM_VERSION\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$TERRAFORM_UPGRADE_TIME_STR\",
+                            \"RawSec\": \"$TERRAFORM_UPGRADE_TIME\"
+                        }
+                    },
+                    \"CreateVirtualNetwork\": {
+                        \"Result\" : \"$VNET_START_RESULT_STR\",
+                        \"NumberOfResources\" : ${VNET_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$VNET_START_TIME_STR\",
+                            \"RawSec\": \"$VNET_START_TIME\"
+                        }
+                    },
+                    \"CreateStorage\": {
+                        \"Result\" : \"$STORAGE_START_RESULT_STR\",
+                        \"NumberOfResources\" : ${STORAGE_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$STORAGE_START_TIME__STR\",
+                            \"RawSec\": \"$STORAGE_START_TIME\"
+                        }
+                    },
+                    \"CreateAKS\": {
+                        \"Result\" : \"$AKS_START_RESULT_STR\",
+                        \"NumberOfResources\" : ${AKS_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$AKS_START_TIME_STR\",
+                            \"RawSec\": \"$AKS_START_TIME\"
+                        }
+                    },
+                    \"ECLWatchAnnotation\": {
+                        \"Result\": \"$ECLWATCH_START_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$ECLWATCH_START_TIME_STR\",
+                            \"RawSec\": \"$ECLWATCH_START_TIME\"
+                        }
                     }
                 }
             },
@@ -184,59 +176,51 @@
                 }
             },
             {
-                \"CollectTimings\": {
-                    \"Result\" : \"$QUERY_STAT2_RESULT_STR\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$QUERY_STAT2_TIME_STR\",
-                        \"RawSec\": \"$QUERY_STAT2_TIME\"
-                    }
-                }
-            },
-            {
-                \"CollectPODLogs\": {
-                    \"Result\" : \"$COLLECT_POD_LOGS_RESULT_STR\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$COLLECT_POD_LOGS_TIME_STR\",
-                        \"RawSec\": \"$COLLECT_POD_LOGS_TIME\"
-                    }
-                }
-            },
-            {
-                \"DestroyAKS\": {
-                    \"Result\" : \"$AKS_DESTROY_RESULT_STR\",
-                    \"NumberOfResources\" : ${AKS_DESTROYED_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$AKS_DESTROY_TIME_STR\",
-                        \"RawSec\": \"$AKS_DESTROY_TIME\"
-                    }
-                }
-            },
-            {
-                \"DestroyStorage\": {
-                    \"Result\" : \"$STORAGE_DESTROY_RESULT_STR\",
-                    \"NumberOfResources\" : ${STORAGE_DESTROYED_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$STORAGE_DESTROY_TIME_STR\",
-                        \"RawSec\": \"$STORAGE_DESTROY_TIME\"
-                    }
-                }
-            },
-            {
-                \"DestroyVirtualNetwork\": {
-                    \"Result\" : \"$VNET_DESTROY_RESULT_STR\",
-                    \"NumberOfResources\" : ${VNET_DESTROYED_NUM_OF_RESOURCES:-0},
-                    \"Elaps\": {
-                        \"Formatted\": \"$VNET_DESTROY_TIME_STR\",
-                        \"RawSec\": \"$VNET_DESTROY_TIME\"
-                    }
-                }
-            },
-            {
-                \"RunLogProcessor\": {
-                   \"Result\": \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
-                    \"Elaps\": {
-                        \"Formatted\": \"$REGRESS_LOG_PROCESSING_TIME_STR\",
-                        \"RawSec\": \"$REGRESS_LOG_PROCESSING_TIME\"
+                "Clean-up" : {
+                    \"CollectTimings\": {
+                        \"Result\" : \"$QUERY_STAT2_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$QUERY_STAT2_TIME_STR\",
+                            \"RawSec\": \"$QUERY_STAT2_TIME\"
+                        }
+                    },
+                    \"CollectPODLogs\": {
+                        \"Result\" : \"$COLLECT_POD_LOGS_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$COLLECT_POD_LOGS_TIME_STR\",
+                            \"RawSec\": \"$COLLECT_POD_LOGS_TIME\"
+                        }
+                    },
+                    \"DestroyAKS\": {
+                        \"Result\" : \"$AKS_DESTROY_RESULT_STR\",
+                        \"NumberOfResources\" : ${AKS_DESTROYED_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$AKS_DESTROY_TIME_STR\",
+                            \"RawSec\": \"$AKS_DESTROY_TIME\"
+                        }
+                    },
+                    \"DestroyStorage\": {
+                        \"Result\" : \"$STORAGE_DESTROY_RESULT_STR\",
+                        \"NumberOfResources\" : ${STORAGE_DESTROYED_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$STORAGE_DESTROY_TIME_STR\",
+                            \"RawSec\": \"$STORAGE_DESTROY_TIME\"
+                        }
+                    },
+                    \"DestroyVirtualNetwork\": {
+                        \"Result\" : \"$VNET_DESTROY_RESULT_STR\",
+                        \"NumberOfResources\" : ${VNET_DESTROYED_NUM_OF_RESOURCES:-0},
+                        \"Elaps\": {
+                            \"Formatted\": \"$VNET_DESTROY_TIME_STR\",
+                            \"RawSec\": \"$VNET_DESTROY_TIME\"
+                        }
+                    },
+                    \"RunLogProcessor\": {
+                       \"Result\": \"$REGRESS_LOG_PROCESSING_RESULT_STR\",
+                        \"Elaps\": {
+                            \"Formatted\": \"$REGRESS_LOG_PROCESSING_TIME_STR\",
+                            \"RawSec\": \"$REGRESS_LOG_PROCESSING_TIME\"
+                        }
                     }
                 }
             }
