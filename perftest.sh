@@ -436,6 +436,8 @@ else
     WriteLog "RTE clone success !" "${PERF_TEST_LOG}"
 fi
 
+mkdir -p $TARGET_DIR
+
 #
 #--------------------------------------------------
 #
@@ -699,6 +701,11 @@ then
         WriteLog "Skip vcpkg handling." "$PERF_TEST_LOG"
     fi
 
+    CMAKE_TIME=0
+    BUILD_TIME=0
+    PKG_TIME=0
+    TIME_STAMP=$(date +%s)
+    BUILD_START_TIME_STAMP=$(date +%s)
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Start build at ${date}" "${PERF_TEST_LOG}"
 
@@ -720,6 +727,7 @@ then
     WriteLog "CMAKE_CMD:'${CMAKE_CMD}'\\n" "${PERF_TEST_LOG}"
 
     res=$( eval ${CMAKE_CMD} 2>&1 )
+    CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
     WriteLog "${res[*]}" "${PERF_TEST_LOG}"
 
@@ -734,29 +742,45 @@ then
         echo "${res[*]}" > ${BUILD_LOG_FILE}
     fi
 
-
+    TIME_STAMP=$(date +%s)
     # Let's build
-    CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
+    CMD="make -j ${NUMBER_OF_BUILD_THREADS}"
     WriteLog "cmd: ${CMD}" "${PERF_TEST_LOG}"
 
     ${CMD} >> ${BUILD_LOG_FILE} 2>&1
+    retCode=$?
+    BUILD_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
-    if [ $? -ne 0 ] 
+    if [ $retCode -ne 0 ] 
     then
         WriteLog "Build failed: build has errors " "${PERF_TEST_LOG}"
         buildResult=FAILED
         export buildResult
+        echo "BuildResult:FAILED" >   $TARGET_DIR/build_summary
+        echo "Elaps:${BUILD_TIME} sec" >> $TARGET_DIR/build_summary
         exit 1
     else
+        # Create package
+        TIME_STAMP=$(date +%s)
+        CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
+        WriteLog "cmd:'${CMD}'." "${PERF_TEST_LOG}"
+        ${CMD} >> ${BUILD_LOG_FILE} 2>&1
+        retCode=$?
+        PKG_TIME=$(( $(date +%s) - $TIME_STAMP ))
+        
         ls -l hpcc*${PKG_EXT} >/dev/null 2>&1
         if [ $? -ne 0 ] 
         then
             WriteLog "Build failed: no rpm package found " "${PERF_TEST_LOG}"
             buildResult=FAILED
+            echo "BuildResult:FAILED" >   $TARGET_DIR/build_summary
+            echo "Elaps:${BUILD_TIME} sec" >> $TARGET_DIR/build_summary
             exit 2
         else
             WriteLog "Build succeed" "${PERF_TEST_LOG}"
             buildResult=SUCCEED
+            echo "BuildResult:SUCCEED" >   $TARGET_DIR/build_summary
+            echo "Elaps:${BUILD_TIME} sec" >> $TARGET_DIR/build_summary
             if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
             then
                 pushd ${BUILD_DIR}/$RELEASE_TYPE
@@ -829,6 +853,13 @@ then
 
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Build end at ${date}" "${PERF_TEST_LOG}"
+    WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
+    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >> ${BUILD_LOG_FILE}
+    echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >> ${BUILD_LOG_FILE}
+    echo "Package:$( SecToTimeStr ${PKG_TIME} )" >> ${BUILD_LOG_FILE}
+    echo "Elaps:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> ${BUILD_LOG_FILE}
+    cp ${GIT_2DAYS_LOG}  $TARGET_DIR/
+    cp ${BUILD_LOG_FILE}  $TARGET_DIR/build.log
 
     HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )
     
