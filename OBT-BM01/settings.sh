@@ -607,7 +607,7 @@ fi
 
 PERF_ENABLE_CALCTREND=1
 #PERF_CALCTREND_PARAMS="-v"
-PERF_CALCTREND_PARAMS="-v --enableTestPlotGeneration --enableBaseLine --baseLineDate 2025-04-22"
+PERF_CALCTREND_PARAMS="--enableTestPlotGeneration --enableBaseLine --baseLineDate 2025-04-22"
 
 #
 #----------------------------------------------------
