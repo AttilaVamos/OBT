@@ -811,10 +811,10 @@ then
                     then
                         cp -fv ~/vcpkg_downloads-${BASE_VERSION}.zip .
                         changesInInstalled=$( zip -ru vcpkg_downloads-${BASE_VERSION}.zip vcpkg_installed/* )
-                        WriteLog "Changes in installed: '$changesInInstalled'." "${PERF_TEST_LOG}"
+                        WriteLog "Is there any changes in installed: $( [[ -n $changesInInstalled ]] && echo 'Yes' || echo 'No')." "${PERF_TEST_LOG}"
                                         
                         changesInDownloads=$( zip -u vcpkg_downloads-${BASE_VERSION}.zip vcpkg_downloads/* )
-                        WriteLog "Changes in downloads: '$changesInDownloads'." "${PERF_TEST_LOG}"
+                        WriteLog "Is there any changes in downloads: $( [[ -n $changesInDownloads ]] && echo 'Yes' || echo 'No')." "${PERF_TEST_LOG}"
                     fi
 
                     if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
