@@ -266,25 +266,25 @@ addTlsToRoxie()
 
 SuppressAnalyserWarnings()
 {
-    WriteLog "Inject '#onwarning(5820, ignore);' to all performance test." "${PERF_TEST_LOG}"
+    WriteLog "Inject '#onwarning(<5820,30003,30004>, ignore);' to all performance test." "${PERF_TEST_LOG}"
     pushd ${PERF_TEST_HOME}/ecl
 
     while read file
     do
         WriteLog "  File:${file}" "${PERF_TEST_LOG}"
 
-        patched=$( egrep -H '#onwarning' $file | egrep -c '5820' )
+        patched=$( egrep -H '#onwarning' $file | egrep -c '30003' )
 
         if [[ ${patched} -eq 0 ]]
         then
             WriteLog "    Patching..." "${PERF_TEST_LOG}"
-            (echo "#onwarning(5820, ignore); // Suppress analyser warning" ; echo "#onwarning(30004, ignore); // Suppress Cost Optimizer warning" ; cat $file) >${file}.new
+            (echo "#onwarning(5820, ignore); // Suppress analyser warning" ; echo "#onwarning(30003, ignore);"; echo "#onwarning(30004, ignore); // Suppress Cost Optimizer warning" ; cat $file) >${file}.new
             mv ${file}.new $file
-            WriteLog "      Done: $(egrep -H '#onwarning' $file | egrep -c '5820' )" "${PERF_TEST_LOG}"
+            WriteLog "      Done: $(egrep -H '#onwarning' $file | egrep -c '30003' )" "${PERF_TEST_LOG}"
         else
-            WriteLog "    Already has '#onwarning(5820, ignore)'." "${PERF_TEST_LOG}"
+            WriteLog "    Already has '#onwarning(30003, ignore)'." "${PERF_TEST_LOG}"
         fi
-    done < <(ls -1 *.ecl )
+    done < <(find . -iname '*.ecl' -type f | sort )
 
     popd
     
