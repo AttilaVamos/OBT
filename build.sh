@@ -700,7 +700,7 @@ then
                 rm -rf $d
                 WriteLog "Res: $?" "${OBT_BUILD_LOG_FILE}"
             done
-            WriteLog echo "After: $(df -h . | egrep -v 'Files')"
+            WriteLog echo "After: $(df -h . | egrep -v 'Files')"  "${OBT_BUILD_LOG_FILE}"
             WriteLog "  Done." "${OBT_BUILD_LOG_FILE}"
 
             popd
