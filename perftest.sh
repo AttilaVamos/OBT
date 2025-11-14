@@ -284,7 +284,7 @@ SuppressAnalyserWarnings()
         else
             WriteLog "    Already has '#onwarning(30003, ignore)'." "${PERF_TEST_LOG}"
         fi
-    done < <(find . -iname '*.ecl' -type f | sort )
+    done < <(find . setup/ -maxdepth 1 -iname '*.ecl' -type f | sort )
 
     popd
     
