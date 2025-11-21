@@ -573,7 +573,7 @@ then
         WriteLog "Result:${res}" "${PERF_TEST_LOG}"
         COMMIT_ID=$SHA
     else
-    COMMIT_ID=$( git log -1 | grep '^commit' | cut -d' ' -f 2 )
+        COMMIT_ID=$( git log -1 | grep '^commit' | cut -d' ' -f 2 )
         COMMIT_ID=${COMMIT_ID:0:8}
     fi
 
