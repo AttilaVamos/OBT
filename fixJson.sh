@@ -12,6 +12,7 @@ echo "Checking files in '$CHECK_PATH'."
 ERROR_FILE=fixJson.err
 FILES_CHECKED=0
 FILES_FIXED=0
+KEEP_WRONG=0    # Set to 1 to help analyze what was wrong
 
 while read fn; 
 do 
@@ -27,14 +28,19 @@ do
         printf "%-70s -> Rename\n" "$fn" 
         cat $fn-bkp | python3 -c "import sys, json, yaml; print(json.dumps(yaml.safe_load(sys.stdin)))" | jq '.' > $fn ; 
         
-        diff $fn-bkp $fn >> $ERROR_FILE 2>&1
+        diff -wbZE $fn-bkp $fn >> $ERROR_FILE 2>&1
         echo "------------------------" >> $ERROR_FILE
 
         cat $fn | python3 -m json.tool > /dev/null
         if [[ $? -eq 0 ]] 
         then
             printf "%-70s    Fixed\n" " "
-            printf "%-70s    \n" "$(rm -v $fn-bkp)"
+            if [[ $KEEP_WRONG -eq 0 ]]
+            then
+                printf "%-70s    \n" "$(rm -v $fn-bkp)"
+            else
+                printf "%-70s    \n" "keep ${fn-bkp})"
+            fi
             FILES_FIXED=$(( FILES_FIXED + 1 ))
         else
             printf "%-70s  Error, restore file\n" " "
