@@ -98,7 +98,11 @@ class RegressionLogProcessor(object):
                 if ('version' in line) and match:
                     # More magic to save '.' in the version info (like separator in IP address) replace it with '_'
                     # It will be restore later.
-                    line = match.group(1).replace('.',':') + match.group(2).replace(' ','').replace('.','_') + match.group(3).replace('.',':')
+                    # Lately (2025-12) Gavin introduced this kind of version parameter:
+                    #    indexblobs.ecl ( version: compression='inplace:zstds' )  (Shortseeing lazyness)
+                    #  Where he separate multiple values of a same parameter with ':' but I already use ':' to replace '.' in parameter list (e.g.: an IP)
+                    # So, to make life more difficult, I replacing ':' to '#' in version parameters (match.group(2))
+                    line = match.group(1).replace('.',':') + match.group(2).replace(':','#').replace(' ','').replace('.','_') + match.group(3).replace('.',':')
                     pass
                 else:
                     line = line.replace('.', ':')
@@ -317,7 +321,7 @@ class RegressionLogProcessor(object):
                             id = hash(testName)
                             index = self.idIndex[id]
                             # Magic to restore '.' in the version info (like separator in IP address)
-                            error[0] = error[0].replace('_','.')
+                            error[0] = error[0].replace('_','.').replace('#',':')
                             self.testCases[index]['Error'] = error
                             error = []
                     error.append(line)
@@ -525,6 +529,7 @@ class RegressionLogProcessor(object):
                                 
                         self.faultedTestCase[testName][self.logDate]= {'TestId': testId,  'Target':self.target, 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }
                         self.faultedTestCaseSimple[self.target][testName] = {'TestId': testId, 'Wuid' : test['Wuid'], 'Problem':Problems[problem]['Problem'],  'Code':Problems[problem]['Code'],  'Msg':res['Message'] }
+                        pass
                         
                     self.htmlReport.append('</table></li><br></ul>')
                     pass
@@ -588,7 +593,14 @@ class RegressionLogProcessor(object):
                     print('-'*60)
                     traceback.print_exc(file=sys.stdout)
                     print('-'*60)
-                
+
+                except KeyError:
+                    print("Exception in add elaps time for '%s' (test['Elapstime']='<value>') : %s (line: %s)" % (test['Test'], str(sys.exc_info()[0]), str(inspect.stack()[0][2])))
+                    print("Exception in user code:")
+                    print('-'*60)
+                    traceback.print_exc(file=sys.stdout)
+                    print('-'*60)
+
             testCases = sorted(testCases,  key=lambda x: x[1],  reverse = True)
             outFile = open(testTimesFileName,  "w")
             for test in testCases:

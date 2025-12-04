@@ -735,6 +735,11 @@ do
         WriteLog "retcode: ${retCode}" "${REGRESS_LOG_FILE}"
 
         inFile=$( find ${TEST_LOG_DIR} -name ${cluster}'.*.log' -type f -print | sort -r | head -n 1 ) 
+        total=0
+        passed=0
+        failed=0
+        elapsed=0
+        inSuiteErrorLog=''
         if [ -n $inFile ]
         then
             total=$( cat ${inFile} | sed -n "s/^[[:space:]]*Queries:[[:space:]]*\([0-9]*\)[[:space:]]*$/\1/p")
@@ -745,13 +750,16 @@ do
             #[ $passed -gt 0 ] && passed="<span style=\"color:#298A08\">$passed</span>"
             [ -z $failed ] && failed=1
 
-            [ $failed -gt 0 ] && export testFailed=1
+            if [[ $failed -gt 0 ]]
+            then
+                export testFailed=1
+                #                                     get part from      Start    End  Remove  END  &  empyt line
+                inSuiteErrorLog=$(cat ${inFile} | sed -n "/ Error:/,/----/ { /----/d ; /^$/d ; p }")
+            fi
 
         fi
 
-        hasError=$( cat ${REGRESS_LOG_FILE} | grep -c '\[Error\]' )
-
-        if [[ (${retCode} -eq 0) && ($hasError -eq 0) ]] 
+        if [[ (${retCode} -eq 0) && ($failed -eq 0 ) ]]
         then
             WriteLog "cp ${LOG_DIR}/${cluster}*.log ${OBT_LOG_DIR}/" "${REGRESS_LOG_FILE}"
             cp ${TEST_LOG_DIR}/${cluster}*.log ${OBT_LOG_DIR}/.
@@ -760,21 +768,12 @@ do
             #echo "TestResult:Total:${total} passed:${passed} failed:${failed} elapsed:${elapsed}"
             WriteLog "${cluster} test result:Total:${total} passed:${passed} failed:${failed} elapsed:${elapsed}" "${REGRESS_LOG_FILE}"
 
-            # if [[ $cluster -eq 'roxie' && $failed -ne '0' ]]
-            # then
-            #     WriteLog "There is any failed testcases. Abort Roxie to generate core." "${REGRESS_LOG_FILE}"
-            #     pkill -2 -x 'roxie'
-            #
-            # fi
         else
-            WriteLog "Regression tests on ${cluster} returns with ${retCode}" "${REGRESS_LOG_FILE}"
-            #                                  get part from        Start        End             Remove  END              &  empyt line
-            inSuiteErrorLog=$( cat ${REGRESS_LOG_FILE} | sed -n "/\[Error\]/,/Suite destructor./ { /Suite destructor./d ; /^$/d ; p }" )
+            WriteLog "Regression tests on ${cluster} returns with ${retCode} and it has $failed failed test case(s)." "${REGRESS_LOG_FILE}"
             WriteLog "${inSuiteErrorLog}" "${REGRESS_LOG_FILE}"
             echo -n "TestResult:Total:${total} passed:${passed} failed:${failed} elapsed:${elapsed}" > ${OBT_LOG_DIR}/${cluster}.summary 
             echo "${inSuiteErrorLog}" >> ${OBT_LOG_DIR}/${cluster}.summary 
 
-            #exit -1  # Commented out to keep it running
         fi
     else
         WriteLog "Skip regression suite execution on ${cluster}!\n" "${REGRESS_LOG_FILE}"
