@@ -609,7 +609,7 @@ WriteLog "  $PLATFORM_DEPLOY_RESULT_REPORT_STR" "$logFile"
 # Wait until everything is up
 WriteLog "Wait for PODs" "$logFile"
 TIME_STAMP=$(date +%s)
-tryCount=60
+tryCount=90
 delay=10
 expected=0
 running=0
