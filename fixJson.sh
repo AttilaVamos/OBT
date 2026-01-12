@@ -50,7 +50,7 @@ do
         printf "%-70s -> OK\n" "$fn" 
     fi
         
-done< <(find $CHECK_PATH -iname '*2025-*.json' -type f | sort )
+done< <(find $CHECK_PATH -iname '*202[56]-*.json' -type f | sort )
 
 printf "End.\n  In %s directory %d file(s) checked and %d file(s) fixed.\n" "$CHECK_PATH" "$FILES_CHECKED" "$FILES_FIXED"
 
