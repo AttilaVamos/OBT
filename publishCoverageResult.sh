@@ -13,17 +13,17 @@ pushd /var/www/html/coverage/ > /dev/null
 if [[ ! -d $latestDir ]]
 then
     echo "Unzip latest result..."
-    res=$( sudo unzip $latest 2>&1 )
+    res=$( sudo unzip -o $latest 2>&1 )
     retCode=$?
     [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
     echo "  Done."
 
-    res=$( sudo rm -v *.l[oc]* 2>&1)
+    res=$( sudo rm -v *.l[oc]* 2>&1 )
     retCode=$?
     [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
 
     tags=( 'latest' 'previous' 'old' )
-    results=( $( find . -iname '*-filt*' -type d | sort -r | head -n 3) )
+    results=( $(  find . -iname '*-filt*' -type d | sort -r | head -n 3) )
 
     echo "Remove current links..."
     sudo rm -v hpcc_coverage-[lop]*
@@ -41,10 +41,24 @@ then
     done
     echo "  Done."
 else
-    echo "$latestDir already published."
+    echo "$latestDir already published, update."
+    echo "Unzip latest result..."
+    res=$( sudo unzip -fo $latest 2>&1 )
+    retCode=$?
+    [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
+    echo "  Done."
+
+    res=$( sudo rm -v *.l[oc]* 2>&1 )
+    retCode=$?
+    [[ $retCode -ne 0 ]] && echo "retCode: $retCode"
+
 fi
 
+sudo unzip -u $latest coverage-digest.* *Progress.png
+sudo chmod 0777 coverage-digest.png
+
 ls -l
+ 
 
 popd > /dev/null
 echo "  End."
