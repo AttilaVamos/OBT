@@ -685,7 +685,25 @@ else
     latestBranch=${latestBranchTag%-*}
     latestBranch=${latestBranch##community_}
     latestMajorMinor=${latestBranch%.*}
+    searchTag=$latestMajorMinor
+    latestMajor=${latestMajorMinor%.*}
     WriteLog "Latest branch : $latestBranch (tag: $latestBranchTag, latest major.minor: $latestMajorMinor)" "$logFile"
+    tagCount=$(git tag --sort=-creatordate | egrep 'community_'$latestMajorMinor | head -n 10 | wc -l)
+    if [[ $tagCount -lt 2 ]]
+    then
+    	WriteLog "  There is only $tagCount tags found. Perhaps new minor relaese. Use major version ($latestMajor) to get tags" "$logFile"
+    	tagCount=$(git tag --sort=-creatordate | egrep 'community_'$latestMajor | head -n 10 | wc -l)
+	if [[ $tagCount -lt 2 ]]
+    	then
+    	    WriteLog "  There is only $tagCount tags found." "$logFile"
+     	    WriteLog "  Perhaps new major relaese and the image is not ready." "$logFile"
+    	    WriteLog "  Perhaps we missed a test, but tomorrrow will be a new day." "$logFile"
+    	    WriteLog "  Chin-up. (I don't think to create a more sophisticated/complicated algortim is worth to do." "$logFile"
+    	else
+    	    searchTag=$latestMajor
+    	fi
+    fi
+    WriteLog "searchTag: $searchTag (Number of tags with this are $(git tag --sort=-creatordate | egrep 'community_'$latestMajor | head -n 10 | wc -l))" "$logFile"
 
     while read tagToTest
     do
@@ -724,7 +742,7 @@ else
         else
             WriteLog "  It has not deployable image, step back one tag." "$logFile"
         fi
-    done< <(git tag --sort=-creatordate | egrep 'community_'$latestMajorMinor | head -n 10 )
+    done< <(git tag --sort=-creatordate | egrep 'community_'$searchTag | head -n 10 )
 fi
 
 if [[ $found -ne 1 ]]
