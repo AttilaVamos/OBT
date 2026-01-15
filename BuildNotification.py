@@ -644,6 +644,7 @@ class TestTask( Task ):
                         if m2.group(1) !=  m2.group(2):
                             self._result += "<span style=\"color:red\">" + res + "</span><br>\n"
                             self._status = 'FAILED'
+                            self._errorMsg += 'Wutooltests:<br>\n'
                             self._errorMsg += res + "<br>\n"
                         else:
                             self._result += "<span style=\"color:green\">" + res + "</span><br>\n"
@@ -955,6 +956,10 @@ class BuildNotification( object ):
                 elif task.name in ['Wutooltests']:
                     result = task.result
                     self.logFiles.append(task.logFileFileSystem)
+                    if task._failed >= 0:
+                        errors = task.errorMsg.replace('Wutooltests:', '').replace('<br>', '').strip()
+                        lines = errors.split('\n')
+                        self.jsonReport["OBTResult"]["Errors"].append( { 'WutoolTests': lines } )
 
                 elif task.name in ['Build']:
                     result = task.result
