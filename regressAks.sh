@@ -691,17 +691,17 @@ else
     tagCount=$(git tag --sort=-creatordate | egrep 'community_'$latestMajorMinor | head -n 10 | wc -l)
     if [[ $tagCount -lt 2 ]]
     then
-    	WriteLog "  There is only $tagCount tags found. Perhaps new minor relaese. Use major version ($latestMajor) to get tags" "$logFile"
-    	tagCount=$(git tag --sort=-creatordate | egrep 'community_'$latestMajor | head -n 10 | wc -l)
-	if [[ $tagCount -lt 2 ]]
-    	then
-    	    WriteLog "  There is only $tagCount tags found." "$logFile"
-     	    WriteLog "  Perhaps new major relaese and the image is not ready." "$logFile"
-    	    WriteLog "  Perhaps we missed a test, but tomorrrow will be a new day." "$logFile"
-    	    WriteLog "  Chin-up. (I don't think to create a more sophisticated/complicated algortim is worth to do." "$logFile"
-    	else
-    	    searchTag=$latestMajor
-    	fi
+        WriteLog "  There is only $tagCount tags found. Perhaps new minor relaese. Use major version ($latestMajor) to get tags" "$logFile"
+        tagCount=$(git tag --sort=-creatordate | egrep 'community_'$latestMajor | head -n 10 | wc -l)
+    if [[ $tagCount -lt 2 ]]
+        then
+            WriteLog "  There is only $tagCount tags found." "$logFile"
+            WriteLog "  Perhaps new major relaese and the image is not ready." "$logFile"
+            WriteLog "  Perhaps we missed a test, but tomorrrow will be a new day." "$logFile"
+            WriteLog "  Chin-up. (I don't think to create a more sophisticated/complicated algortim is worth to do." "$logFile"
+        else
+            searchTag=$latestMajor
+        fi
     fi
     WriteLog "searchTag: $searchTag (Number of tags with this are $(git tag --sort=-creatordate | egrep 'community_'$latestMajor | head -n 10 | wc -l))" "$logFile"
 
@@ -1005,7 +1005,7 @@ else
     WriteLog "res:$res" "$logFile"
     ERROR_STR=$(echo "$res" | egrep -A 4 'Error: ')
     AKS_START_RESULT_STR="Failed"
-    AKS_START_ERROR_STR="\n      - Error: $ERROR_STR"
+    AKS_START_ERROR_STR="\\n      - Error: $ERROR_STR"
     AKS_START_RESULT_REPORT_STR="$AKS_START_RESULT_STR in $AKS_START_TIME_STR $AKS_START_ERROR_STR."
     WriteLog "  $AKS_START_RESULT_REPORT_STR" "$logFile"
 
