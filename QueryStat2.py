@@ -502,7 +502,7 @@ class WriteStatsToFile(object):
         self.myPrint("URL: '%s'" % (url))
         times = {}
         try:
-                response_stream = urllib.request.urlopen(url)
+                response_stream = urllib.request.urlopen(url,  timeout=120)
                 json_response = response_stream.read()
                 resp = json.loads(json_response)
                 response_stream.close()
