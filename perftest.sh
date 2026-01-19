@@ -1113,10 +1113,29 @@ then
     cRes=$( CloneRepo "${PERF_TEST_REPO}" )
     if [[ 0 -ne  $? ]]
     then
-        WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
+        WriteLog "Repo clone failed ! Result is: ${cRes}" "${PERF_TEST_LOG}"
         exit -3
     else
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
+        if [ -n $PERF_SUITE_COMMIT ]   # Optional parameter
+        then
+            push PerfromanceTesting
+            res=$(git checkout $PERF_SUITE_COMMIT 2>&1 )
+            retCode=$?
+            if [[ $retCode -ne 0 ]]
+            then
+                WriteLog "  Ret code: $retCode, result: '$res'" "${PERF_TEST_LOG}"
+                WriteLog "  To avoid any further problem chack out the 'master'." "${PERF_TEST_LOG}"
+                res=$(git checkout -f  master 2>&1 )
+                WriteLog "  $res" "${PERF_TEST_LOG}"
+            else
+                WriteLog "  '$PERF_SUITE_COMMIT' checked out successfully." "${PERF_TEST_LOG}"
+            fi
+            pop
+        else
+            WriteLog "  Use the default branch to test." "${PERF_TEST_LOG}"
+        fi
+        
     fi
     
     SuppressAnalyserWarnings

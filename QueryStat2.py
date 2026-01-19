@@ -267,7 +267,7 @@ class WriteStatsToFile(object):
         
         self.clusters = ('hthor', 'thor', 'roxie' )
         self.resultConfigClass = { 'hthor': HThorPerfResultConfig(), 'thor' : ThorPerfResultConfig(),  'roxie' : RoxiePerfResultConfig() }
-        if self.buildBranch == None:
+        if self.buildBranch == None or self.buildBranch.lower() == 'master' :
             self.queryHpccVersion()
         else:
             self.hpccVersionStr = self.buildBranch

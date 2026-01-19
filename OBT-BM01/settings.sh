@@ -517,6 +517,12 @@ PERF_THOR_LOCAL_THOR_PORT_INC=40
 # totalMemoryLimit for Roxie
 PERF_ROXIE_MEMSIZE_GB=1
 
+# Which version/Commit of Perfromance Suite should use to test
+# If empty use the default (lastest/master)
+# If not, then it is a commit ID and check out that commit in perftest.sh
+PERF_SUITE_COMMIT='05eb53bb'  # Using Performance Suite before PR-15 has been merged in next test
+#PERF_SUITE_COMMIT=''
+
 # Control to Regression Engine Setup phase
 # 0 - skip Regression Engine setup execution (dry run to test framework)
 # 1 - execute RE to run Performance Suite
