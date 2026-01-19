@@ -264,6 +264,28 @@ addTlsToRoxie()
     popd
 }
 
+CheckPerformanceSuiteCommit()
+{
+    if [ -n "$PERF_SUITE_COMMIT" ]   # Optional parameter
+    then
+        pushd PerformanceTesting
+        res=$(git checkout $PERF_SUITE_COMMIT 2>&1 )
+        retCode=$?
+        if [[ $retCode -ne 0 ]]
+        then
+            WriteLog "  Ret code: $retCode, result: '$res'" "${PERF_TEST_LOG}"
+            WriteLog "  To avoid any further problem chack out the 'master'." "${PERF_TEST_LOG}"
+            res=$(git checkout -f  master 2>&1 )
+            WriteLog "  $res" "${PERF_TEST_LOG}"
+        else
+            WriteLog "  '$( [ -n "$PERF_SUITE_COMMIT" ] && echo $PERF_SUITE_COMMIT || echo master) ' checked out successfully." "${PERF_TEST_LOG}"
+        fi
+        popd
+    else
+        WriteLog "  Use the default branch to test." "${PERF_TEST_LOG}"
+    fi
+}
+
 SuppressAnalyserWarnings()
 {
     WriteLog "Inject '#onwarning(<5820,30003,30004>, ignore);' to all performance test." "${PERF_TEST_LOG}"
@@ -1117,25 +1139,7 @@ then
         exit -3
     else
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
-        if [ -n $PERF_SUITE_COMMIT ]   # Optional parameter
-        then
-            push PerfromanceTesting
-            res=$(git checkout $PERF_SUITE_COMMIT 2>&1 )
-            retCode=$?
-            if [[ $retCode -ne 0 ]]
-            then
-                WriteLog "  Ret code: $retCode, result: '$res'" "${PERF_TEST_LOG}"
-                WriteLog "  To avoid any further problem chack out the 'master'." "${PERF_TEST_LOG}"
-                res=$(git checkout -f  master 2>&1 )
-                WriteLog "  $res" "${PERF_TEST_LOG}"
-            else
-                WriteLog "  '$PERF_SUITE_COMMIT' checked out successfully." "${PERF_TEST_LOG}"
-            fi
-            pop
-        else
-            WriteLog "  Use the default branch to test." "${PERF_TEST_LOG}"
-        fi
-        
+        CheckPerformanceSuiteCommit
     fi
     
     SuppressAnalyserWarnings
@@ -1636,6 +1640,7 @@ then
            exit -3
         else
             WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
+            CheckPerformanceSuiteCommit
         fi
     fi
     
@@ -2068,6 +2073,7 @@ then
         exit -3
     else
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
+        CheckPerformanceSuiteCommit
     fi
     
     SuppressAnalyserWarnings
