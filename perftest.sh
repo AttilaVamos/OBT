@@ -266,9 +266,10 @@ addTlsToRoxie()
 
 CheckPerformanceSuiteCommit()
 {
+    pushd PerformanceTesting
     if [ -n "$PERF_SUITE_COMMIT" ]   # Optional parameter
     then
-        pushd PerformanceTesting
+        
         res=$(git checkout $PERF_SUITE_COMMIT 2>&1 )
         retCode=$?
         if [[ $retCode -ne 0 ]]
@@ -280,10 +281,15 @@ CheckPerformanceSuiteCommit()
         else
             WriteLog "  '$( [ -n "$PERF_SUITE_COMMIT" ] && echo $PERF_SUITE_COMMIT || echo master) ' checked out successfully." "${PERF_TEST_LOG}"
         fi
-        popd
     else
         WriteLog "  Use the default branch to test." "${PERF_TEST_LOG}"
     fi
+    
+    # Store the current commit ID to later use.
+    PERF_SUITE_COMMIT_ID=$( git log -1 | grep '^commit' | cut -d' ' -f 2 )
+    PERF_SUITE_COMMIT_ID=${PERF_SUITE_COMMIT_ID:0:8}
+    export PERF_SUITE_COMMIT_ID
+    popd
 }
 
 SuppressAnalyserWarnings()
