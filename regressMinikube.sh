@@ -851,8 +851,8 @@ TIME_STAMP=$(date +%s)
 res=$(helm uninstall minikube 2>&1)
 WriteLog "${res}" "$logFile"
 
-# Wait until everyting is down
-tryCount=60
+# Wait until everything is down
+tryCount=90
 delay=10
 while true
 do
