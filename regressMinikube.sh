@@ -884,7 +884,7 @@ do
         kubectl get pods | egrep -v 'NAME' | awk '{ print $1 }' | while read podId; 
         do 
             [[ "$podId" =~ "mydali" ]] && param="mydali" || param=""; 
-            WriteLog "pod:$podId - $param"; 
+            WriteLog "pod:$podId - $param"  "$logFile"
             kubectl describe pod $podId > $dirName/$podId.desc; 
             kubectl logs $podId $param > $dirName/$podId.log; 
             kubectl logs -p $podId $param > $dirName/$podId-prev.log; 
@@ -897,7 +897,10 @@ do
         # delete them with 1 Minute grace period
         for podId in `kubectl get pods | grep -v ^NAME | awk '{print $1}'` ;
         do
-            kubectl delete pod $podId --grace-period=60  # or with --force
+            res=$( kubectl delete pod $podId --grace-period=60  2>&1)  # or with --force 
+            retCode=$?
+            WriteLog "Delete '$podId' returned with: $retCode."  "$logFile"
+            WriteLog "  res: '$res'"  "$logFile"
         done
 
         # give it 10 more attempts
