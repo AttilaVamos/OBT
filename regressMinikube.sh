@@ -302,6 +302,9 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
+MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the memory
+MINIKUBE_CPUS=$(( $(nproc) / 2 ))
+
 #set -x
 DEBUG=0
 INTERACTIVE=0
@@ -582,8 +585,8 @@ then
     else
         echo "$base" > $OBT_BIN_DIR/platformTag.txt
     fi
-    WriteLog "Start Minikube." "$logFile"
-    res=$(minikube start 2>&1)
+    WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY} memory." "$logFile"
+    res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY}   2>&1)
     WriteLog "$res" "$logFile"
     
 else
