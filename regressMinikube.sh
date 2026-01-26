@@ -637,19 +637,19 @@ done
 
 sleep 10
 # test it
-WriteLog "$(printf '\nExpected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
-PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PODS_START_TIME_STR="$PODS_START_TIME sec $(SecToTimeStr $PODS_START_TIME)"
-PODS_START_RESULT_STR="Done"
-NUMBER_OF_RUNNING_PODS=$running
-PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS PODs are up."
-PODS_START_RESULT_REPORT_STR="$PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR"
-WriteLog "  $PODS_START_RESULT_REPORT_STR" "$logFile"
+WriteLog "$(printf '\nFinally: expected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
     # Pods are up
-
+    PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    PODS_START_TIME_STR="$PODS_START_TIME sec $(SecToTimeStr $PODS_START_TIME)"
+    PODS_START_RESULT_STR="Done"
+    NUMBER_OF_RUNNING_PODS=$running
+    PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS/${expected} PODs are up."
+    PODS_START_RESULT_REPORT_STR="$PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR"
+    WriteLog "  $PODS_START_RESULT_REPORT_STR" "$logFile"
+   
     pushd $RTE_DIR > /dev/null
     WriteLog "cwd: $(pwd)" "$logFile"
     
@@ -804,6 +804,13 @@ then
     popd > /dev/null
 else
     WriteLog "Problem with pods start" "$logFile"
+    PODS_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    PODS_START_TIME_STR="$PODS_START_TIME sec $(SecToTimeStr $PODS_START_TIME)"
+    PODS_START_RESULT_STR="FAILED"
+    NUMBER_OF_RUNNING_PODS=$running
+    PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS/${expected} PODs are up."
+    PODS_START_RESULT_REPORT_STR="$PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR"
+    WriteLog "  $PODS_START_RESULT_REPORT_STR" "$logFile"    
     getLogs=1
 fi
 
