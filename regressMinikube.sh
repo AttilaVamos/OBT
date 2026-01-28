@@ -302,6 +302,7 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
+MINIKUBE_OVERRIDE_SETTINGS=0 #1
 MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the memory
 MINIKUBE_CPUS=$(( $(nproc) / 2 ))
 
@@ -585,9 +586,16 @@ then
     else
         echo "$base" > $OBT_BIN_DIR/platformTag.txt
     fi
-    WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY} memory." "$logFile"
-    res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY}   2>&1)
-    WriteLog "$res" "$logFile"
+    if [[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] 
+    then
+        WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY} memory." "$logFile"
+        res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY}   2>&1)
+        WriteLog "$res" "$logFile"
+    else
+        WriteLog "Start Minikube with default settings." "$logFile"
+        res=$(minikube start   2>&1)
+        WriteLog "$res" "$logFile"
+    fi
     
 else
     WriteLog "Minikube is up." "$logFile"
