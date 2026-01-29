@@ -302,9 +302,9 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
-MINIKUBE_OVERRIDE_SETTINGS=0 #1
-MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the memory
-MINIKUBE_CPUS=$(( $(nproc) / 2 ))
+MINIKUBE_OVERRIDE_SETTINGS=1
+MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the host memory
+MINIKUBE_CPUS=$(( $(nproc) / 2 ))  # Half of the host CPUs
 
 #set -x
 DEBUG=0
@@ -861,21 +861,25 @@ WriteLog "${res}" "$logFile"
 
 # Wait until everything is down
 tryCount=90
-delay=10
+# Some POD need an extended time to stop, but we don't know (yet) wihch
+# This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
+TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
+
+delay=10 # wait between check status
 while true
 do
     #date;
     expected=0;
     running=0;
     [[ $DEBUG == 1 ]] && set -x
-    while read a b c
+    # Running, expected, POD's name
+    while read _running _expected _name
     do
-        [[ $DEBUG == 1 ]] && WriteLog "a:'$a', b:'$b', c:'$c'" "$logFile"
-        running=$(( $running + $a ));
-        #expected=$(( $expected + $b ));
-        [[ $DEBUG == 1 ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up ))" "$logFile" ;
-    done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );
-    #done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " " | cut -d ' ' -f1,2,3 | awk '{ print $1" "$2" "$3}' );
+        [[ $DEBUG == 1 ]] && WriteLog "running:'$_running', expected:'$expected', name:'$_name'" "$logFile"
+        running=$(( $running + $_running ));
+        [[ $DEBUG == 1 || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $_name $_running $_expected $( [[ $_running -ne $_expected ]] && echo starting || echo up ))" "$logFile" ;
+    done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );  
+
     [[ $DEBUG == 1 ]] && set +x
     WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
 
