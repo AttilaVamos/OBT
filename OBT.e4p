@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2025-10-15, 18:14:09 -->
-<!-- Copyright (C) 2025 ,  -->
+<!-- Saved: 2026-01-29, 19:09:35 -->
+<!-- Copyright (C) 2026 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
   <Hash>f274b6863986045b4ecab998a5c85377e17be9f7</Hash>
@@ -15,6 +15,7 @@
   <Sources>
     <Source>BuildNotification.ini</Source>
     <Source>BuildNotification.py</Source>
+    <Source>DFUPlusTest.sh</Source>
     <Source>Docs/ResultsUpload.ucase.violet.html</Source>
     <Source>GistLogHandler.py</Source>
     <Source>OBT-001/settings.sh</Source>
