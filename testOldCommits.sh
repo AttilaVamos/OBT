@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' 
+#set -x
 
 #
 #------------------------------
@@ -15,42 +17,27 @@
 #------------------------------
 #
 
+PrintSetting()
+{
+    name=$1
+    log=$2
+    local str=$( printf "%-15s : %s" "$name" "${!name}" )
+    echo "$str"
+}
 
-PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }' 
-#set -x
-
-#sourcePath=~/build/CE/platform/HPCC-Platform
-sourcePath=~/HPCC-Platform
-
-BRANCH_ID=master
-DRY_RUN=1
-DEBUG=0
-WRITE_CSV=1
-
-direction="forward"
-#direction="backward"
-startDate="2025-12-01"
-endDate="2026-01-27"
-
-
-#TIME_SERVER=$( grep ^server /etc/ntp.conf | head -n 1 | cut -d' ' -f2 )
-
-IS_SCL=$( type "scl" 2>&1 )
-if [[ "${IS_SCL}" =~ "not found" ]]
-then 
-    printf "SCL is not installed.\n"
-else 
-    id=$( scl -l | grep -c 'devtoolset' )
-    if [[ $id -ne 0 ]]
-    then
-        DEVTOOLSET=$(  scl -l | tail -n 1 )
-        printf "%s is installed.\n" "${DEVTOOLSET}"
-        . scl_source enable ${DEVTOOLSET}
-        export CL_PATH=/opt/rh/${DEVTOOLSET}/root/usr;
-    else
-        printf "DEVTOOLSET is not installed.\n"
-    fi
-fi
+usage()
+{
+    echo "usage:"
+    echo "  $0 [-s|-start] [-e|-end] [-n|dry_run] [-w|write_csv] [-d] [-h]"
+    echo "where:"
+    echo " -s       - Start date in 'YYYY-MM-DD' format. Default is today's date"
+    echo " -e       - End date in 'YYYY-MM-DD' format. Default is the week ago date"
+    echo " -n       - Dry run. Not execute obtMain.sh"
+    echo " -w       - Write CSV file with date and commit id data."
+    echo " -d       - Enable debug log." "/dev/null"
+    echo " -h       - This help." "/dev/null"
+    echo " " 
+}
 
 GetCommitSha()
 {
@@ -91,6 +78,108 @@ GetCommitSha()
     echo $sha
 }
 
+readCommitsCsv ()
+{
+    CSV_FILE=$1
+    echo "Read $CSV_FILE..."
+    while read line
+    do
+        [[ "$line" =~ "Date" ]] && continue
+        d=$(echo $line | awk -F ',' '{ print $1}');
+        printf "$d"
+        dates+=( "$d" )
+        commits[$d]=$line
+        #printf "  Done.\n"
+    done< $CSV_FILE
+    
+    echo "  Done."
+}
+
+
+START_CMD="$0 $*"
+dates=()
+declare -A commits
+
+#sourcePath=~/build/CE/platform/HPCC-Platform
+sourcePath=~/HPCC-Platform
+
+BRANCH_ID=master
+DRY_RUN=1
+DEBUG=0
+WRITE_CSV=0
+COMMIT_CSV="commits.csv"
+
+direction="forward"
+#direction="backward"
+startDate=$(date --date "-7day" +%Y-%m-%d)  # A week ago
+#endDate=$(date --date "-1day" +%Y-%m-%d)  # Yesterday
+endDate=$(date +%Y-%m-%d)  # Today
+
+while [ $# -gt 0 ]
+do
+    param=$1
+    param=${param//-/}
+    upperParam=${param^^}
+    #WriteLog "Param: ${upperParam}" "/dev/null"
+    case $upperParam in
+        D | DEBUG) DEBUG=1
+            ;;
+            
+        E | END)  shift
+            endDate=$1
+            ;;
+               
+        S|START)  shift
+            startDate=$1
+            ;;
+
+        N|DRY_RUN)  DRY_RUN=$1
+            ;;
+
+        W|WRITE_CSV) WRITE_CSV=1
+           ;;
+
+        H* | *)
+            WriteLog "Unknown parameter: ${upperParam}" "/dev/null"
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+
+PrintSetting "START_CMD"
+PrintSetting "BRANCH_ID"
+PrintSetting "DRY_RUN"
+PrintSetting "DEBUG"
+PrintSetting "WRITE_CSV"
+PrintSetting "direction"
+PrintSetting "startDate"
+PrintSetting "endDate"
+
+
+if [[ $WRITE_CSV -ne 0 && -f ${COMMIT_CSV} ]]
+then
+    readCommitsCsv "commits.csv"
+fi
+
+IS_SCL=$( type "scl" 2>&1 )
+if [[ "${IS_SCL}" =~ "not found" ]]
+then 
+    printf "SCL is not installed.\n"
+else 
+    id=$( scl -l | grep -c 'devtoolset' )
+    if [[ $id -ne 0 ]]
+    then
+        DEVTOOLSET=$(  scl -l | tail -n 1 )
+        printf "%s is installed.\n" "${DEVTOOLSET}"
+        . scl_source enable ${DEVTOOLSET}
+        export CL_PATH=/opt/rh/${DEVTOOLSET}/root/usr;
+    else
+        printf "DEVTOOLSET is not installed.\n"
+    fi
+fi
 
 CWD=$( pwd ) 
 targetFile="${PWD}/settings.inc"
@@ -123,7 +212,6 @@ printf "from %s to %s direction %s\n" "$firsTestDate" "$lastTestDate" "$directio
 
 
 printf "Test date\tcommit\n"
-[[ $WRITE_CSV -eq 1 ]] && printf "Date,Commit\n" > commits.csv
 
 # forward
 until [[ "$testDate" > "$lastTestDate" ]]
@@ -133,7 +221,18 @@ do
     testSha=$( GetCommitSha "$testDate" )
 
     printf "%s\t%s\n" "$testDate" "$testSha"
-    [[ $WRITE_CSV -eq 1 ]] && printf "%s,%s\n" "$testDate" "${testSha,,}" >> commits.csv
+    if [[ $WRITE_CSV -eq 1 ]]
+    then 
+        if [[ -n ${commits[$testDate]} ]]
+        then
+            echo "  The commit id: '$testSha' on $testDate is already stored."
+            #continue
+        else
+            printf "  Add commit id: '$testSha'..."
+            dates+=( "$testDate" )
+            commits[$testDate]=$( printf "%s,%s" "$testDate" "${testSha,,}" )
+        fi
+    fi
 
     if [[ $DRY_RUN -eq 0 ]]
     then
@@ -173,5 +272,20 @@ do
 done
 
 printf "day counts:%d\n" "$dayCount"
+
+if [[ $WRITE_CSV -eq 1 ]] 
+then
+    echo "Write out updated $COMMIT_CSV."
+    printf "Date,Commit\n" > $COMMIT_CSV
+    IFS=$'\n'
+    # Sort dates[] to ensire the records will be in order
+    sortedDates=($(sort <<<"${dates[*]}"))
+
+    for d in ${sortedDates[@]}
+    do
+        echo "${commits[$d]}" >> $COMMIT_CSV
+    done
+    echo "  done."
+fi
 
 #sudo service ntpd start

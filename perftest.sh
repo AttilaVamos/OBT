@@ -1262,6 +1262,17 @@ then
         WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
     fi
 
+    #
+    #------------------------------------------------------------
+    # Start mpstat monitor if it is enabled
+    if [[ ${PERF_MPSTAT_MONITOR_START} -eq 1 ]]
+    then
+        WriteLog "Start CPU Statistics monitor (mpstat) " "${PERF_TEST_LOG}"
+
+        mpstat 1 > mpstat-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        echo $! > mpstatMonitor.pid
+        WriteLog "  pid: $(cat mpstatMonitor.pid)" "${PERF_TEST_LOG}"
+    fi
     popd
 
     #
@@ -1356,6 +1367,19 @@ then
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
 
         res=$( rm -v ./sarMonitor.pid )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+
+    fi
+    
+    if [[ -f ./mpstatMonitor ]]
+    then
+        WriteLog "Stop mpstatMonitor (pid: $(cat ./mpstatMonitor.pid)" "${PERF_TEST_LOG}"
+        res=$(sudo kill $( cat ./mpstatMonitor.pid ) 2>&1 )
+        retCode=$?
+        WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
+
+        res=$( rm -v ./mpstatMonitor.pid )
         retCode=$?
         WriteLog "retCode:$retCode\nres:$res" "${PERF_TEST_LOG}"
 
