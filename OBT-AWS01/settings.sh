@@ -515,8 +515,8 @@ PERF_ROXIE_MEMSIZE_GB=4
 # Which version/Commit of Perfromance Suite should use to test
 # If empty use the default (lastest/master)
 # If not, then it is a commit ID and check out that commit in perftest.sh
-PERF_SUITE_COMMIT='05eb53bb'  # Using Performance Suite before PR-15 has been merged in next test
-#PERF_SUITE_COMMIT=''
+#PERF_SUITE_COMMIT='05eb53bb'  # Using Performance Suite before PR-15 has been merged in next test
+PERF_SUITE_COMMIT=''
 
 
 # Control to Regression Engine Setup phase
