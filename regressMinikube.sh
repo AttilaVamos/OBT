@@ -622,6 +622,10 @@ WriteLog "Wait for PODs" "$logFile"
 TIME_STAMP=$(date +%s)
 tryCount=90
 delay=10
+# Some POD need an extended time to stop, but we don't know (yet) wihch is
+# This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
+TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
+
 expected=0
 running=0
 while true; 
@@ -630,7 +634,7 @@ do
     do 
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
-        [[ $DEBUG == 1 ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile"; 
+        [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile"; 
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
     WriteLog "$( printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount)" "$logFile"; 
 
@@ -861,10 +865,6 @@ WriteLog "${res}" "$logFile"
 
 # Wait until everything is down
 tryCount=90
-# Some POD need an extended time to stop, but we don't know (yet) wihch
-# This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
-TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
-
 delay=10 # wait between check status
 while true
 do
@@ -877,7 +877,7 @@ do
     do
         [[ $DEBUG == 1 ]] && WriteLog "running:'$_running', expected:'$expected', name:'$_name'" "$logFile"
         running=$(( $running + $_running ));
-        [[ $DEBUG == 1 || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $_name $_running $_expected $( [[ $_running -ne $_expected ]] && echo starting || echo up ))" "$logFile" ;
+        [[ $DEBUG == 1 || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $_name $_running $_expected $( [[ $_running -ne $_expected ]] && echo running || echo down ))" "$logFile" ;
     done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );  
 
     [[ $DEBUG == 1 ]] && set +x
