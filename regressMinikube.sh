@@ -636,7 +636,7 @@ do
         expected=$(( $expected + $b )); 
         [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
-    WriteLog "$( printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount)" "$logFile"; 
+    WriteLog "$( printf 'Expected: %s, running %s (%2d, remaining time: %4d sec)\n' $expected $running $tryCount $(( $tryCount * $delay )) )" "$logFile"; 
 
     [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
 
@@ -881,7 +881,7 @@ do
     done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );  
 
     [[ $DEBUG == 1 ]] && set +x
-    WriteLog "$( printf '\nExpected: %s, running %s (%s)\n' $expected $running $tryCount)"  "$logFile";
+    WriteLog "$( printf 'Expected: %s, running %s (%s, remaining time: %4d sec)\n' $expected $running $tryCount $(( $tryCount * $delay )) )"  "$logFile";
 
     [[ $running -eq 0 ]] && break || sleep $delay;
 
