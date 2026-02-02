@@ -634,7 +634,7 @@ do
     do 
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
-        [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile"; 
+        [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
     WriteLog "$( printf 'Expected: %s, running %s (%2d)\n' $expected $running $tryCount)" "$logFile"; 
 
