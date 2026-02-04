@@ -1372,7 +1372,7 @@ then
 
     fi
     
-    if [[ -f ./mpstatMonitor ]]
+    if [[ -f ./mpstatMonitor.pid ]]
     then
         WriteLog "Stop mpstatMonitor (pid: $(cat ./mpstatMonitor.pid)" "${PERF_TEST_LOG}"
         res=$(sudo kill $( cat ./mpstatMonitor.pid ) 2>&1 )
@@ -1893,7 +1893,7 @@ then
 
     fi
 
-    if [[ -f ./mpstatMonitor ]]
+    if [[ -f ./mpstatMonitor.pid ]]
     then
         WriteLog "Stop mpstatMonitor (pid: $(cat ./mpstatMonitor.pid)" "${PERF_TEST_LOG}"
         res=$(sudo kill $( cat ./mpstatMonitor.pid ) 2>&1 )
@@ -2246,7 +2246,7 @@ then
 
     fi
 
-    if [[ -f ./mpstatMonitor ]]
+    if [[ -f ./mpstatMonitor.pid ]]
     then
         WriteLog "Stop mpstatMonitor (pid: $(cat ./mpstatMonitor.pid)" "${PERF_TEST_LOG}"
         res=$(sudo kill $( cat ./mpstatMonitor.pid ) 2>&1 )
