@@ -7,6 +7,7 @@ RUN_3=("BRANCH_ID=candidate-10.0.x")
 RUN_4=("BRANCH_ID=candidate-9.14.x")
 RUN_5=("BRANCH_ID=candidate-9.12.x")
 RUN_6=("BRANCH_ID=candidate-9.10.x")
+RUN_6=("BRANCH_ID=candidate-2.0.x")
  
 if [[ "$BUILD_TYPE" == "RelWithDebInfo" ]]
 then

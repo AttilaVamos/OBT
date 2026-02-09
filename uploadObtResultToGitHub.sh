@@ -17,6 +17,25 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 # 6. Push
 # 7. Clean-up
 
+CheckDeleteCoreFiles()
+{
+    echo "  Check core file(s)..."
+    cores=($( find . -iname 'core_*.[0-9]*' -type f 2>&1))
+    retCode=$?
+    if [[ ${#cores[@]} -ne 0 ]]
+    then
+        echo "    ${#res[@]} core(s) found, delete them."
+        for core in ${cores[@]}
+        do
+            res=$( rm -v $core 2>&1)
+            retCode=$?
+            echo "res : $res"
+        done
+    else
+        echo "    Core file not found."
+    fi
+    echo "    Done"
+}
 
 START_TIME=$( date "+%H:%M:%S")
 START_TIME_SEC=$(date +%s)
@@ -67,6 +86,9 @@ then
     retCode=$?
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
+
+    CheckDeleteCoreFiles
+
     popd
     echo "  Done."
 else
@@ -135,6 +157,8 @@ retCode=$?
 [[ $DEBUG -ne 0 ]] && echo "res : $res"
 
 CURRENT_README=''
+
+CheckDeleteCoreFiles
 
 if [[ "$res" =~ "Untracked files" ]]
 then
