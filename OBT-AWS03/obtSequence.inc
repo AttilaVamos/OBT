@@ -1,4 +1,4 @@
-BRANCHES_TO_TEST=( 'master' 'candidate-10.2.x' 'candidate-10.0.x' 'candidate-9.14.x' 'candidate-9.12.x' 'candidate-9.10.x' )
+BRANCHES_TO_TEST=( 'master' 'candidate-10.2.x' 'candidate-10.0.x' 'candidate-9.14.x' 'candidate-9.12.x' 'candidate--2.0.x' )
 
 # For versioning
 RUN_1=("BRANCH_ID=master")
