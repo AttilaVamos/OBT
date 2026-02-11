@@ -757,7 +757,8 @@ then
     res=$( eval ${CMAKE_CMD} 2>&1 )
     CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
-    WriteLog "${res[*]}" "${PERF_TEST_LOG}"
+    # Filter out crazy VCPKG 'warnings' and 'errors' it can reduce log file size to 1/4 ~ 1/5
+    WriteLog " $(echo ${res[*]} | egrep -v 'warning: File|error: failed: ')" "${PERF_TEST_LOG}"
 
     # Control TBB and TBBMALLOC stuff
 
