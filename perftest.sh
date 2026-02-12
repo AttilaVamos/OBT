@@ -758,10 +758,10 @@ then
     CMAKE_TIME=$(( $(date +%s) - $TIME_STAMP ))
 
     # Filter out crazy VCPKG 'warnings' and 'errors' it can reduce log file size to 1/4 ~ 1/5
-    WriteLog " $(echo ${res[*]} | egrep -v 'warning: File|error: failed: ')" "${PERF_TEST_LOG}"
+    res=$(echo "$res" | egrep -v 'warning: File|error: failed: ')
+    WriteLog " $res" "${PERF_TEST_LOG}"
 
     # Control TBB and TBBMALLOC stuff
-
     if [[ $PERF_CONTROL_TBB -eq 1 ]]
     then
         C_CMD="cmake -D USE_TBB=$PERF_USE_TBB -DUSE_TBBMALLOC=$PERF_USE_TBBMALLOC ../HPCC-Platform"
