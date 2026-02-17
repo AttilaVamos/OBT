@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+# To debug this script with using an existing result set use '-d' and '-t' parameters to point to the set, like this:
+#
+# ./ReportPerfTestResultBuildNotification.py  -d 2024-10-15 -t 04-05-40
+#
+# The script would be looking for the files in this directory (see comments in BuildNotification.ini file)
+#   ~/HPCCSystems-regression/log
+#
+#   /home/ati/HPCCSystems-regression/log
+#
+
 import os
 import smtplib
 import configparser
@@ -408,6 +418,7 @@ class BuildNotification(object):
             queries = ''
             passed = ''
             failed = ''
+            elaps = { 'Formatted': '', 'RawSec': ''}
             file = test + "-performance-test.log" 
             files = glob.glob( test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
@@ -448,6 +459,12 @@ class BuildNotification(object):
                           
                       self.logReport['status'] += failed + test[0:1].upper()
 
+                elif 'Elapsed time:' in line:
+                    fields = line.split()
+                    elaps["RawSec"] = fields[2]
+                    #elapsTimeStr = fields[4][1:-1]  # trim leading and trailing brackets
+                    elaps["Formatted"] = fields[2]+" "+fields[3]+" "+fields[4]
+
             result = 'total:'+queries+' passed:'+passed+' failed:'+failed
 
             if test not in taskItem[taskSelector]:
@@ -461,6 +478,8 @@ class BuildNotification(object):
                 taskItem[taskSelector][test]["Result"] = "FAILED"
                 taskItem[taskSelector]["Result"] = "FAILED"
             
+            taskItem[taskSelector][test]["Elaps"] = elaps
+
             part = MIMEBase('application', 'octet-stream')
             part.set_payload( ''.join(temp))
             Encoders.encode_base64(part)

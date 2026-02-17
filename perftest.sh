@@ -768,7 +768,7 @@ then
         WriteLog "${C_CMD}" "${PERF_TEST_LOG}"
 
         res=( "$(${C_CMD} 2>&1)" )
-        echo "${res[*]}" > ${BUILD_LOG_FILE}
+        echo "${res[*]}" >> ${BUILD_LOG_FILE}
     fi
 
     TIME_STAMP=$(date +%s)
