@@ -488,7 +488,7 @@ PERF_SUPRESS_PLUGINS=' -D INCLUDE_PLUGINS=1 -D MAKE_CASSANDRAEMBED=1 -D SUPPRESS
 # Control the Performance Suite target(s)
 PERF_RUN_HTHOR=0
 PERF_RUN_THOR=1
-PERF_RUN_ROXIE=0
+PERF_RUN_ROXIE=1
 
 # To controll core generation and logging test
 PERF_RUN_CORE_TEST=0
