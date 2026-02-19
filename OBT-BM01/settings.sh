@@ -516,7 +516,7 @@ PERF_THOR_NUMBER_OF_SLAVES=4
 PERF_THOR_LOCAL_THOR_PORT_INC=40
 
 # totalMemoryLimit for Roxie
-PERF_ROXIE_MEMSIZE_GB=1
+PERF_ROXIE_MEMSIZE_GB=4
 
 # Which version/Commit of Perfromance Suite should use to test
 # If empty use the default (lastest/master)
