@@ -19,7 +19,7 @@ echo "Target: '$SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/'"
 
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}" ~/build/bin/OBT-*.[jrtz]* $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 
-[[ -f ~/diagrams.zip ]] && rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diagrams.zip  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
+[[ -f ~/diagrams.zip ]] && rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diagrams.zip  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/${BRANCH_ID}/
 
 date >> ~/diskState.log
 df -h | egrep 'Filesys|^/dev/*|common'  >> ~/diskState.log
@@ -32,7 +32,7 @@ rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  $SSH_USER@
 if [[ -d ~/Perfstat ]]
 then
     #
-    # ZIP all  perfstat-*.c* files into teir corresonding monthly zip file
+    # ZIP all  perfstat-*.c* files into their corresponding monthly zip file
     #
     pushd ~/Perfstat
     

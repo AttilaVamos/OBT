@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2026-01-29, 19:09:35 -->
+<!-- Saved: 2026-02-21, 16:05:26 -->
 <!-- Copyright (C) 2026 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -16,6 +16,7 @@
     <Source>BuildNotification.ini</Source>
     <Source>BuildNotification.py</Source>
     <Source>DFUPlusTest.sh</Source>
+    <Source>DFUPlusTestBad.sh</Source>
     <Source>Docs/ResultsUpload.ucase.violet.html</Source>
     <Source>GistLogHandler.py</Source>
     <Source>OBT-001/settings.sh</Source>
@@ -108,6 +109,7 @@
     <Source>perftest.sh</Source>
     <Source>preabort.sh</Source>
     <Source>prepareObt.sh</Source>
+    <Source>printRes.sh</Source>
     <Source>publishCoverageResult.sh</Source>
     <Source>regress-av.sh</Source>
     <Source>regress.sh</Source>

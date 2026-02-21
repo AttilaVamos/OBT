@@ -1,62 +1,83 @@
 #!/bin/bash
 
+. ./printRes.sh
+
 DEBUG=1
 
 DROPZONE="/var/lib/HPCCSystems/mydropzone"
 
-PrintRes()
-{
-    prefix=$1
-    retCode=$2
-    msg=$3
+# Delete leftover files
+echo "Clean-up"
+find $DROPZONE/ -iname '*::book-*' -type f -print -delete
 
-    printf "%sReturn code: %s\n" "$prefix" "$retCode"
-    
-    while read line
-    do
-        printf "%s%s\n" "$prefix" "$line"
-    done < <(echo "$msg" )
-    
-    echo " "
-}
+echo "Done."
+echo "--------------------------------------------------------"
 
 # Get some logical file names from the platform
-
 echo "Get logical file namse with filter '*::book'"
+
 files=( $(dfuplus action=list server=. name='*::book' | egrep -v 'List ') )
 for file in ${files[@]}
 do
-    echo "  $file"
+    echo "$file"
 done
+echo "Done."
 
-echo "Done"
+unset file
+
 echo "--------------------------------------------------------"
-
-# Despray them
-
-echo "Despray files"
+echo "Wrong despray..."
 
 prefix="    "
 
+echo "  Despray with empty parameters"
+res=$( dfuplus action=despray server=. srcdali=. srcname=${srcFile} dstip=. dstfile=${dstFile} overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+echo "Done"
+
+# Despray with wrong source file name
 for file in ${files[@]}
 do
-    srcFile="$file"
+    srcFile="$file-bad"
     dstFile="${file}-despray"
     echo "  Despray '$srcFile' to '$dstFile'"
     res=$( dfuplus action=despray server=. srcdali=. srcname=${srcFile} dstip=. dstfile=${dstFile} overwrite=1 2>&1)
     retCode=$?
     [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 done
-
 echo "Done"
+
+unset file srcFile dstFile
+
 echo "--------------------------------------------------------"
+echo "Wrong spray..."
 
-
-# Spray them back
-
-echo "Spray files"
 prefix="      "
 
+echo "  Spray with empty parameters"
+res=$( dfuplus action=spray server=. srcdali=. srcip=. srcfile=${DROPZONE}/${srcFile} dstip=. dstname=${dstFile} dstcluster=$destCluster format=csv overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "  Spray with wrong dropzone parameters"
+srcFile="${files[0]}-despray"
+destCluster=mythor
+dstFile="${files[0]}-hthor-spray"
+res=$( dfuplus action=spray server=. srcdali=. srcip=. srcfile=${DROPZONE}-a/${srcFile} dstip=. dstname=${dstFile} dstcluster=$destCluster format=csv overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "  Spray with wrong dstcluster naname parameters"
+srcFile="${files[0]}-despray"
+destCluster=hthor
+dstFile="${files[0]}-${destCluster}-spray"
+res=$( dfuplus action=spray server=. srcdali=. srcip=. srcfile=${DROPZONE}/${srcFile} dstip=. dstname=${dstFile} dstcluster=$destCluster format=csv overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+
+# Spray not existing files back
 for destCluster in {"mythor","myroxie"}
 do
     echo "  Target: ${destCluster}"
@@ -70,16 +91,21 @@ do
         [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
     done
 done
+echo "Done"
 
-echo "Done."
+unset file srcFile dstFile
 
 echo "--------------------------------------------------------"
+echo "Wrong copy..."
 
-# Copy original files
-
-echo "Copy files"
 prefix="      "
 
+echo "  Copy with empty parametrers"
+res=$( dfuplus action=copy server=. srcdali=. srcname=${srcFile} dstip=. dstcluster=$destCluster dstname=${dstFile} overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+# Copy not existing files
 for destCluster in {"mythor","myroxie"}
 do
     echo "  Target: ${destCluster}"
@@ -93,15 +119,21 @@ do
         [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
     done
 done
+echo "Done"
 
-echo "Done."
+unset file srcFile dstFile
+
 echo "--------------------------------------------------------"
-
-# Rename copied files
+echo "Wrong rename..."
 
 prefix="      "
-echo "Rename files"
 
+echo "  Rename with empty parameters"
+res=$( dfuplus action=rename server=. srcdali=. srcname=${srcFile} dstip=. dstcluster=myroxie dstname=${dstFile} overwrite=1 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+# Rename copied files
 for destCluster in {"mythor","myroxie"}
 do
     echo "  Target: ${destCluster}"
@@ -115,13 +147,15 @@ do
         [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
     done
 done
-WUID=$(echo "$res" | egrep -o 'D[0-9\-].*' | head -n 1)
+echo "Done"
 
-echo "Done."
+unset file srcFile dstFile
 
 echo "--------------------------------------------------------"
 
 #Get WU status
+WUID="$(echo "$res" | egrep -o 'D[0-9\-].*' | head -n 1)-1"
+
 echo "Status of $WUID:"
 prefix="  "
 
@@ -137,7 +171,7 @@ echo "--------------------------------------------------------"
 prefix="  "
 
 files=( $(dfuplus action=list server=. name='*::book-*' | egrep -v 'List ' | head -n 2) )
-dstFile=${files[0]}
+dstFile="${files[0]}-bad"
 
 echo "History of $dstFile (xml):"
 res=$( dfuplus action=listhistory server=. srcdali=. lfn=$dstFile 2>&1)
@@ -170,12 +204,24 @@ retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
 
-dstFile=${files[1]}
+dstFile="${files[1]}-bad"
 
 echo "Erase history of $dstFile with backup:"
 res=$( dfuplus action=erasehistory server=. srcdali=. lfn=$dstFile dstxml="${dstFile}.history" 2>&1)
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+
+echo "Erase history of $dstFile with backup and wrong target:"
+res=$( dfuplus action=erasehistory server=. srcdali=. lfn=$dstFile dstxml="/${dstFile}.history"  2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Erase history of $dstFile without backup and wrong target:"
+res=$( dfuplus action=erasehistory server=. srcdali=. lfn=$dstFile dstxml="/${dstFile}.history backup=0"  2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
 
 [[ -f ${dstFile}.history ]] && echo "${prefix}Backup file: '${dstFile}.history' exists."
 
@@ -186,103 +232,30 @@ res=$( dfuplus action=listhistory server=. srcdali=. lfn=$dstFile 2>&1)
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
-rm -v "${dstFile}.history"
+find . -iname "${dstFile}.history" -type f -print -delete
 
 echo "Done."
 echo "--------------------------------------------------------"
 
-SUPERFILE_NAME="DFUPlus-superfile-test"
-subfiles=( $(dfuplus action=list server=. name='*::book-*-renamed' | egrep -v 'List ' | head -n 2) )
+echo "Clean-up..."
 
-echo "Create superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}'"
-res=$( dfuplus action=addsuper server=. srcdali=. superfile=$SUPERFILE_NAME subfiles=${subfiles[0]},${subfiles[1]} 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "List superfile: '$SUPERFILE_NAME'"
-res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "Remove superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}' with 'delete=0' (keep sub-files)."
-res=$( dfuplus action=removesuper server=. srcdali=. superfile="$SUPERFILE_NAME" subfiles="${subfiles[0]},${subfiles[1]}" delete=0 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "Check the superfile: '$SUPERFILE_NAME'"
-res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "Check the sub-files"
-res=( $(dfuplus action=list server=. name='*::book-*-renamed' | egrep -v 'List ' | head -n 2) )
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$( for f in ${res[@]}; do echo "'$f'"; done)"
-
-
-
-# Same as above, but now delete sub-files as well
-
-echo "Create superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}'"
-res=$( dfuplus action=addsuper server=. srcdali=. superfile=$SUPERFILE_NAME subfiles=${subfiles[0]},${subfiles[1]} 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "List superfile: '$SUPERFILE_NAME'"
-res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "Remove superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}' with 'delete=1' (delete sub-files)."
-res=$( dfuplus action=removesuper server=. srcdali=. superfile="$SUPERFILE_NAME" subfiles="${subfiles[0]},${subfiles[1]}" delete=1 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-echo "Check the superfile: '$SUPERFILE_NAME'"
-res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
-retCode=$?
-[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
-
-
-echo "Check the sub-files"
-res=( $(dfuplus action=list server=. name='regress::multi::book-*-renamed' | egrep -v 'List ' | head -n 2) )
-retCode=$?
-if [[ ${#res[@]} -eq 0 ]] 
-then
-    echo "All sub-files removed"
-else
-    [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$( for f in ${res[@]}; do echo "'$f'"; done)"
-fi
-
-
-echo "Done."
-echo "--------------------------------------------------------"
-
-exit 1
-
-# Delete all newly created files
-
-echo "Delete newly created logical files"
-
-files=( $(dfuplus action=list server=. name='*::book-*' | egrep -v 'List ') )
 prefix="    "
+# Delete all newly created files
+files=( $(dfuplus action=list server=. name='*::book-*' | egrep -v 'List ') )
+
+echo "  Delete with empty parameters"
+res=$( dfuplus action=remove server=. srcdali=. name=${file} 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
 for file in ${files[@]}
 do
-    echo "Delete file: $file"
+    echo "  Delete file: $file"
     res=$( dfuplus action=remove server=. srcdali=. name=${file} 2>&1)
     retCode=$?
     [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 done
-echo ""
 
-# Delete leftover files from DropZone
-echo "Clean-up $DROPZONE"
-find $DROPZONE/ -iname '*::book-*' -type f -print -delete
+echo "Done"
 
-echo "Done."
-echo "--------------------------------------------------------"
-
-echo "Done."
-
-echo "End of tests."
+echo "End."
