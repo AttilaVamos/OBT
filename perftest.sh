@@ -2305,6 +2305,10 @@ cp ${ZAP_DIR}/* ${TARGET_DIR}/test/ZAP/
 # Collect Performance test results
 #
 
+BASE_VERSION=${BRANCH_ID#candidate-}
+BASE_VERSION=${BASE_VERSION%.*}
+[[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
+
 cd ${OBT_BIN_DIR}
 #if [[ "$PERF_RESULT" == "PASS" ]]
 if [[ true ]]
@@ -2325,7 +2329,7 @@ then
     QUERY_STAT2_EXTRA='-v --timestamp'
     [[ ( -n  ${JOB_NAME_SUFFIX}) && ( -n ${PERF_TEST_DATE} ) ]] &&  QUERY_STAT2_EXTRA=" ${JOB_NAME_SUFFIX} --dateTransform ${PERF_TEST_DATE}"
     WriteLog "Collect Performance Test results" "${PERF_TEST_LOG}"
-    CMD="./QueryStat2.py -p ${HOME}/Perfstat/ -d '' --buildType $PERF_BUILD_TYPE ${QUERY_STAT2_EXTRA}" 
+    CMD="./QueryStat2.py -p ${HOME}/Perfstat/${BASE_VERSION}/ -d '' --buildType $PERF_BUILD_TYPE ${QUERY_STAT2_EXTRA}" 
     WriteLog "  CMD: '${CMD}'" "${PERF_TEST_LOG}"
 
     ${CMD} >> ${PERF_TEST_LOG} 2>&1
@@ -2340,9 +2344,9 @@ then
         useOldCalcTrend=0
         if [ $useOldCalcTrend -eq 1 ]
         then
-            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
+            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/${BASE_VERSION}/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
             #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${PERF_TEST_LOG}" 2>&1
-            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/${BASE_VERSION}/ ${PERF_CALCTREND_PARAMS} 2>&1 )
             retCode=$?
             WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
 
