@@ -2344,9 +2344,9 @@ then
         useOldCalcTrend=0
         if [ $useOldCalcTrend -eq 1 ]
         then
-            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/${BASE_VERSION}/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
+            WriteLog "python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
             #./calcTrend2.py -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} >> "${PERF_TEST_LOG}" 2>&1
-            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/${BASE_VERSION}/ ${PERF_CALCTREND_PARAMS} 2>&1 )
+            res=$( python3 ./calcTrend2.py3 -d ../../Perfstat/ ${PERF_CALCTREND_PARAMS} 2>&1 )
             retCode=$?
             WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
 
@@ -2361,9 +2361,9 @@ then
             cp *-thor-*.png ${TARGET_DIR}/test/diagrams/thor/
             cp *-roxie-*.png ${TARGET_DIR}/test/diagrams/roxie/
         else
-            WriteLog "python3 ./calcTrend2.py --datapath ../../Perfstat/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
+            WriteLog "python3 ./calcTrend2.py --datapath ${HOME}/Perfstat/${BASE_VERSION}/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
             
-            res=$( python3 ./calcTrend2.py -d ../../Perfstat/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS} 2>&1 )
+            res=$( python3 ./calcTrend2.py -datapath ${HOME}/Perfstat/${BASE_VERSION}/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS} 2>&1 )
             retCode=$?
             WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
         fi
