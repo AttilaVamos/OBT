@@ -2363,7 +2363,7 @@ then
         else
             WriteLog "python3 ./calcTrend2.py --datapath ${HOME}/Perfstat/${BASE_VERSION}/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS}" "${PERF_TEST_LOG}"
             
-            res=$( python3 ./calcTrend2.py -datapath ${HOME}/Perfstat/${BASE_VERSION}/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS} 2>&1 )
+            res=$( python3 ./calcTrend2.py --datapath ${HOME}/Perfstat/${BASE_VERSION}/ --reportpath ${TARGET_DIR}/test/diagrams ${PERF_CALCTREND_PARAMS} 2>&1 )
             retCode=$?
             WriteLog "retCode:${retCode}\nres:\n${res}" "${PERF_TEST_LOG}"
         fi
