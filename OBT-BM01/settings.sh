@@ -54,6 +54,12 @@ then
 fi
 
 BRANCH_ID=master
+if [[ $(( $WEEK_DAY % 2 )) -eq 0 ]]
+then
+    # On every even days (Tue, Thu) run 2.0.x for a while
+    BRANCH_ID=candidate-2.0.x
+fi
+
 DAYS_FOR_CHECK_COMMITS=2
 KEEP_VCPKG_CACHE=0
 
