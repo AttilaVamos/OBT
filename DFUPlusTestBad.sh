@@ -237,6 +237,45 @@ find . -iname "${dstFile}.history" -type f -print -delete
 echo "Done."
 echo "--------------------------------------------------------"
 
+SUPERFILE_NAME="DFUPlus-superfile-test-bad"
+subfiles=( $(dfuplus action=list server=. name='*::book-*-renamed' | egrep -v 'List ' | head -n 2) )
+
+echo "Create superfile: '$SUPERFILE_NAME' without subfiles."
+res=$( dfuplus action=addsuper server=. srcdali=. superfile=$SUPERFILE_NAME 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "List superfile: '$SUPERFILE_NAME'"
+res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Remove superfile: '$SUPERFILE_NAME' without subfiles with 'delete=0' (keep sub-files)."
+res=$( dfuplus action=removesuper server=. srcdali=. superfile="$SUPERFILE_NAME" subfiles="${subfiles[0]},${subfiles[1]}" delete=0 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Check the superfile: '$SUPERFILE_NAME'"
+res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+
+echo "Remove superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}' with 'delete=0' (keep sub-files)."
+res=$( dfuplus action=removesuper server=. srcdali=. superfile="$SUPERFILE_NAME" subfiles="${subfiles[0]},${subfiles[1]}" delete=0 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Check the superfile: '$SUPERFILE_NAME'"
+res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAME 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+
+
+echo "Done."
+echo "--------------------------------------------------------"
+
 echo "Clean-up..."
 
 prefix="    "

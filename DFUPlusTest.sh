@@ -1,24 +1,10 @@
 #!/bin/bash
 
+. ./printRes.sh
+
 DEBUG=1
 
 DROPZONE="/var/lib/HPCCSystems/mydropzone"
-
-PrintRes()
-{
-    prefix=$1
-    retCode=$2
-    msg=$3
-
-    printf "%sReturn code: %s\n" "$prefix" "$retCode"
-    
-    while read line
-    do
-        printf "%s%s\n" "$prefix" "$line"
-    done < <(echo "$msg" )
-    
-    echo " "
-}
 
 # Get some logical file names from the platform
 
@@ -191,6 +177,8 @@ rm -v "${dstFile}.history"
 echo "Done."
 echo "--------------------------------------------------------"
 
+# Superfile related actions
+
 SUPERFILE_NAME="DFUPlus-superfile-test"
 subfiles=( $(dfuplus action=list server=. name='*::book-*-renamed' | egrep -v 'List ' | head -n 2) )
 
@@ -258,7 +246,36 @@ fi
 echo "Done."
 echo "--------------------------------------------------------"
 
-exit 1
+# Savexml and add actions
+
+srcName=$(dfuplus action=list server=. name='*::book' | egrep -v 'List ' | head -n 1)
+dstXml=${srcName##*::}-save.xml
+echo "Save logical file '$srcName' into '$dstXml' file."
+
+res=$(dfuplus action=savexml server=. srcdali=. srcname=$srcName dstxml=$dstXml 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+[[ -f ${dstXml} ]] && echo "${prefix}XML file: '${dstXml}' exists."
+
+
+dstName=${srcName}-added
+echo "Add logical file '$dstName' from '$dstXml'."
+
+res=$(dfuplus action=add server=. srcdali=. srcxml=$dstXml dstname=$dstName 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Check the added-file"
+res=$(dfuplus action=list server=. name=$dstName 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+rm -v ${dstXml}
+
+echo "Done."
+echo "--------------------------------------------------------"
+
 
 # Delete all newly created files
 
