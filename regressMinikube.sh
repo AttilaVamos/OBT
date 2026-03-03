@@ -141,9 +141,10 @@ ProcessLog()
             continue
         fi
 
+        # NEEDS to replace double quote to single quoute in item to avoid JSON format error.
+        item=${item//\"/\'}
         if [[ "$arrayName" == "hthorErrors" ]]
         then
-
             hthorErrors+=("$item")
             continue
         fi
