@@ -178,12 +178,12 @@ res=$( dfuplus action=listhistory server=. srcdali=. lfn=$dstFile 2>&1)
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
-echo "History of $dstFile (csv with heaer):"
+echo "History of $dstFile (csv with header):"
 res=$( dfuplus action=listhistory server=. srcdali=. lfn=$dstFile  outformat=csv 2>&1)
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
-echo "History of $dstFile (csv without heaer):"
+echo "History of $dstFile (csv without header):"
 res=$( dfuplus action=listhistory server=. srcdali=. lfn=$dstFile  outformat=csv csvheader=0 2>&1)
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
@@ -237,6 +237,8 @@ find . -iname "${dstFile}.history" -type f -print -delete
 echo "Done."
 echo "--------------------------------------------------------"
 
+# Superfile related actions
+
 SUPERFILE_NAME="DFUPlus-superfile-test-bad"
 subfiles=( $(dfuplus action=list server=. name='*::book-*-renamed' | egrep -v 'List ' | head -n 2) )
 
@@ -271,10 +273,62 @@ res=$( dfuplus action=listsuper server=. srcdali=. superfile='.::'$SUPERFILE_NAM
 retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
 
+echo "Done."
+echo "--------------------------------------------------------"
 
+# Savexml and add actions
+
+srcName=$(dfuplus action=list server=. name='*::book' | egrep -v 'List ' | head -n 1)
+dstName=${srcName##*::}
+dstXml="${dstName}-save.xml"
+find . -maxdepth 1 -iname '$dstName*' -type f -exec rm -v {} \;
+
+dstXmlWrong="${srcName##*::}-sa/ve.xml"
+echo "Save logical file '$srcName' into '$dstXmlWrong' file."
+
+res=$(dfuplus action=savexml server=. srcdali=. srcname=$srcName dstxml=$dstXmlWrong 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+[[ -f ${dstXmlWrong} ]] && echo "${prefix}XML file: '${dstXmlWrong}' exists."
+
+
+dstXmlWrong="/${srcName##*::}-save.xml"
+echo "Save logical file '$srcName' into '$dstXmlWrong' file."
+
+res=$(dfuplus action=savexml server=. srcdali=. srcname=$srcName dstxml=$dstXmlWrong 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+[[ -f ${dstXmlWrong} ]] && echo "${prefix}XML file: '${dstXmlWrong}' exists."
+
+
+srcNameWong="$srcname-wrong"
+echo "Save logical file '$srcNameWong' into '$dstXml' file."
+
+res=$(dfuplus action=savexml server=. srcdali=. srcname=$srcNameWong dstxml=$dstXml 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+[[ -f ${dstXml} ]] && echo "${prefix}XML file: '${dstXml}' exists."
+
+dstName=${srcName}-added
+echo "Add logical file '$dstName' from '$dstXml'."
+
+res=$(dfuplus action=add server=. srcdali=. srcxml=$dstXml dstname=$dstName 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+echo "Check the added-file"
+res=$(dfuplus action=list server=. name=$dstName 2>&1)
+retCode=$?
+[[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$res"
+
+find . -maxdepth 1 -iname '$dstName*' -type f -exec rm -v {} \;
 
 echo "Done."
 echo "--------------------------------------------------------"
+
 
 echo "Clean-up..."
 

@@ -208,7 +208,6 @@ retCode=$?
 [[ $retCode -ne 0 || $DEBUG -eq 1 ]] && PrintRes "$prefix" "$retCode" "$( for f in ${res[@]}; do echo "'$f'"; done)"
 
 
-
 # Same as above, but now delete sub-files as well
 
 echo "Create superfile: '$SUPERFILE_NAME' with subfiles: '${subfiles[0]},${subfiles[1]}'"
