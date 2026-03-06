@@ -668,7 +668,7 @@ then
     
     TIME_STAMP=$(date +%s)
     WriteLog "Start ECLWatch." "$logFile"
-    res=$( minikube service eclwatch 2>&1)
+    res=$( minikube service --url=true eclwatch 2>&1)
     WriteLog "$res" "$logFile"
     sleep 30
     
