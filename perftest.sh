@@ -1258,7 +1258,7 @@ then
     then
         WriteLog "Start System Resource monitor (sar) " "${PERF_TEST_LOG}"
 
-        sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        sar -r 1 > sar-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M-%S).log 2>&1 &
         echo $! > sarMonitor.pid
         WriteLog "  pid: $(cat sarMonitor.pid)" "${PERF_TEST_LOG}"
     fi
@@ -1270,7 +1270,7 @@ then
     then
         WriteLog "Start CPU Statistics monitor (mpstat) " "${PERF_TEST_LOG}"
 
-        mpstat 1 > mpstat-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M%S).log 2>&1 &
+        mpstat 1 > mpstat-${TARGET_PLATFORM}-$(date +%Y-%m-%d_%H-%M-%S).log 2>&1 &
         echo $! > mpstatMonitor.pid
         WriteLog "  pid: $(cat mpstatMonitor.pid)" "${PERF_TEST_LOG}"
     fi
