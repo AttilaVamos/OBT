@@ -638,8 +638,10 @@ do
         expected=$(( $expected + $b )); 
         [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
+
     WriteLog "$( printf 'Expected: %s, running %s (elapsed time: %4d sec, remaining: %4d sec)\n' $expected $running $(( $attempt * $delay )) $(( $tryCount * $delay )) )" "$logFile"; 
     WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
+    
     [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
 
     tryCount=$(( $tryCount - 1)); 
