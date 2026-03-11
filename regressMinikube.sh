@@ -610,7 +610,7 @@ WriteLog "  $MINIKUBE_START_RESULT_REPORT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 WriteLog "Deploy HPCC ..." "$logFile"
-res=$( helm install minikube hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
+res=$( helm install hpcc hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
 WriteLog "$res" "$logFile"
 PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(SecToTimeStr $PLATFORM_DEPLOY_TIME)"
@@ -627,6 +627,7 @@ delay=10
 # This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
 TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
 
+attempt=0
 expected=0
 running=0
 while true; 
@@ -637,11 +638,12 @@ do
         expected=$(( $expected + $b )); 
         [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
-    WriteLog "$( printf 'Expected: %s, running %s (%2d, remaining time: %4d sec)\n' $expected $running $tryCount $(( $tryCount * $delay )) )" "$logFile"; 
-
+    WriteLog "$( printf 'Expected: %s, running %s (elapsed time: %4d sec, remaining: %4d sec)\n' $expected $running $(( $attempt * $ delay )) $(( $tryCount * $delay )) )" "$logFile"; 
+    WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
     [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
 
     tryCount=$(( $tryCount - 1)); 
+    attempt=$(( $attempt + 1))
     [[ $tryCount -eq 0 ]] && break; 
 
     expected=0; 
@@ -861,7 +863,7 @@ fi
 
 WriteLog "Uninstall PODs ..." "$logFile"
 TIME_STAMP=$(date +%s)
-res=$(helm uninstall minikube 2>&1)
+res=$(helm uninstall hpcc 2>&1)
 WriteLog "${res}" "$logFile"
 
 # Wait until everything is down
