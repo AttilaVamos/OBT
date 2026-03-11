@@ -636,14 +636,19 @@ do
     do 
         running=$(( $running + $a )); 
         expected=$(( $expected + $b )); 
-        if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
-        then
-            WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
-            WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
-        fi
+#        if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
+#        then
+#            WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
+#            WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
+#        fi
     done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
 
     WriteLog "$( printf 'Expected: %2d, running %2d (elapsed time: %4d sec, remaining: %4d sec)\n' $expected $running $(( $attempt * $delay )) $(( $tryCount * $delay )) )" "$logFile"
+    if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
+    then
+        WriteLog "$( kubectl get pods)" "$logFile"
+        WriteLog "$( kubectl get svc )" "$logFile"
+    fi
 
     [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
 
