@@ -303,7 +303,7 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
-MINIKUBE_OVERRIDE_SETTINGS=1
+MINIKUBE_OVERRIDE_SETTINGS=0
 MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the host memory
 MINIKUBE_CPUS=$(( $(nproc) / 2 ))  # Half of the host CPUs
 
@@ -890,12 +890,17 @@ do
     do
         [[ $DEBUG == 1 ]] && WriteLog "running:'$_running', expected:'$expected', name:'$_name'" "$logFile"
         running=$(( $running + $_running ));
-        [[ $DEBUG == 1 || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $_name $_running $_expected $( [[ $_running -ne $_expected ]] && echo running || echo down ))" "$logFile" ;
+#        [[ $DEBUG == 1 || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]] && WriteLog " $( printf '%-45s: %s/%s  %s\n' $_name $_running $_expected $( [[ $_running -ne $_expected ]] && echo running || echo down ))" "$logFile" ;
     done < <( kubectl get pods | egrep -v 'NAME|No resources ' | awk '{ print $2 " " $1 }' | tr "/" " "  );  
 
     [[ $DEBUG == 1 ]] && set +x
     WriteLog "$( printf 'Expected: %1d, running %3d (%s, remaining time: %4d sec)\n' $expected $running $tryCount $(( $tryCount * $delay )) )"  "$logFile";
 
+    if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
+    then
+        WriteLog "$( kubectl get pods)" "$logFile"
+        WriteLog "$( kubectl get svc )" "$logFile"
+    fi
     [[ $running -eq 0 ]] && break || sleep $delay;
 
     tryCount=$(( $tryCount - 1 ))
