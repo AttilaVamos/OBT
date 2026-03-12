@@ -70,13 +70,17 @@ def readSystemLog(systemName):
 
     for errorLine in errorLines:
         errorItems = splitAndStrip(errorLine)
-        # The first item (items[0]) is the timestamp, in this point it should exists and that will be the primarey key,
-        # the second item (items[1]) is the engine, if it is not exist should add
-        # and the third (items[2]) is the number of errors
-        # and use the rest as a list of failed test cases
+        # The first item (errorItems[0]) is the timestamp, in this point it should exists and that will be the primary key,
+        # the second item (errorItems[1]) is the engine, if it is not exist should add
         key = errorItems[0]
         tag = errorItems[1]
+
+        # In normal circumstances the third item (errorItems[2]) is is an engine name, 
+        # if POD deployment failed it contains an error message starts with 'FAILED'
         engine = errorItems[2]
+
+        # and the fourth (errorItems[3]) is the number of errors
+        # and use the rest as a list of failed test cases
 
         if key not in systemLogs:
             print("%s is missing from systemLogs" % (key))
@@ -85,12 +89,13 @@ def readSystemLog(systemName):
         if 'tag' not in systemLogs[key]:
             systemLogs[key]['tag'] = tag
 
-        if engine not in systemLogs[key]['errors']:
-                systemLogs[key]['errors'][engine] = []
+        if not engine.startswith('FAILED'):
+            if engine not in systemLogs[key]['errors']:
+                    systemLogs[key]['errors'][engine] = []
 
-        # Skip the number of errors in errorItems[3:]
-        for error in errorItems[4:]:
-            systemLogs[key]['errors'][engine].append(error)
+            # Skip the number of errors in errorItems[3:] because it will be recalculated at the write out phase
+            for error in errorItems[4:]:
+                systemLogs[key]['errors'][engine].append(error)
 
     return systemLogs
 
@@ -112,7 +117,7 @@ def writeSystemLog(systemName,  systemLog):
                 # Create a string, a coma separated values from the list associated
                 # to the timestamp
                 outFile.write(','.join(systemLog[timestamp]['testItems']))
-            elif len(systemLog[timestamp]['deployError']):
+            elif  'deployError' in systemLog[timestamp]:
                 outFile.write('* * * * * '+systemLog[timestamp]['deployError'] + ' * * * * * ')
             outFile.write('\n')
         outFile.close()
@@ -123,7 +128,7 @@ def writeSystemLog(systemName,  systemLog):
     try:
         outFile = open(systemErrorsLogFileName, "w")
         for timestamp in sorted(systemLogs.keys()):
-            if len(systemLog[timestamp]['errors']) == 0:
+            if len(systemLog[timestamp]['errors']) == 0 and 'deployError' not in systemLog[timestamp]:
                 # No error registered, skip this item
                 continue
 
@@ -137,6 +142,11 @@ def writeSystemLog(systemName,  systemLog):
                 errors = ','.join(systemLog[timestamp]['errors'][engine])
                 outFile.write(errors)
                 outFile.write('\n')
+
+            if 'deployError' in systemLog[timestamp] and len(systemLog[timestamp]['deployError']):
+                outFile.write( "%s,%s,%s" % (timestamp, tag, systemLog[timestamp]['deployError']))
+                outFile.write('\n')
+
         outFile.close()
     except IOError:
         print("IOError in read '%s'" % (systemErrorsLogFileName))
@@ -243,7 +253,7 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         'fatal:'      : processFatalError, 
         'Previous'  : processPrevious, 
         '[Failure]' : processFailure, 
-        'FAILED'     : processPODsDeploy, 
+        'FAILED'     : processPODsDeploy,
         }
     
     suite = ''
