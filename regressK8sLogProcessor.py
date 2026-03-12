@@ -108,9 +108,12 @@ def writeSystemLog(systemName,  systemLog):
                 pass
 
             outFile.write( "%s,%s," % (timestamp, tag))
-            # Create a string, a coma separated values from the list associated
-            # to the timestamp
-            outFile.write(','.join(systemLog[timestamp]['testItems']))
+            if len(systemLog[timestamp]['testItems']):
+                # Create a string, a coma separated values from the list associated
+                # to the timestamp
+                outFile.write(','.join(systemLog[timestamp]['testItems']))
+            elif len(systemLog[timestamp]['deployError']):
+                outFile.write('* * * * * '+systemLog[timestamp]['deployError'] + ' * * * * * ')
             outFile.write('\n')
         outFile.close()
     except IOError:
@@ -222,6 +225,11 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
             print("\t%s error:'%s'" % (suite, error))
         pass
 
+    def processPODsDeploy(items,  timestamp,  sysLogs):
+        error = ' '.join( items)
+        sysLogs[timestamp]['deployError'] = error.replace(',', '')
+        print("\tPODs error:'%s'" % (error))
+        pass
 
     # Keywords function directory
     funcDict = {
@@ -235,6 +243,7 @@ def processLogFile(logFileName,  timestamp,  sysLogs):
         'fatal:'      : processFatalError, 
         'Previous'  : processPrevious, 
         '[Failure]' : processFailure, 
+        'FAILED'     : processPODsDeploy, 
         }
     
     suite = ''
