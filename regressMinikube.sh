@@ -303,7 +303,7 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
-MINIKUBE_OVERRIDE_SETTINGS=0
+MINIKUBE_OVERRIDE_SETTINGS=1
 MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the host memory
 MINIKUBE_CPUS=$(( $(nproc) / 2 ))  # Half of the host CPUs
 
