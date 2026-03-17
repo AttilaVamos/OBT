@@ -3,7 +3,7 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 #set -x
 
 testCase=""
-engine="thor"
+engine="*thor"
 VERBOSE=0
 DEBUG=0
 ALL_TESTS_RESULTS=0
@@ -73,25 +73,25 @@ else
         [[ $DEBUG == 1 ]] && echo "Param: ${upperParam}"
 
         case $upperParam in
-            ALL) 
+            ALL)
                 ALL_TESTS_RESULTS=1
                 ;;
-            
+
             ADDSEP)
                 SEPARATOR=1
                 ;;
-            
+
             V) VERBOSE=1
                 ;;
-                
+
             D) DEBUG=1
                 ;;
 
             E) shift
                 engine=$1
-                [[ "$engine" == 'all' ]] && engine='*'
+                [[ "$engine" == 'all' ]] && engine='*' || engine='*'$engine
                 ;;
-                
+
             H)
                 usage
                 exit 1
@@ -149,22 +149,22 @@ do
     testEngine=${fn##*/}
     testEngine=${testEngine%%.*}
     [[ $DEBUG == 1 ]] && printf "Test engine: %s\n" "$testEngine"
-   
+
     # Need to escape the '(' to '\(' and ')' to '\)' for grep
     escapedTestCase=$( echo $testCase | sed -e 's/(/\\(/g' -e 's/)/\\)/g')
     [[ $DEBUG == 1 ]] && printf "escapedTestCase: %s\n" "$escapedTestCase"
-    
+
     if [[ $ALL_TESTS_RESULTS -eq 1 ]]
     then
         lines=$(egrep "(Pass |Fail )$escapedTestCase" ${fn})
     else
         lines=$(egrep "Pass $escapedTestCase" ${fn})
     fi
-    
+
     [[ $DEBUG == 1 ]] && printf "File:%s\nline:%s\n" "$fn" "$lines"
     IFS=$'\n'
     for line in $lines
-    do 
+    do
         line=$(echo "$line" | tr '()' '[]')
         [[ $DEBUG == 1 ]] && printf "\nline: '%s'\n" "$line"
 
@@ -183,27 +183,27 @@ do
             verTag="$( echo "$version" | tr -d " []:'" | tr '=,' '-_')"
             verTag=${verTag##version}
             [[ $DEBUG == 1 ]] && echo "version tag: '$verTag'"
-            
+
             # Create a unique key
             item="$testName-$verTag-$branchName-$testEngine"
-            [[ $DEBUG == 1 ]] && echo "item: $item"        
-            
+            [[ $DEBUG == 1 ]] && echo "item: $item"
+
             testName="$testName-$verTag"
-            [[ $DEBUG == 1 ]] && echo "testName: $testName"        
+            [[ $DEBUG == 1 ]] && echo "testName: $testName"
         else
             # Create a unique key
             item="$testName-$branchName-$testEngine"
-            [[ $DEBUG == 1 ]] && echo "item: $item"        
-            
+            [[ $DEBUG == 1 ]] && echo "item: $item"
+
             testName="$testName"
-            [[ $DEBUG == 1 ]] && echo "testName: $testName"        
-        fi        
-        
+            [[ $DEBUG == 1 ]] && echo "testName: $testName"
+        fi
+
         [[ ${#item} -gt $maxTestNameLen ]] && maxTestNameLen=${#item}
-        
+
         retCode=$(contains "$item" "${items[@]}" )
         [[ $DEBUG == 1 ]] && echo "contains() returned with $retCode - $( [[ $retCode -eq 0 ]] && echo 'not found' || echo 'found')."
-        
+
         if [[ $retCode -eq 0 ]]
         then
             #echo "nincs"
@@ -230,7 +230,7 @@ do
 
     [[ $FIRST_FILE_ONLY -eq 1 ]] &&  break
 
-done< <(find . -iname $engine'.2*.log' -type f -print | egrep -v '-exclusion' | sort -r )
+done< <(find . -iname ${engine}'.2*.log' -type f -print | egrep -v '-exclusion' )
 echo ""
 
 printf "%5d file(s) processed.\n" "$filesProcessed"
@@ -244,7 +244,7 @@ fi
 printf "%5d result(s) generated.\n" "${#items[@]}"
 
 [[ ($VERBOSE -eq 1) || ($DEBUG == 1) ]] && echo "maxTestNameLen: $maxTestNameLen"
-items=( $( printf "%s\n" "${items[@]}" | sort ) )
+items=( $( printf "%s\n" "${items[@]}" | sort -rV ) )
 prevTestName=${testNames[${items[0]}]}
 [[  ($VERBOSE -eq 1) || ($DEBUG == 1)]] && echo "testName: '$prevTestName'"
 echo ""
