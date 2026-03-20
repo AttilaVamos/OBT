@@ -25,14 +25,23 @@ fi
 usage()
 {
     WriteLog "usage:" "/dev/null"
-    WriteLog "  $0 [-i] [-q] [-h]" "/dev/null"
+    WriteLog "  $0 [-i] [-q] [-t <tag>] [-c <num_of_cores>] [-m <memory_in_MB>] [-o] [-v] [-d] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
-    WriteLog " -i       - Interactive, stop before unistall helm chart and stop minikube." "/dev/null"
-    WriteLog " -q       - Quick test, doesn't execute whole Regression Suite, only a subset of it." "/dev/null"
-    WriteLog " -t <tag> - Manually specify the tag (e.g.: 9.4.0-rc7) to be test." "/dev/null"
-    WriteLog " -v       - Show more logs (about PODs deploy and destroy)." "/dev/null"
-    WriteLog " -d       - Enable debug log." "/dev/null"
-    WriteLog " -h       - This help." "/dev/null"
+    WriteLog " -i                - Interactive, stop before unistall" "/dev/null"
+    WriteLog "                     helm chart and stop minikube." "/dev/null"
+    WriteLog " -q                - Quick test, doesn't execute whole"  "/dev/null"
+    WriteLog "                     Regression Suite, only a subset." "/dev/null"
+    WriteLog " -t <tag>          - Manually specify the tag" "/dev/null"
+    WriteLog "                     (e.g.: 9.4.0-rc7) to be test." "/dev/null"
+    WriteLog " -c <num_of_cores> - Set Minikube CPUs to <num_of_cores>."  "/dev/null"
+    WriteLog " -m <memory_in_MB> - Set Minikube memory to <memory_in_MB>."  "/dev/null"
+    WriteLog " -o                - Override Minikube CPUs and memory"   "/dev/null"
+    WriteLog "                     settings to half of the environment"   "/dev/null"
+    WriteLog "                     resources."  "/dev/null"
+    WriteLog " -v                - Show more logs (about PODs deploy and"  "/dev/null"
+    WriteLog "                     destroy)." "/dev/null"
+    WriteLog " -d                - Enable debug log." "/dev/null"
+    WriteLog " -h                - This help." "/dev/null"
     WriteLog " " "/dev/null"
 }
 
@@ -46,7 +55,7 @@ PrintSetting()
 {
     name=$1
     log=$2
-    local str=$( printf "%-20s : %s" "$name" "${!name}" )
+    local str=$( printf "%-26s : %s" "$name" "${!name}" )
     WriteLog "$str" "$log"
 }
 
@@ -303,8 +312,8 @@ RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mong
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
 
-MINIKUBE_OVERRIDE_SETTINGS=1
-MINIKUBE_MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 2 * 1024 ) ))  # Half of the host memory
+MINIKUBE_OVERRIDE_SETTINGS=0
+MINIKUBE_MEMORY_MB=$(( $( free | grep -i "mem" | awk '{ print $2}' ) / (2 * 1024) )) # Half of the host memory
 MINIKUBE_CPUS=$(( $(nproc) / 2 ))  # Half of the host CPUs
 
 #set -x
@@ -332,6 +341,25 @@ do
 
         T)  shift
             TAG=$1
+            ;;
+
+        O)  MINIKUBE_OVERRIDE_SETTINGS=1
+            ;;
+
+        C)  shift
+            MINIKUBE_CPUS=$1
+            CPUS_80_PERCENT=$(( 4 * $(nproc) / 5 ))
+            # Check and if it is needed restrict the CPUS value to 80%
+            [[ $CPUS_80_PERCENT -lt $MINIKUBE_CPUS ]] && MINIKUBE_CPUS=$CPUS_80_PERCENT
+            MINIKUBE_OVERRIDE_SETTINGS=1
+            ;;
+
+        M) shift
+            MINIKUBE_MEMORY_MB=$1
+            MEMORY_80_PERCENT=$(( 4 * $( free | grep -i "mem" | awk '{ print $2}' ) / (5 * 1024 ) ))
+            # Check and if it is needed restrict the memory value to 80%
+            [[ $MEMORY_80_PERCENT -lt $MINIKUBE_MEMORY_MB ]] && MINIKUBE_MEMORY_MB=$MEMORY_80_PERCENT
+            MINIKUBE_OVERRIDE_SETTINGS=1
             ;;
 
         V) VERBOSE=1
@@ -369,6 +397,8 @@ PrintSetting "FULL_REGRESSION" "$logFile"
 PrintSetting "TAG" "$logFile"
 PrintSetting "VERBOSE" "$logFile"
 PrintSetting "LOCAL_IP" "$logFile"
+PrintSetting "MINIKUBE_OVERRIDE_SETTINGS" "$logFile"
+[[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] && (PrintSetting "MINIKUBE_MEMORY_MB" "$logFile"; PrintSetting "MINIKUBE_CPUS" "$logFile")
 
 WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -600,6 +630,10 @@ then
     
 else
     WriteLog "Minikube is up." "$logFile"
+    if [[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]]
+    then
+        WriteLog "The overridden CPUs and memory settings don't impact it.\n(Needs to be deleted before this script starts)." "$logFile"
+    fi
 fi
 
 MINIKUBE_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
@@ -995,7 +1029,8 @@ report2=$(<./regressMinikubeReportJson.templ)
 eval "resolved2=\"$report2\""
 
 [[ $DEBUG == 1 ]] && WriteLog "resolved2:\n$resolved2" "$logFile"
-echo "$resolved2" > regressMinikube-$START_DATE.json
+END_DATE=$(date +%Y-%m-%d_%H-%M-%S)
+echo "$resolved2" > regressMinikube-$END_DATE.json
 
 REPORT_GENERATION_TIME=$(( $(date +%s) - $TIME_STAMP ))
 REPORT_GENERATION_TIME_STR="$REPORT_GENERATION_TIME sec $(SecToTimeStr $REPORT_GENERATION_TIME)"
