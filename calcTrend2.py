@@ -73,6 +73,7 @@ class TrendReport(object):
     # or decreased (<-threshold)
     threshold = 5.0  # %
     results2 = {}
+    # TODO: Needs to be configurable from CLI
     maxDatapoints = 180
     maxDataPointsOverhead = 5
     digest = {}
@@ -195,7 +196,7 @@ class TrendReport(object):
         self.numberOfTestDays = 0
 
         # These two should be controlled by CLI parameter
-        self.BuildFilter = "RelWithDebInfo"
+        self.BuildFilter = "RelWithDebInfo"  # TODO: Needs to be set to '' (empty) string to process other build results.
         self.useAllData = True
         
         if self.verbose:

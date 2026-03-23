@@ -3,21 +3,23 @@ DAYS_TO_KEEP=6
 DAYS_TO_KEEP_IN_SEC=$(( $DAYS_TO_KEEP * 24 * 60 * 60 )); 
 OLDEST_DAY_IN_SEC=$(( $TODAY - $DAYS_TO_KEEP_IN_SEC )); 
 
-FILES_ARCHIVED=0
-
 DIR_TO_COMPRESS="."
 # To do it in other directory 
 DIR_TO_COMPRESS=$HOME/shared/Azure/
 #DIR_TO_COMPRESS=$HOME/shared/Minikube/
 #DIR_TO_COMPRESS=$HOME/shared/AWS-Minikube/
-[[ "$DIR_TO_COMPRESS" != "." ]] && pushd $DIR_TO_COMPRESS
+#[[ "$DIR_TO_COMPRESS" != "." ]] && pushd $DIR_TO_COMPRESS
 
 # TW trough result directories in loop to clean-up both directory.
-DIRS_TO_COMPRESS=( . $HOME/shared/Azure/ $HOME/shared/Minikube/ $HOME/shared/AWS-Minikube/ )
+DIRS_TO_COMPRESS=( "./" "$HOME/shared/Azure/" "$HOME/shared/Minikube/" "$HOME/shared/AWS-Minikube/" )
 
 for dir in ${DIRS_TO_COMPRESS[@]}
 do
     echo "Check if there are any file older than $DAYS_TO_KEEP days in '$dir'."
+    pushd $dir > /dev/null 2>&1
+    echo "  Dir: '$(pwd)'"
+
+    FILES_ARCHIVED=0
 
     while read fileName
     do
@@ -51,6 +53,8 @@ do
 
     done< <( find . -iname 'regress*.[jlr]*' -type f -print | sort )
 
-    echo "$FILES_ARCHIVED file(s) archived in '$dir'."
+    echo "  $FILES_ARCHIVED file(s) archived in '$dir'."
+
+    popd > /dev/null 2>&1
 done
 echo "  End."

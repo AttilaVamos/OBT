@@ -619,8 +619,8 @@ then
     fi
     if [[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] 
     then
-        WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY} memory." "$logFile"
-        res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY}   2>&1)
+        WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY_MB} memory." "$logFile"
+        res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY_MB}   2>&1)
         WriteLog "$res" "$logFile"
     else
         WriteLog "Start Minikube with default settings." "$logFile"
