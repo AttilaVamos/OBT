@@ -621,13 +621,17 @@ then
     then
         WriteLog "Start Minikube with ${MINIKUBE_CPUS} cpu and ${MINIKUBE_MEMORY_MB} memory." "$logFile"
         res=$(minikube start --cpus ${MINIKUBE_CPUS} --memory ${MINIKUBE_MEMORY_MB}   2>&1)
+        retCode=$?
+        WriteLog "retCode: $retCode" "$logFile"
         WriteLog "$res" "$logFile"
     else
         WriteLog "Start Minikube with default settings." "$logFile"
         res=$(minikube start   2>&1)
+        retCode=$?
+        WriteLog "retCode: $retCode" "$logFile"
         WriteLog "$res" "$logFile"
     fi
-    
+    isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
 else
     WriteLog "Minikube is up." "$logFile"
     if [[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]]
@@ -642,61 +646,71 @@ MINIKUBE_START_RESULT_STR="Done"
 MINIKUBE_START_RESULT_REPORT_STR="$MINIKUBE_START_RESULT_STR in $MINIKUBE_START_TIME_STR"
 WriteLog "  $MINIKUBE_START_RESULT_REPORT_STR" "$logFile"
 
-TIME_STAMP=$(date +%s)
-WriteLog "Deploy HPCC ..." "$logFile"
-res=$( helm install hpcc hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
-WriteLog "$res" "$logFile"
-PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
-PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(SecToTimeStr $PLATFORM_DEPLOY_TIME)"
-PLATFORM_DEPLOY_RESULT_STR="Done"
-PLATFORM_DEPLOY_RESULT_REPORT_STR="$PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR"
-WriteLog "  $PLATFORM_DEPLOY_RESULT_REPORT_STR" "$logFile"
-
-# Wait until everything is up
-WriteLog "Wait for PODs" "$logFile"
-TIME_STAMP=$(date +%s)
-tryCount=90
-delay=10
-# Some POD need an extended time to stop, but we don't know (yet) wihch is
-# This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
-TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
-
-attempt=0
-expected=0
 running=0
-while true; 
-do  
-    while read a b c; 
-    do 
-        running=$(( $running + $a )); 
-        expected=$(( $expected + $b )); 
-#        if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
-#        then
-#            WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
-#            WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
-#        fi
-    done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " "); 
+if [[ $isMinikubeUp -ge 4 ]]
+then
+    TIME_STAMP=$(date +%s)
+    WriteLog "Deploy HPCC ..." "$logFile"
+    res=$( helm install hpcc hpcc/hpcc --version=$base  -f ./obt-values.yaml  2>&1)
+    retCode=$?
+    WriteLog "retCode: $retCode" "$logFile"
+    WriteLog "$res" "$logFile"
+    PLATFORM_DEPLOY_TIME=$(( $(date +%s) - $TIME_STAMP ))
+    PLATFORM_DEPLOY_TIME_STR="$PLATFORM_DEPLOY_TIME sec $(SecToTimeStr $PLATFORM_DEPLOY_TIME)"
+    PLATFORM_DEPLOY_RESULT_STR="Done"
+    PLATFORM_DEPLOY_RESULT_REPORT_STR="$PLATFORM_DEPLOY_RESULT_STR in $PLATFORM_DEPLOY_TIME_STR"
+    WriteLog "  $PLATFORM_DEPLOY_RESULT_REPORT_STR" "$logFile"
 
-    WriteLog "$( printf 'Expected: %2d, running %2d (elapsed time: %4d sec, remaining: %4d sec)\n' $expected $running $(( $attempt * $delay )) $(( $tryCount * $delay )) )" "$logFile"
-    if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
-    then
-        WriteLog "$( kubectl get pods)" "$logFile"
-        WriteLog "$( kubectl get svc )" "$logFile"
-    fi
+    # Wait until everything is up
+    WriteLog "Wait for PODs" "$logFile"
+    TIME_STAMP=$(date +%s)
+    tryCount=90
+    delay=10
+    # Some POD need an extended time to stop, but we don't know (yet) wihch is
+    # This parameter enable to put all, still running PODs details into the log file, when the tryCount value reaches or drops under this value.
+    TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG=40
 
-    [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}; 
+    attempt=0
+    expected=0
+    running=0
+    while true
+    do
+        while read a b c
+        do
+            running=$(( $running + $a ))
+            expected=$(( $expected + $b ))
+    #        if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
+    #        then
+    #            WriteLog "$(printf '%-45s: %s/%s  %s\n' $c $a $b  $( [[ $a -ne $b ]] && echo starting || echo up) )" "$logFile";
+    #            WriteLog "$( kubectl get svc | egrep 'NAME|mydali' ) " "$logFile"
+    #        fi
+        done < <( kubectl get pods | egrep -v 'NAME' | awk '{ print $2 " " $1 }' | tr "/" " ")
 
-    tryCount=$(( $tryCount - 1)); 
-    attempt=$(( $attempt + 1))
-    [[ $tryCount -eq 0 ]] && break; 
+        WriteLog "$( printf 'Expected: %2d, running %2d (elapsed time: %4d sec, remaining: %4d sec)\n' $expected $running $(( $attempt * $delay )) $(( $tryCount * $delay )) )" "$logFile"
+        if [[ $DEBUG == 1  || $tryCount -le $TRY_COUNT_THRESHOLD_TO_ENABLE_DEBUG  ]]
+        then
+            WriteLog "$( kubectl get pods)" "$logFile"
+            WriteLog "$( kubectl get svc )" "$logFile"
+        fi
 
-    expected=0; 
-    running=0; 
-done
+        [[ $running -ne 0 && $running -eq $expected ]] && break || sleep ${delay}
 
-sleep 10
-# test it
-WriteLog "$(printf '\nFinally: expected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
+        tryCount=$(( $tryCount - 1))
+        attempt=$(( $attempt + 1))
+        [[ $tryCount -eq 0 ]] && break
+
+        expected=0
+        running=0
+    done
+
+    sleep 10
+    # test it
+    WriteLog "$(printf '\nFinally: expected: %s, running %s (%2d)\n' $expected $running $tryCount )" "$logFile"
+else
+    WriteLog "Error in starting Minikube. Give it up" "$logFile"
+    running=0
+    getLogs=1
+fi
 
 if [[ ($expected -eq $running) && ($running -ne 0 ) ]]
 then
@@ -908,6 +922,8 @@ fi
 WriteLog "Uninstall PODs ..." "$logFile"
 TIME_STAMP=$(date +%s)
 res=$(helm uninstall hpcc 2>&1)
+retCode=$?
+WriteLog "retCode: $retCode" "$logFile"
 WriteLog "${res}" "$logFile"
 
 # Wait until everything is down
