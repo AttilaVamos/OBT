@@ -72,6 +72,10 @@ fi
 
 
 pushd ${HOME} > /dev/null
+# Temporarily delete result repo
+# to ensure a new shrinked one is cloned.
+rm -rf ~/TestResults
+
 echo "Check $LOCAL_TEST_RESULT_REPO_DIR directory."
 if [[ -d $LOCAL_TEST_RESULT_REPO_DIR ]]
 then
