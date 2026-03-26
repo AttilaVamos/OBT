@@ -616,7 +616,10 @@ then
             if [[ $MINIKUBE_DELETE_BEFORE_DEPLOY -eq 1 ]]
             then
                 WriteLog "CLI forced to delete Minikube, remove all older cached images to clean-up the system." "$logFile"
-            else
+            fi
+
+            if [[ "$oldTag" != "$base" ]]
+            then
                 WriteLog "There is a new tag, remove all older cached images to save disk space." "$logFile"
                 echo "$base" > $OBT_BIN_DIR/platformTag.txt
             fi
