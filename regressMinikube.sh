@@ -25,7 +25,7 @@ fi
 usage()
 {
     WriteLog "usage:" "/dev/null"
-    WriteLog "  $0 [-i] [-q] [-t <tag>] [-c <num_of_cores>] [-m <memory_in_MB>] [-o] [-v] [-d] [-h]" "/dev/null"
+    WriteLog "  $0 [-i] [-q] [-t <tag>] [-c <num_of_cores>] [-m <memory_in_MB>] [-o] [-r] [-v] [-d] [-h]" "/dev/null"
     WriteLog "where:" "/dev/null"
     WriteLog " -i                - Interactive, stop before unistall" "/dev/null"
     WriteLog "                     helm chart and stop minikube." "/dev/null"
@@ -38,6 +38,7 @@ usage()
     WriteLog " -o                - Override Minikube CPUs and memory"   "/dev/null"
     WriteLog "                     settings to half of the environment"   "/dev/null"
     WriteLog "                     resources."  "/dev/null"
+    WriteLog " -r                - Remove/delete Minikube before start."   "/dev/null"
     WriteLog " -v                - Show more logs (about PODs deploy and"  "/dev/null"
     WriteLog "                     destroy)." "/dev/null"
     WriteLog " -d                - Enable debug log." "/dev/null"
@@ -55,7 +56,7 @@ PrintSetting()
 {
     name=$1
     log=$2
-    local str=$( printf "%-26s : %s" "$name" "${!name}" )
+    local str=$( printf "%-30s : %s" "$name" "${!name}" )
     WriteLog "$str" "$log"
 }
 
@@ -316,6 +317,8 @@ MINIKUBE_OVERRIDE_SETTINGS=0
 MINIKUBE_MEMORY_MB=$(( $( free | grep -i "mem" | awk '{ print $2}' ) / (2 * 1024) )) # Half of the host memory
 MINIKUBE_CPUS=$(( $(nproc) / 2 ))  # Half of the host CPUs
 
+MINIKUBE_DELETE_BEFORE_DEPLOY=0
+
 #set -x
 DEBUG=0
 INTERACTIVE=0
@@ -362,6 +365,9 @@ do
             MINIKUBE_OVERRIDE_SETTINGS=1
             ;;
 
+        R) MINIKUBE_DELETE_BEFORE_DEPLOY=1
+            ;;
+
         V) VERBOSE=1
            ;;
 
@@ -399,6 +405,7 @@ PrintSetting "VERBOSE" "$logFile"
 PrintSetting "LOCAL_IP" "$logFile"
 PrintSetting "MINIKUBE_OVERRIDE_SETTINGS" "$logFile"
 [[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] && (PrintSetting "MINIKUBE_MEMORY_MB" "$logFile"; PrintSetting "MINIKUBE_CPUS" "$logFile")
+PrintSetting "MINIKUBE_DELETE_BEFORE_DEPLOY" "$logFile"
 
 WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -597,17 +604,23 @@ WriteLog "  $PLATFORM_INSTALL_RESULT_REPORT_STR" "$logFile"
 
 TIME_STAMP=$(date +%s)
 isMinikubeUp=$( minikube status | egrep -c 'Running|Configured'  )
-if [[ $isMinikubeUp -ne 4 ]]
+if [[ ($isMinikubeUp -ne 4) || ($MINIKUBE_DELETE_BEFORE_DEPLOY -eq 1) ]]
 then
     WriteLog "Minikube is down." "$logFile"
     # Let's do some Minikube cahce maintenance
     if [[ -f $OBT_BIN_DIR/platformTag.txt ]]
     then 
         oldTag=$( cat $OBT_BIN_DIR/platformTag.txt)
-        if [[ "$oldTag" != "$base" ]]
+        if [[ ("$oldTag" != "$base") || ($MINIKUBE_DELETE_BEFORE_DEPLOY -eq 1) ]]
         then
-            echo "$base" > $OBT_BIN_DIR/platformTag.txt
-            WriteLog "There is a new tag, remove all older cached images to save disk space." "$logFile"
+            if [[ $MINIKUBE_DELETE_BEFORE_DEPLOY -eq 1 ]]
+            then
+                WriteLog "CLI forced to delete Minikube, remove all older cached images to clean-up the system." "$logFile"
+            else
+                WriteLog "There is a new tag, remove all older cached images to save disk space." "$logFile"
+                echo "$base" > $OBT_BIN_DIR/platformTag.txt
+            fi
+
             WriteLog "Before:\n\t$(df -h .)" "$logFile"
             # Remove all cached images
             res=$( minikube delete 2>&1 ) 
