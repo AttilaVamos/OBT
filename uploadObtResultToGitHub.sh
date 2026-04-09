@@ -190,12 +190,12 @@ then
     numOfNewFiles=$( echo "$res" | egrep 'new file' | wc -l )
 
     # Update README.rst
-    echo "  Updated on: $(date)." >  README.rst
-    echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
+    #echo "  Updated on: $(date)." >  README.rst
+    #echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
 
     [[ $DEBUG -ne 0 ]] && echo ""
-    [[ $DEBUG -ne 0 ]] && cat README.rst
-    CURRENT_README=$(<./README.rst)
+    #[[ $DEBUG -ne 0 ]] && cat README.rst
+    #CURRENT_README=$(<./README.rst)
 
     echo "  Commit changes"
     res=$(git commit -a -s -m"Upload new results." 2>&1)
@@ -262,10 +262,10 @@ popd
 
 if [[ $FILES_ARCHIVED -ne 0 ]]
 then
-    [[ -n "$CURRENT_README" ]] && echo "$CURRENT_README" > README.rst
-    # Update README.rst
-    echo " " >>  README.rst
-    echo "$FILES_ARCHIVED result files (older than $DAYS_TO_KEEP days) archived." >> README.rst
+    #[[ -n "$CURRENT_README" ]] && echo "$CURRENT_README" > README.rst
+    ## Update README.rst
+    #echo " " >>  README.rst
+    #echo "$FILES_ARCHIVED result files (older than $DAYS_TO_KEEP days) archived." >> README.rst
     
     echo "  $FILES_ARCHIVED old result files archived."
     
@@ -293,13 +293,13 @@ then
 
         numOfNewFiles=$( echo "$res" | egrep 'new file' | wc -l )
         echo "$numOfNewFiles new archive added."
-        echo "$numOfNewFiles new archive added." >> README.rst
-        echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
+       # echo "$numOfNewFiles new archive added." >> README.rst
+       # echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
     fi 
 
     [[ $DEBUG -ne 0 ]] && echo ""
-    [[ $DEBUG -ne 0 ]] && echo "README.rst:"
-    [[ $DEBUG -ne 0 ]] && cat README.rst
+    #[[ $DEBUG -ne 0 ]] && echo "README.rst:"
+    #[[ $DEBUG -ne 0 ]] && cat README.rst
 
     echo " Commit changes"
     res=$(git commit -a -s -m"Upload new results." 2>&1)
