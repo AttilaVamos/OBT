@@ -129,6 +129,13 @@ class BuildNotificationConfig( object ):
                 reportDirectory=self.reportDirectory )
 
     @property
+    def reportDirectoryFileSystem( self ):
+        return  "{shareBase}/{buildBranch}/{reportDirectory}".format(
+                    shareBase=os.path.expanduser(self.get( 'Environment', 'shareBase' )),
+                    buildBranch=self.get('Environment', 'BuildBranch' ),
+                    reportDirectory=self.reportDirectory )
+
+    @property
     def reportObtSystem( self ):
         return  "{obtSystem}".format(
             obtSystem=self.get( 'OBT', 'ObtSystem'))
@@ -341,15 +348,66 @@ class BuildNotification(object):
         retVal += text
         return retVal
         
+    def processBuildResult(self):
+        # Process build result
+        taskItem = { "Build" : {} }
+        taskItem["Build"]["Result"] = "PASSED"
+        taskItem["Build"]["CMake"] = { 'Formatted': '0 sec (00:00:00)', 'RawSec': '0'}
+        taskItem["Build"]["Build"] = { 'Formatted': '0 sec (00:00:00)', 'RawSec': '0'}
+        taskItem["Build"]["Package"] = { 'Formatted': '0 sec (00:00:00)', 'RawSec': '0'}
+        taskItem["Build"]["Altogether"] = { 'Formatted': '0 sec (00:00:00)', 'RawSec': '0'}
+
+        buildSummaryFileName = self.config.reportDirectoryFileSystem+"/build_summary"
+        logLines = open(buildSummaryFileName).readlines()
+        for line in logLines:
+            lineItems = line.strip().split(":",  1)
+            if len(lineItems) < 2:
+                continue
+
+            if lineItems[0].startswith('Result'):
+                taskItem["Build"]["Result"] = lineItems[1]
+                continue
+
+            if lineItems[0].startswith('CMake'):
+                taskItem["Build"]["CMake"]['Formatted'] = lineItems[1]
+                taskItem["Build"]["CMake"]['RawSec'] = lineItems[1].split(' ')[0]
+                continue
+
+            if lineItems[0].startswith('Build'):
+                taskItem["Build"]["Build"]['Formatted'] = lineItems[1]
+                taskItem["Build"]["Build"]['RawSec'] = lineItems[1].split(' ')[0]
+                continue
+
+            if lineItems[0].startswith('Package'):
+                taskItem["Build"]["Package"]['Formatted'] = lineItems[1]
+                taskItem["Build"]["Package"]['RawSec'] = lineItems[1].split(' ')[0]
+                continue
+
+            if lineItems[0].startswith('Altogether'):
+                taskItem["Build"]["Altogether"]['Formatted'] = lineItems[1]
+                taskItem["Build"]["Altogether"]['RawSec'] = lineItems[1].split(' ')[0]
+                continue
+
+        self.jsonReport["OBTResult"]["Tasks"].append(taskItem)
+        return taskItem
+
     def createMsg(self):
         logDir = os.path.expanduser(self.config.get( 'Environment', 'LogDir' ))
-        print("logDir" +logDir)
+        print("logDir: '" +logDir +"'")
+        logDir = os.path.expanduser(self.config.reportDirectoryFileSystem+"/test/perf/")
+        print("logDir: '" +logDir +"'")
         curDir = os.getcwd()
-        os.chdir( logDir )
+        try:
+            os.chdir( logDir )
+        except:
+            logDir = os.path.expanduser(self.config.reportDirectoryFileSystem+"/")
+            os.chdir( logDir )
+
         tests = self.config.get( 'Performance', 'TestList' ) .split(',')
         self.msg['From'] = self.config.get( 'Email', 'Sender')
         self.msg['To']     = self.config.get( 'Email', 'Receivers')
-        print("Build Result " + self.status)
+
+        print("Build Result: ",  self.processBuildResult())
         print("From " + self.msg['From'])
         print("To " + self.msg['To'])
         logFiles=[]
@@ -410,8 +468,9 @@ class BuildNotification(object):
         subjectStatus = ''
         subjectError = ''
         
+        # Process setup and test results
         testLogs = []
-        taskItem = { "Setup" : {},  "Performance" : {}}
+        taskItem = {"Setup" : {},  "Performance" : {}}
         taskItem["Performance"]["Result"] = "PASSED"
         taskItem["Setup"]["Result"] = "PASSED"
         for test in tests:
@@ -437,6 +496,10 @@ class BuildNotification(object):
                 logFiles.append(file)
             except IOError:
                 print("IOError in read '%s'" % (file))
+                if test not in taskItem[taskSelector]:
+                    taskItem[taskSelector][test] = {}
+                    taskItem[taskSelector][test]["Result"] = "FAILED"
+                taskItem[taskSelector]["Result"] = "FAILED"
                 continue
             for line in temp:
                 if 'Queries:' in line:
@@ -502,7 +565,7 @@ class BuildNotification(object):
         self.jsonReport["OBTResult"]["Tasks"].append(taskItem)
         
         if RegressionLogProcessor:
-            # Use it if sucessfully imported
+            # Use it if it is sucessfully imported
             rlp = RegressionLogProcessor(curDir, 'Performance')
             print("ZAPpath:" + self.config.reportDirectoryURL + "/test/ZAP")
             rlp.setLogArchivePath(self.config.reportDirectoryURL + "/test/ZAP")

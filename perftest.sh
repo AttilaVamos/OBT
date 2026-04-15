@@ -802,14 +802,18 @@ then
         then
             WriteLog "Build failed: no rpm package found " "${PERF_TEST_LOG}"
             buildResult=FAILED
-            echo "BuildResult:FAILED" >   $TARGET_DIR/build_summary
-            echo "Elaps:${BUILD_TIME} sec" >> $TARGET_DIR/build_summary
+            echo "Result:FAILED" >   $TARGET_DIR/build_summary
+            WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
+            echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >> $TARGET_DIR/build_summary}
+            echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >> $TARGET_DIR/build_summary
+            echo "Package:$( SecToTimeStr ${PKG_TIME} )" >> $TARGET_DIR/build_summary
+            echo "Altogether:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> $TARGET_DIR/build_summary
             exit 2
         else
             WriteLog "Build succeed" "${PERF_TEST_LOG}"
             buildResult=SUCCEED
-            echo "BuildResult:SUCCEED" >   $TARGET_DIR/build_summary
-            echo "Elaps:${BUILD_TIME} sec" >> $TARGET_DIR/build_summary
+            echo "Result:SUCCEED" >   $TARGET_DIR/build_summary
+
             if [[ $NEW_BUILD_DIR_STRUCTURE -ne 0 ]]
             then
                 pushd ${BUILD_DIR}/$RELEASE_TYPE
@@ -889,6 +893,11 @@ then
     echo "Elaps:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> ${BUILD_LOG_FILE}
     cp ${GIT_2DAYS_LOG}  $TARGET_DIR/
     cp ${BUILD_LOG_FILE}  $TARGET_DIR/build.log
+
+    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >>  $TARGET_DIR/build_summary
+    echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >>  $TARGET_DIR/build_summary
+    echo "Package:$( SecToTimeStr ${PKG_TIME} )" >>  $TARGET_DIR/build_summary
+    echo "Altogether:$( SecToTimeStr ${WHOLE_BUILD_TIME} )"  $TARGET_DIR/build_summary
 
     HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )
     
