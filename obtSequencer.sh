@@ -201,7 +201,7 @@ then
     echo "Start regressMinikube.sh..."
     if [[ -f obt-values.yaml ]]
     then
-        ./regressMinikube.sh 
+        ./regressMinikube.sh  -c 8 -m 15000 -r
 
         if [[ -d ~/Perfstat-Minikube ]]
         then

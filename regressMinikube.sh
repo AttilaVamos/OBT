@@ -298,7 +298,7 @@ else
 fi
 
 RTE_CONFIG="./ecl-test-k8s.json"
-RTE_PQ="--pq 2"
+RTE_PQ=2
 RTE_TIMEOUT="--timeout 1200"
 #RTE_QUICK_TEST_SET='teststdlib*'
 #RTE_QUICK_TEST_SET='alien2.ecl badindex.ecl csvvirtual.ecl fileposition.ecl keydiff.ecl keydiff1.ecl httpcall_* soapcall*'
@@ -355,6 +355,12 @@ do
             # Check and if it is needed restrict the CPUS value to 80%
             [[ $CPUS_80_PERCENT -lt $MINIKUBE_CPUS ]] && MINIKUBE_CPUS=$CPUS_80_PERCENT
             MINIKUBE_OVERRIDE_SETTINGS=1
+
+            # Tune the RTE PQ parameter
+            if [[ $MINIKUBE_CPUS -ge $(( $RTE_PQ + 2 )) ]]
+            then
+                RTE_PQ=$(( $MINIKUBE_CPUS - 2 ))
+            fi
             ;;
 
         M) shift
@@ -380,6 +386,8 @@ do
     shift
 done
 
+RTE_SETUP_PQ="--pq $RTE_PQ"
+RTE_PQ="--pq $RTE_PQ"
 
 PrintSetting "START_CMD" "$logFile"
 PrintSetting "SOURCE_DIR" "$logFile"
@@ -396,6 +404,7 @@ PrintSetting "PKG_INST_CMD" "$logFile"
 PrintSetting "PKG_QRY_CMD" "$logFile"
 PrintSetting "PKG_REM_CMD" "$logFile"
 PrintSetting "RTE_CONFIG" "$logFile"
+PrintSetting "RTE_SETUP_PQ" "$logFile"
 PrintSetting "RTE_PQ" "$logFile"
 PrintSetting "RTE_TIMEOUT" "$logFile"
 PrintSetting "INTERACTIVE" "$logFile"
@@ -544,10 +553,13 @@ popd > /dev/null
 base=$tag
 # Remove the point build
 baseMajorMinor=${base%.*}
+baseMajor=${baseMajorMinor%.*}
 pkg="*community?$baseMajorMinor*$PKG_EXT"
+pkg2="*community?$baseMajor*$PKG_EXT"
 WriteLog "base: ${base}" "$logFile"
 
 WriteLog "base major.minor:$baseMajorMinor" "$logFile"
+WriteLog "base major      :$baseMajor" "$logFile"
 WriteLog "pkg:$pkg" "$logFile"
 TIME_STAMP=$(date +%s)
 if [ "$PKG_EXT" == ".deb" ]
@@ -560,15 +572,25 @@ fi
 WriteLog "current installed pkg: $CURRENT_PKG" "$logFile"
 
 CURRENT_PKG_MajorMinor=${CURRENT_PKG%.*}
+CURRENT_PKG_Major=${CURRENT_PKG_MajorMinor%.*}
+
 WriteLog "current installed pkg major.minor: $CURRENT_PKG_MajorMinor" "$logFile"
-if [[ "$CURRENT_PKG_MajorMinor" == "$baseMajorMinor" ]]
+WriteLog "current installed pkg major      : $CURRENT_PKG_Major" "$logFile"
+if [[ ("$CURRENT_PKG_MajorMinor" == "$baseMajorMinor") || ("$CURRENT_PKG_Major" == "$baseMajor") ]]
 then
+    if [[ ("$CURRENT_PKG_MajorMinor" != "$baseMajorMinor") ]]
+    then
+        WriteLog "The base major.minor doesn't match to pkg major.minor, but the majors are the same." "$logFile"
+    else
+        WriteLog "The base major.minor is matching to pkg major.minor." "$logFile"
+    fi
+
     WriteLog "The installed platform package is ok to testing cloud." "$logFile"
 else
-    WriteLog "Need to install $pkg to testing cloud." "$logFile"
+    WriteLog "Need to install at least $pkg2 to testing cloud." "$logFile"
     if [[ $INTERACTIVE -eq 1 ]]
     then
-        candidates=$( find $PKG_DIR -maxdepth 1 -iname $pkg -type f )
+        candidates=$( find $PKG_DIR -maxdepth 1 -iname $pkg2 -type f )
         if [ -n "$candidates" ]
         then
             WriteLog "Possible candidate(s):" "$logFile"
@@ -576,6 +598,7 @@ else
         fi
         exit 1
     else
+        # Try to install the best match
         candidate=$( find $PKG_DIR -maxdepth 2 -iname $pkg -type f | sort -rV | head -n 1 )
         if [ -n "$candidate" ]
         then
@@ -587,11 +610,27 @@ else
                 WriteLog "Install $candiadate failed with $retCode." "$logFile"
                 exit 1
             fi
-            CURRENT_PKG=$dandiate
+            CURRENT_PKG=$candiate
             WriteLog "Done." "$logFile"
         else
-            WriteLog "Platform install package:$pkd not found, exit." "$logFile"
-            exit 1
+            # Exact MajorMinor match not found, try Major only
+            candidate=$( find $PKG_DIR -maxdepth 2 -iname $pkg2 -type f | sort -rV | head -n 1 )
+            if [ -n "$candidate" ]
+            then
+                WriteLog "Install $candidate" "$logFile"
+                sudo ${PKG_INST_CMD} $candidate
+                retCode=$?
+                if [[ $retCode -ne 0 ]]
+                then
+                    WriteLog "Install $candiadate failed with $retCode." "$logFile"
+                    exit 1
+                fi
+                CURRENT_PKG=$candiate
+                WriteLog "Done." "$logFile"
+            else
+                WriteLog "Platform install package:$pkg2 not found, exit." "$logFile"
+                exit 1
+            fi
         fi
     fi
 fi
@@ -766,7 +805,7 @@ then
 
     setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
-    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG  $RTE_PQ --timeout 900 --loglevel info 2>&1 )
+    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_SETUP_PQ --timeout 900 --loglevel info 2>&1 )
     retCode=$?
     isError=$( echo "${res}" | egrep -c 'Fail ' )
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
