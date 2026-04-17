@@ -811,6 +811,7 @@ then
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
      if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
     then
+        WriteLog "$res" "$logFile"
         getLogs=1
         setupPass=0
         SETUP_RESULT_STR="FAILED"

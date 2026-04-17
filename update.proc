@@ -53,7 +53,7 @@ then
         echo "${res}"  >> ${logFile}
         echo "${res}"
 
-        cp -u -v * $OBT_DIR/  >> ${logFile} 2>&1
+        cp -v * $OBT_DIR/  >> ${logFile} 2>&1
 
         if [ -n "$OBT_ID" ]
         then

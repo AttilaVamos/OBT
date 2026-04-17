@@ -119,6 +119,7 @@ then
 else
     echo "Non OBT environment, like local VM/BM"
     LOG_DIR="$HOME/common/nightly_builds/HPCC/"
+    [[ ! -d $LOG_DIR ]] && LOG_DIR="$HOME/HPCCSystems-regression/log/"
 fi
 
 printf "Log directory: %s\n" "$LOG_DIR"
