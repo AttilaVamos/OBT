@@ -496,10 +496,7 @@ class BuildNotification(object):
                 logFiles.append(file)
             except IOError:
                 print("IOError in read '%s'" % (file))
-                if test not in taskItem[taskSelector]:
-                    taskItem[taskSelector][test] = {}
-                    taskItem[taskSelector][test]["Result"] = "FAILED"
-                taskItem[taskSelector]["Result"] = "FAILED"
+                # It is possible if there is not log file, then that tests didn't run. Skip it.
                 continue
             for line in temp:
                 if 'Queries:' in line:
