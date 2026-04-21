@@ -403,6 +403,8 @@ class BuildNotification(object):
             logDir = os.path.expanduser(self.config.reportDirectoryFileSystem+"/")
             os.chdir( logDir )
 
+        print("curDir: '%s'"% (os.getcwd()))
+
         tests = self.config.get( 'Performance', 'TestList' ) .split(',')
         self.msg['From'] = self.config.get( 'Email', 'Sender')
         self.msg['To']     = self.config.get( 'Email', 'Receivers')
@@ -474,6 +476,7 @@ class BuildNotification(object):
         taskItem["Performance"]["Result"] = "PASSED"
         taskItem["Setup"]["Result"] = "PASSED"
         for test in tests:
+            print("test: '%s'" % (test))
             queries = ''
             passed = ''
             failed = ''
@@ -481,9 +484,15 @@ class BuildNotification(object):
             file = test + "-performance-test.log" 
             files = glob.glob( test + \
                     ".[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].log" )
+            print("files:",  files)
+
             if files: 
                 sortedFiles = sorted( files, key=str.lower, reverse=True )
                 file = sortedFiles[0] 
+            else:
+                print("File not found for '%s', skip it." % (test))
+                continue
+
             print("processing file:"+file)
 
             taskSelector = "Performance"
