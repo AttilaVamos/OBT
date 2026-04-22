@@ -2382,10 +2382,14 @@ then
         zip -r ~/diagrams.zip diagrams/
         popd
     else
-         WriteLog "Calculate and report results skiped" "${PERF_TEST_LOG}"
+        WriteLog "Calculate and report results skiped" "${PERF_TEST_LOG}"
     fi
 
     cp ./perftest*.summary ./perftest.summary
+
+    WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
+    mkdir -p   ${TARGET_DIR}/test/perf
+    cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 
     WriteLog "Send Email notification about Performance test" "${PERF_TEST_LOG}"
 

@@ -1088,11 +1088,11 @@ then
 
     if [[ 0 -eq  $? ]]
     then
-        WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
-
-        mkdir -p   ${TARGET_DIR}/test/perf
-
-        cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
+        WriteLog "Perfromance test finished." "${OBT_LOG_FILE}"
+#
+#        mkdir -p   ${TARGET_DIR}/test/perf
+#
+#        cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 
 # Moved to perftest.sh
 #        if [ $PERF_ENABLE_CALCTREND -eq 1 ]
