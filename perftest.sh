@@ -257,8 +257,8 @@ addTlsToRoxie()
             /etc/HPCCSystems/environment.xml
             WriteLog "  Done. ( $(xmlstarlet sel -T -t -v "/Environment/Software/RoxieCluster/RoxieFarmProcess[@name='farmSsl']/@name" /etc/HPCCSystems/environment.xml) )" "${PERF_TEST_LOG}"
 
-            WriteLog "  Add 'hpcc' to $(users) group." "${PERF_TEST_LOG}"
-            res=$( sudo usermod -a -G $(users) hpcc )
+            WriteLog "  Add 'hpcc' to $(whoami) group." "${PERF_TEST_LOG}"
+            res=$( sudo usermod -a -G $(whoami) hpcc )
             WriteLog "  res: $res." "${PERF_TEST_LOG}"
             WriteLog "  Check 'hpcc' groups: $(groups hpcc)." "${PERF_TEST_LOG}"
         fi
