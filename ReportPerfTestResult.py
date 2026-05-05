@@ -499,6 +499,7 @@ class BuildNotification(object):
             if 'setup' in test:
                 taskSelector = "Setup"
                 test = test.replace('setup_', '')
+            testCapital = test.capitalize()
 
             try:
                 temp = open(file).readlines( )
@@ -537,17 +538,17 @@ class BuildNotification(object):
             result = 'total:'+queries+' passed:'+passed+' failed:'+failed
 
             if test not in taskItem[taskSelector]:
-                taskItem[taskSelector][test] = {}
+                taskItem[taskSelector][testCapital] = {}
 
-            taskItem[taskSelector][test]["Total"] = queries
-            taskItem[taskSelector][test]["Pass"] = passed
-            taskItem[taskSelector][test]["Fail"] = failed
-            taskItem[taskSelector][test]["Result"] = "PASSED"
+            taskItem[taskSelector][testCapital]["Total"] = queries
+            taskItem[taskSelector][testCapital]["Pass"] = passed
+            taskItem[taskSelector][testCapital]["Fail"] = failed
+            taskItem[taskSelector][testCapital]["Result"] = "PASSED"
             if failed != '0':
-                taskItem[taskSelector][test]["Result"] = "FAILED"
+                taskItem[taskSelector][testCapital]["Result"] = "FAILED"
                 taskItem[taskSelector]["Result"] = "FAILED"
             
-            taskItem[taskSelector][test]["Elaps"] = elaps
+            taskItem[taskSelector][testCapital]["Elaps"] = elaps
 
             part = MIMEBase('application', 'octet-stream')
             part.set_payload( ''.join(temp))

@@ -713,9 +713,12 @@ class TestTask( Task ):
                     if self._failed == 0:
                         self._status = 'PASSED'
                     m2 = p2b.match( res )
-                    
+
                     if m2 :
                         testName = m2.group(1)
+                        if ('Setup' == self._name):
+                            testName = testName.capitalize()
+
                         info = { testName: { "Elaps" : {} }}
                         try:
                             self._elapsTime.append(m2.group(5))
