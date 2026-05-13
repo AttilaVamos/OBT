@@ -2,12 +2,13 @@
     \"OBTResult\": {
         \"Env\": {
             \"BuildSystem\": \"$SYSTEM_ID\",
-            \"Hardware\": \"vCPU: 8, RAM: 16 GB\",
-            \"IPAddress\": \"$LOCAL_IP\"
+            \"Hardware\": \"${HOST_HARDWARE:-CPU/Cores: 16, RAM: 30 GB}\",
+            \"IPAddress\": \"$LOCAL_IP\",
+            \"HostPlatform\" : \"${HOST_PLATFORM:-N/A}\"
         },
         \"Remote\": {
             \"System\": \"Minikube\",
-            \"Hardware\": \"CPU/Cores: 16, RAM: 64 GB\",
+            \"Hardware\": \"${TARGET_HARDWARE:-CPU/Cores: 8, RAM: 15 GB}\",
             \"HthorConfig\": {
                 \"Replicas\": \"3\",
                 \"MaxActive\": \"4\",

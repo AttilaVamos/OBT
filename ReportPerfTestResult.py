@@ -358,7 +358,14 @@ class BuildNotification(object):
         taskItem["Build"]["Altogether"] = { 'Formatted': '0 sec (00:00:00)', 'RawSec': '0'}
 
         buildSummaryFileName = self.config.reportDirectoryFileSystem+"/build_summary"
-        logLines = open(buildSummaryFileName).readlines()
+        logLines = []
+        try:
+            logLines = open(buildSummaryFileName).readlines()
+        except:
+            print("Exception in 'build_summary' file processing:" + str(sys.exc_info()[0]) + " (line: " + str(inspect.stack()[0][2]) + ")" )
+            taskItem["Build"]["Result"] = "Missing"
+            pass
+            
         for line in logLines:
             lineItems = line.strip().split(":",  1)
             if len(lineItems) < 2:

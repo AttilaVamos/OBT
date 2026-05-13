@@ -124,6 +124,16 @@ else
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
     
+    res=$(git config http.postBuffer 524288000 2>&1)
+    retCode=$?
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
+
+    res=$(git config http.lowSpeedTime 600 2>&1)
+    retCode=$?
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
+    [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "res : $res"
+
     popd
     echo "  Done."
 fi  
@@ -146,6 +156,7 @@ then
     BASE_VERSION=${BASE_VERSION%.*}
     [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
 
+    # If diagrams are split into 4 then the copy needs to be cp -v ~/*diagrams.zip
     echo "Copy  '~/diagrams.zip' into  'Performance/${OBT_ID}/${BASE_VERSION}'."
     [[ ! -d Performance/${OBT_ID}/${BRANCH_ID} ]] && mkdir -p Performance/${OBT_ID}/${BASE_VERSION}
 
@@ -189,13 +200,15 @@ then
 
     numOfNewFiles=$( echo "$res" | egrep 'new file' | wc -l )
 
-    # Update README.rst
-    #echo "  Updated on: $(date)." >  README.rst
-    #echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
+    # If the README.rst will be machine specific like README-${OBT_ID}.rst then
+    # this problem can disappear
+    # Update README-${OBT_ID}.rst
+    echo "  Updated on: $(date)." >  README-${OBT_ID}.rst
+    echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README-${OBT_ID}.rst
 
     [[ $DEBUG -ne 0 ]] && echo ""
-    #[[ $DEBUG -ne 0 ]] && cat README.rst
-    #CURRENT_README=$(<./README.rst)
+    [[ $DEBUG -ne 0 ]] && cat README-${OBT_ID}.rst
+    CURRENT_README=$(<./README-${OBT_ID}.rst)
 
     echo "  Commit changes"
     res=$(git commit -a -s -m"Upload new results." 2>&1)
@@ -262,10 +275,10 @@ popd
 
 if [[ $FILES_ARCHIVED -ne 0 ]]
 then
-    #[[ -n "$CURRENT_README" ]] && echo "$CURRENT_README" > README.rst
-    ## Update README.rst
-    #echo " " >>  README.rst
-    #echo "$FILES_ARCHIVED result files (older than $DAYS_TO_KEEP days) archived." >> README.rst
+    [[ -n "$CURRENT_README" ]] && echo "$CURRENT_README" > README-${OBT_ID}.rst
+    # Update README-${OBT_ID}.rst
+    echo " " >>  README-${OBT_ID}.rst
+    echo "$FILES_ARCHIVED result files (older than $DAYS_TO_KEEP days) archived." >> README-${OBT_ID}.rst
     
     echo "  $FILES_ARCHIVED old result files archived."
     
@@ -293,13 +306,13 @@ then
 
         numOfNewFiles=$( echo "$res" | egrep 'new file' | wc -l )
         echo "$numOfNewFiles new archive added."
-       # echo "$numOfNewFiles new archive added." >> README.rst
-       # echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README.rst
+        echo "$numOfNewFiles new archive added." >> README-${OBT_ID}.rst
+        echo "$res" | egrep 'new file' | awk '{ print "  -"$1" "$2" "$3}' >> README-${OBT_ID}.rst
     fi 
 
     [[ $DEBUG -ne 0 ]] && echo ""
-    #[[ $DEBUG -ne 0 ]] && echo "README.rst:"
-    #[[ $DEBUG -ne 0 ]] && cat README.rst
+    [[ $DEBUG -ne 0 ]] && echo "README-${OBT_ID}.rst:"
+    [[ $DEBUG -ne 0 ]] && cat README-${OBT_ID}.rst
 
     echo " Commit changes"
     res=$(git commit -a -s -m"Upload new results." 2>&1)

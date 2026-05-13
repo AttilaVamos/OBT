@@ -460,7 +460,7 @@ WriteLog "Get the latest Regression Test Engine..." "${PERF_TEST_LOG}"
     
 cres=$( CloneRepo "https://github.com/AttilaVamos/RTE.git" "$REGRESSION_TEST_ENGINE_HOME" )
 
-if [[ 0 -ne  $? ]]
+if [[ (0 -ne  $?) || ( ! -d $REGRESSION_TEST_ENGINE_HOME) || ( $(ls -l $REGRESSION_TEST_ENGINE_HOME/ | egrep -v total |wc -l ) -eq 0 ) ]]
 then
     WriteLog "RTE clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
     cd ${OBT_BIN_DIR}
@@ -553,7 +553,7 @@ then
     target=HPCC-Platform-${BRANCH_ID}-${LONG_DATE}
     cRes=$( CloneRepo "https://github.com/hpcc-systems/HPCC-Platform.git" "${target}" )
 
-    if [[ 0 -ne  $? ]]
+    if [[ (0 -ne  $?) || ( ! -d $target ) || ( $(ls -l $target/ | egrep -v total |wc -l ) -eq 0 ) ]]
     then
         #WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
         #ExitEpilog "${PERF_TEST_LOG}"
@@ -1155,7 +1155,7 @@ then
     WriteLog "Get test from github ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
 
     cRes=$( CloneRepo "${PERF_TEST_REPO}" )
-    if [[ 0 -ne  $? ]]
+    if [[ (0 -ne  $?) || ( ! -d $PERF_TEST_ROOT ) || ( $(ls -l $PERF_TEST_ROOT/PerformanceTesting/ | egrep -v total |wc -l ) -eq 0 ) ]]
     then
         WriteLog "Repo clone failed ! Result is: ${cRes}" "${PERF_TEST_LOG}"
         exit -3
@@ -1680,9 +1680,10 @@ then
         WriteLog "Pwd: $(pwd)" "${PERF_TEST_LOG}"
         
         cRes=$( CloneRepo "${PERF_TEST_REPO}" )
-        if [[ 0 -ne  $? ]]
+        retCode=$?
+        if [[ (0 -ne  $retCode) || ( ! -d $PERF_TEST_ROOT ) || ( $(ls -l $PERF_TEST_ROOT/PerformanceTesting/ | egrep -v total |wc -l ) -eq 0 ) ]]
         then
-           WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
+           WriteLog "Repo clone failed ! Result is:\n  retCode: $retCode \n  cRes: ${cRes}" "${PERF_TEST_LOG}"
            exit -3
         else
             WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
@@ -2138,9 +2139,9 @@ then
     WriteLog "Get test from github ${TARGET_PLATFORM}" "${PERF_TEST_LOG}"
     
     cRes=$( CloneRepo "${PERF_TEST_REPO}" )
-    if [[ 0 -ne  $? ]]
+    if [[ (0 -ne  $?) || ( ! -d $PERF_TEST_ROOT ) || ( $(ls -l $PERF_TEST_ROOT/PerformanceTesting/ | egrep -v total |wc -l ) -eq 0 ) ]]
     then
-        WriteLog "Repo clone failed ! Result is: ${cres}" "${PERF_TEST_LOG}"
+        WriteLog "Repo clone failed ! Result is: ${cRes}" "${PERF_TEST_LOG}"
         exit -3
     else
         WriteLog "Repo clone success !" "${PERF_TEST_LOG}"
@@ -2385,7 +2386,44 @@ then
         
         [[ -f ~/diagrams.zip ]] && rm -v ~/diagrams.zip
         pushd ${TARGET_DIR}/test
-        zip -r ~/diagrams.zip diagrams/
+        # It seems needs to split this zip into 4 archives
+        #    topDiagrams.zip for diagrams/*
+        #    hthorDiagrams.zip for -r diagrams/hthor/
+        #    thorDiagrams.zip for -r  diagrams/thor/
+        #    roxieDiagrams.zip for-r  diagrams/roxie/
+
+        WriteLog "Store whole 'diagrams' directory into '~/diagrams.zip'" "${PERF_TEST_LOG}"
+        res=$(zip -r ~/diagrams.zip diagrams/ 2>&1 )
+        retCode=$?
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
+        # Store engine specific diagrams into separated archive
+        WriteLog "rm -v [htr]*Diagrams.zip" "${PERF_TEST_LOG}"
+        res=$( rm -v [htr]*Diagrams.zip 2>&1)
+        retCode=$?
+        WriteLog "  res:${res}" "${PERF_TEST_LOG}"
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
+        WriteLog "Store 'diagrams' content without subdirectory into '~/topDiagrams.zip'" "${PERF_TEST_LOG}"
+        res=$( zip ~/topDiagrams.zip diagrams/* 2>&1)
+        retCode=$?
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
+        WriteLog "Store 'diagrams/hthor/' content into '~/hthorDiagrams.zip'" "${PERF_TEST_LOG}"
+        res=$(zip -r ~/hthorDiagrams.zip  diagrams/hthor/ 2>&1)
+        retCode=$?
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
+        WriteLog "Store 'diagrams/thor/' content into '~/thorDiagrams.zip'" "${PERF_TEST_LOG}"
+        res=$(zip -r ~/thorDiagrams.zip  diagrams/thor/ 2>&1)
+        retCode=$?
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
+        WriteLog "Store 'diagrams/roxie/' content into '~/roxieDiagrams.zip'" "${PERF_TEST_LOG}"
+        res=$(zip -r ~/roxieDiagrams.zip  diagrams/roxie/ 2>&1)
+        retCode=$?
+        WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
+
         popd
     else
         WriteLog "Calculate and report results skiped" "${PERF_TEST_LOG}"
@@ -2393,7 +2431,7 @@ then
 
     cp ./perftest*.summary ./perftest.summary
 
-    WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${OBT_LOG_FILE}"
+    WriteLog "Copy log files to ${TARGET_DIR}/test/perf" "${PERF_TEST_LOG}"
     mkdir -p   ${TARGET_DIR}/test/perf
     cp -uv ~/HPCCSystems-regression/log/*.*   ${TARGET_DIR}/test/perf/
 

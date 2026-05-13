@@ -114,7 +114,7 @@ ProcessLog()
         passes[$eng]="${passed[$i]}"
         fails[$eng]="${failed[$i]}"
         time_str[$eng]="${elapsed[$i]}"
-        _str=$(printf "%8s%-20s %5d\t%4d\t%4d\t%19s\n" " " "${engine[$i]}" "${total[$i]}" "${passed[$i]}" "${failed[$i]}" "${elapsed[$i]}") 
+        _str=$(printf "%8s%-20s %5d\t%4d\t%4d\t%21s\n" " " "${engine[$i]}" "${total[$i]}" "${passed[$i]}" "${failed[$i]}" "${elapsed[$i]}")
         _retStr=$(echo -e "${_retStr}\n${_str}")
 
         capEngine=${eng^^}_${action}
@@ -295,7 +295,11 @@ else
     SYSTEM_ID=${SYSTEM_ID// /_}
     SYSTEM_ID=${SYSTEM_ID//./_}
 
+    NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | sort -nru | head -1 ) + 1 ))
+    MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
 fi
+
+HOST_HARDWARE=$( printf "CPU/Cores: %s, RAM: %s GB" "$NUMBER_OF_CPUS" "$MEMORY")
 
 RTE_CONFIG="./ecl-test-k8s.json"
 RTE_PQ=2
@@ -412,8 +416,15 @@ PrintSetting "FULL_REGRESSION" "$logFile"
 PrintSetting "TAG" "$logFile"
 PrintSetting "VERBOSE" "$logFile"
 PrintSetting "LOCAL_IP" "$logFile"
+PrintSetting "HOST_HARDWARE" "$logFile"
 PrintSetting "MINIKUBE_OVERRIDE_SETTINGS" "$logFile"
-[[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] && (PrintSetting "MINIKUBE_MEMORY_MB" "$logFile"; PrintSetting "MINIKUBE_CPUS" "$logFile")
+
+TARGET_HARDWARE=$( printf "CPU/Cores: %s, RAM: %s GB" "$MINIKUBE_CPUS" "$(( $MINIKUBE_MEMORY_MB / 1024 ))" )
+
+[[ $MINIKUBE_OVERRIDE_SETTINGS -eq 1 ]] && (PrintSetting "MINIKUBE_MEMORY_MB" "$logFile"; \
+                                            PrintSetting "MINIKUBE_CPUS" "$logFile"; \
+                                            PrintSetting "TARGET_HARDWARE" "$logFile" \
+                                            )
 PrintSetting "MINIKUBE_DELETE_BEFORE_DEPLOY" "$logFile"
 
 WriteLog "Update helm repo..." "$logFile"
@@ -635,6 +646,7 @@ else
     fi
 fi
 
+HOST_PLATFORM=$CURRENT_PKG
 PLATFORM_INSTALL_TIME=$(( $(date +%s) - $TIME_STAMP ))
 PLATFORM_INSTALL_TIME_STR="$PLATFORM_INSTALL_TIME sec $(SecToTimeStr $PLATFORM_INSTALL_TIME)"
 PLATFORM_INSTALL_RESULT_STR="Done"
