@@ -2398,8 +2398,8 @@ then
         WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
 
         # Store engine specific diagrams into separated archive
-        WriteLog "rm -v [htr]*Diagrams.zip" "${PERF_TEST_LOG}"
-        res=$( rm -v [htr]*Diagrams.zip 2>&1)
+        WriteLog "rm -v ~/[htr]*Diagrams.zip" "${PERF_TEST_LOG}"
+        res=$( rm -v ~/[htr]*Diagrams.zip 2>&1)
         retCode=$?
         WriteLog "  res:${res}" "${PERF_TEST_LOG}"
         WriteLog "  retCode:${retCode}" "${PERF_TEST_LOG}"
