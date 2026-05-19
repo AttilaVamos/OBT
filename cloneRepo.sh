@@ -11,8 +11,8 @@ then
 fi
 
 # Git branch settings
-
-.  ~/build/bin/settings.sh
+# if it is running different environment, that file may no exists
+[ -f  ~/build/bin/settings.sh ] && . ~/build/bin/settings.sh
 
 KillWatchDogAndWaitToDie()
 {

@@ -203,9 +203,6 @@ then
     then
         ./regressMinikube.sh  -c 8 -m 15000 -r
 
-        # Try again, only for fun
-        ./regressMinikube.sh  -c 8 -m 15000 -r
-
         if [[ -d ~/Perfstat-Minikube ]]
         then
             #
