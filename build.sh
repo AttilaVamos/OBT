@@ -582,6 +582,8 @@ then
     CMD="make -j ${NUMBER_OF_BUILD_THREADS} package"
     WriteLog "cmd:'${CMD}'." "${OBT_BUILD_LOG_FILE}"
     ${CMD} >> ${BUILD_LOG_FILE} 2>&1
+    retCode=$?
+    WriteLog "  Done (retCode: $retCode)." "${OBT_BUILD_LOG_FILE}"
     PKG_TIME=$(( $(date +%s) - $TIME_STAMP ))
 else
     WriteLog "Build skipped, use cached install package: '$hpcc_package'." "${OBT_BUILD_LOG_FILE}"
@@ -589,18 +591,21 @@ fi
     
 WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
 
-if [ $? -ne 0 ] 
+if [ $retCode -ne 0 ]
 then
    echo "Build failed: build has errors " >> ${BUILD_LOG_FILE}
+   WriteLog "  Build failed: build has errors." "${OBT_BUILD_LOG_FILE}"
    buildResult=FAILED
 else
-   ls -l hpcc*.rpm >/dev/null 2>&1
+   ls -l hpcc*${PKG_EXT} >/dev/null 2>&1
    if [ $? -ne 0 ] 
    then
       echo "Build failed: no rpm package found " >> ${BUILD_LOG_FILE}
+      WriteLog "  Build failed: no rpm package found." "${OBT_BUILD_LOG_FILE}"
       buildResult=FAILED
    else
       echo "Build succeed" >> ${BUILD_LOG_FILE}
+      WriteLog "  Build succeed." "${OBT_BUILD_LOG_FILE}"
       buildResult=SUCCEED
    fi
 fi
