@@ -591,7 +591,7 @@ fi
     
 WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
 
-if [ $retCode -ne 0 ]
+if [[ $retCode -ne 0 ]]
 then
    echo "Build failed: build has errors " >> ${BUILD_LOG_FILE}
    WriteLog "  Build failed: build has errors." "${OBT_BUILD_LOG_FILE}"

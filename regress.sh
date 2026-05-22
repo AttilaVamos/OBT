@@ -328,11 +328,13 @@ cp /etc/HPCCSystems/environment.xml ${OBT_BIN_DIR}/environment-sl${REGRESSION_NU
 
 WriteLog "Start HPCC system" "${REGRESS_LOG_FILE}"
 
-res=$( sudo service hpcc-init start 2>&1)
+#res=$( sudo service hpcc-init start 2>&1)
+res=$( sudo /etc/init.d/hpcc-init start 2>&1)
 
 WriteLog "res:\n${res}" "${REGRESS_LOG_FILE}"
 
-hpccRunning=$( sudo service hpcc-init status | grep -c "running")
+#hpccRunning=$( sudo service hpcc-init status | grep -c "running")
+hpccRunning=$( sudo /etc/init.d/hpcc-init status | grep -c "running")
     
 WriteLog $hpccRunning" HPCC component started." "${REGRESS_LOG_FILE}"
 
@@ -342,7 +344,8 @@ then
 else
     WriteLog "HPCC Start: Fail" "${REGRESS_LOG_FILE}"
 
-    res=$( sudo service hpcc-init status | grep  "stopped" ) 
+    #res=$( sudo service hpcc-init status | grep  "stopped" ) 
+    res=$( sudo /etc/init.d/hpcc-init status | grep  "stopped" ) 
     WriteLog $res "${REGRESS_LOG_FILE}"
 
     exit
@@ -367,10 +370,10 @@ WriteLog "ulimit: ${res}" "${REGRESS_LOG_FILE}"
 # The crash test causes some problem in Roxie therefore it should restart
 WriteLog "Restart roxie" "${REGRESS_LOG_FILE}"
 
-res=$( sudo service hpcc-init -c roxie stop )
+res=$( sudo /etc/init.d/hpcc-init -c roxie stop )
 WriteLog "Stop roxie: ${res}" "${REGRESS_LOG_FILE}"
 
-res=$( sudo service hpcc-init -c roxie start )
+res=$( sudo /etc/init.d/hpcc-init -c roxie start )
 WriteLog "Start roxie: ${res}" "${REGRESS_LOG_FILE}"
 
 
