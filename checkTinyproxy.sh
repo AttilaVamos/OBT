@@ -55,7 +55,10 @@ then
         WriteLog "  Done." "${TINYPROXY_CHECK_LOG_FILE}"
     fi
 else
-    WriteLog "Tinyproxy is installed." "${TINYPROXY_CHECK_LOG_FILE}"
+    WriteLog "Tinyproxy is installed, stop it." "${TINYPROXY_CHECK_LOG_FILE}"
+    res=$(sudo kill -TERM $(pgrep tinyproxy) 2>&1 )
+    retCode=$?
+    WriteLog "  Done, retCode: $retCode." "${TINYPROXY_CHECK_LOG_FILE}"
 fi
 
 if [[ ! -f tinyproxy.conf ]]
