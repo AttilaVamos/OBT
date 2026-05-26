@@ -193,7 +193,7 @@ else
     done
 fi
 
-if [[ "$OBT_ID" == "OBT-AWS02" ]]
+if [[ "$OBT_ID" == "OBT-AWS01" ]]
 then
     SmoketestSchedulerIp='10.20.0.14'  # It is in same region, so use local IP
 
