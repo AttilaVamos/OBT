@@ -145,7 +145,7 @@ class TrendReport(object):
         
         self.enableBaseLine = options.enableBaseLine
         self.baseLine = 0.0
-        self.baseLineLabel = ''
+        self.baseLineLabel = options.baseLineLabel
         self.baseLineDate = options.baseLineDate
         if self.enableBaseLine:
             if self.baseLineDate == "":
@@ -161,10 +161,16 @@ class TrendReport(object):
                         continue
 
                     items = line.strip().split(',')
-                    #                    testName       cluster   movingMean
-                    self.baseLines[items[0]] = {items[1]: float(items[2]) }
+                    try:
+                        #                    testName       cluster   movingMean
+                        self.baseLines[items[0]][items[1]] = float(items[2])
+                    except KeyError:
+                        if items[0] not in self.baseLines:
+                            self.baseLines[items[0]] = {}
+                        self.baseLines[items[0]][items[1]] =float(items[2])
                 baseLineFile.close()
                 print("  Read %s file is done." % (baseLineFileName))
+                self.baseLineLabel = 'Baseline (' + self.baseLineDate +')'
             except FileNotFoundError:
                 PrintException("Base line CSV file not found. Disable base line feature.")
                 self.enableBaseLine = False
@@ -176,7 +182,6 @@ class TrendReport(object):
                 pass
 
             self.baseLine = options.baseLine
-            self.baseLineLabel = options.baseLineLabel
             
         self.generateBaseLine = options.generateBaseLine
         if self.generateBaseLine:
@@ -616,12 +621,17 @@ class TrendReport(object):
                     try:
                         self.baseLines[testName][cluster] = movingMean
                     except KeyError:
-                        self.baseLines[testName] = {cluster: movingMean }
+                        if testName not in self.baseLines:
+                            self.baseLines[testName] = {}
+
+                        self.baseLines[testName][cluster] = movingMean
 
         if self.generateBaseLine and len(dates) > 0: 
             if testName not in self.baseLines:
                 print("There is not test date: %s in test: '%s' (%s) results. Use the last average value: %f." % (self.baseLineDate,  testName, cluster,  movingMean))
-                self.baseLines[testName] = {cluster: movingMean }
+                self.baseLines[testName] = {}
+            if cluster not in self.baseLines[testName]:
+                self.baseLines[testName][cluster] = movingMean
 
         pass
         return retArray
@@ -1193,10 +1203,19 @@ class TrendReport(object):
                 dates2 = self.createDateSeries(self.clusterTrends[cluster]['Dates'][-dataPoints:], dataPoints)
                 dataPoints = len(dates2)
                 if dataPoints > 0:
-                    dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
-                    ax.plot_date(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
-
                     try:
+                        if self.enableBaseLine:
+                            # plot the base line
+                            baseLine = self.baseLines['perftest'][cluster]
+                            xb = [dates2[0],  dates2[-1]]
+                            yb = [baseLine, baseLine]
+                            baseLineLabel = self.baseLineLabel.replace('Baseline', cluster+' baseline')
+                            ax.plot(xb, yb, label="%s (%f sec)" % (baseLineLabel,  baseLine), marker ='^', linestyle = '-', linewidth=4.0,  color=clusterColors[cluster])
+
+                        # plot the data
+                        dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
+                        ax.plot_date(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
+
                         # plot the trend
                         clusterTrendLabel = '%s-trend (%0.3f sec/day, alpha:%0.3f, beta:%0.3f)' % ( cluster,  self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['beta'])
                         x1 = [dates2[0],  dates2[-1]]
@@ -1230,14 +1249,6 @@ class TrendReport(object):
                     print("No data for %s." % (cluster) )
                     pass
 
-            if self.enableBaseLine:
-                # plot the base line
-                baseLine = self.baseLines['perftest'][cluster]
-                xb = [dates2[0],  dates2[-1]]
-                yb = [baseLine, baseLine]
-                ax.plot(xb, yb, label="%s (%f sec)" % (self.baseLineLabel,  baseLine), marker ='^', linestyle = '-', linewidth=4.0, color='red')
-
-            
             ax.grid(True, which='both')
             myTitle = 'Performance Suite execution time trends on ' +  self.hpccVersion +' in the last '+ str(dataPoints) +' days'
             myTitle += self.getTestInfo(cluster)
