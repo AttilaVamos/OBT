@@ -1,4 +1,4 @@
-BRANCHES_TO_TEST=( 'master' 'candidate-10.4.x' 'candidate-10.2.x' 'candidate-10.0.x' 'candidate-9.14.x' )
+BRANCHES_TO_TEST=( 'master' 'candidate-10.4.x' 'candidate-10.2.x' 'candidate-10.0.x' 'candidate-2.0.x' )
 
 # For versioning
 RUN_1=("BRANCH_ID=master")
@@ -21,6 +21,7 @@ else
   RUN_ARRAY=(
     RUN_1[@]    # master (1 ch/th sl)
     RUN_2[@]    # candidate-10.4.x (1 ch/th sl)
-#    RUN_3[@]    # candidate-10.2.x (1 ch/th sl)
-    RUN_5[@]    # candidate-2.0.x (1 ch/th sl)  )
+    #RUN_3[@]    # candidate-10.2.x (1 ch/th sl)
+    RUN_5[@]    # candidate-2.0.x (1 ch/th sl)
+  )
 fi
