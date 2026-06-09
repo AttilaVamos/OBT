@@ -394,8 +394,10 @@ class BuildTask( Task ):
                 line = line.rstrip()
                 m = errline.search( line )
                 if m and ('/docs/' not in line):
+                    # TO-DO: Rename it to self._errorMsgHtml and add self._errorMsgPlain
                     self._errorMsg += line +'<br>\n'
                     self._total += 1
+                # TO-DO process add the rest of the error block. all lines which explain the problem until double '\n'
 
         p_branch = re.compile('\s*git branch:\s*(.*)\s*$')
         p_date   = re.compile('\s*Date:\s*(.*)$')
