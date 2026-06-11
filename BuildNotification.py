@@ -188,6 +188,7 @@ class Task( object ):
         self._globalExclusion = ''
         self._globalExclusions = {}
         self._errorMsg = ''
+        self._errorMsgHtml = ''
         self._total = 0
         self._passed = 0
         self._failed = 0
@@ -254,7 +255,11 @@ class Task( object ):
     @property
     def errorMsg(self):
         return self._errorMsg
-        
+
+    @property
+    def errorMsgHtml(self):
+        return self._errorMsgHtml
+
     @property
     def total(self):
         return ("%d" % (self._total))
@@ -390,14 +395,23 @@ class BuildTask( Task ):
         
         if self._result == 'FAILED':
             errline = re.compile('\s([Ee]rror[:]*|[Ff]ailed|!checking|http[s]?:)\s.*$')
+            inError = False  # To process error lines until an empty line arrives
             for line in logLines:
                 line = line.rstrip()
                 m = errline.search( line )
-                if m and ('/docs/' not in line):
-                    # TO-DO: Rename it to self._errorMsgHtml and add self._errorMsgPlain
-                    self._errorMsg += line +'<br>\n'
+                if m and ('/docs/' not in line) or inError:
+                    if len(line) == 0 and inError:
+                        self._errorMsgHtml += '</pre><br>\n'
+                        inError = False
+                        continue
+
+                    self._errorMsg += line
+                    self._errorMsgHtml += line +'<br>\n'
+                    if inError == False:
+                        self._errorMsgHtml += '<pre>'
+
                     self._total += 1
-                # TO-DO process add the rest of the error block. all lines which explain the problem until double '\n'
+                    inError = True
 
         p_branch = re.compile('\s*git branch:\s*(.*)\s*$')
         p_date   = re.compile('\s*Date:\s*(.*)$')
@@ -815,6 +829,7 @@ class BuildNotification( object ):
         self.errorMsg = ''
         self.testEngineErrMsg = ''
         self.buildErrorMsg = ''
+        self.buildErrorMsgHtml = ''
         self.logReport = {}
         self.jsonReport = { "OBTResult" : { "Env" : {},  "BuildSet" :{},  "Exclusion": {}, "ThorConfig": {}, "Tasks":[],  "Errors":[] } }
            
@@ -841,6 +856,7 @@ class BuildNotification( object ):
         else: 
             self.summary = 'Build Failed'
             self.status = 'FAILED'
+            self.buildErrorMsgHtml = buildTask.errorMsgHtml
             self.buildErrorMsg = buildTask.errorMsg
 
           
@@ -1174,9 +1190,9 @@ class BuildNotification( object ):
             self.msgHTML += "<H3>Regression Test Engine errors</H3>\n"
             self.msgHTML += "<pre>" + self.testEngineErrMsg + "</pre><hr>\n"
         
-        if len(self.buildErrorMsg) > 0:
+        if len(self.buildErrorMsgHtml) > 0:
             self.msgHTML += "<H3>Build errors</H3>\n"
-            self.msgHTML += self.buildErrorMsg + "<hr>\n"
+            self.msgHTML += self.buildErrorMsgHtml + "<hr>\n"
             self.jsonReport["OBTResult"]["Errors"].append( { 'Build': self.buildErrorMsg} )
     
         if len(self.errorMsg) > 0:
