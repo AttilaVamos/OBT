@@ -236,7 +236,7 @@ QUICK_SESSION=0  # If non zero then execute standard unittests, else run 'all'
 
 # Upload to OBT-Collector US-EAST1
 SSH_KEYFILE="~/HPCC-Platform-Smoketest.pem"
-SSH_TARGET="35.174.185.208"
+SSH_TARGET="10.22.252.123"
 SSH_OPTIONS="-oConnectionAttempts=2 -oConnectTimeout=10 -oStrictHostKeyChecking=no"
 SSH_USER="ubuntu"
 
