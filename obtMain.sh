@@ -190,6 +190,11 @@ WriteLog "GLibCC : $glibcVersion" "${OBT_LOG_FILE}"
 WriteLog "CMake  : $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
 WriteLog "Python : $(python --version )" "${OBT_LOG_FILE}"
 WriteLog "Python3: $(python3 --version )" "${OBT_LOG_FILE}"
+WriteLog "node   : $(node --version )" "${OBT_LOG_FILE}"
+WriteLog "npm    : $(npm --version )" "${OBT_LOG_FILE}"
+WriteLog "Java   : $(java -version )" "${OBT_LOG_FILE}"
+WriteLog "Javac  : $(javac -version )" "${OBT_LOG_FILE}"
+
 
 STARTUP_MSG=""
 

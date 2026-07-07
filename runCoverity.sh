@@ -21,7 +21,8 @@ fi
 
 WEEK_DAY_NAME=$(date -d "${WEEK_DAY}" '+%A')
 #COVERITY_BIN_DIR=~/cov-analysis-linux64-2023.6.2/bin
-COVERITY_BIN_DIR=~/cov-analysis-linux64-2024.6.1/bin
+#COVERITY_BIN_DIR=~/cov-analysis-linux64-2024.6.1/bin
+COVERITY_BIN_DIR=~/cov-analysis-linux64-2024.12.1/bin
 
 # Set it to 1 if you want to test runCoverity.sh without execute Coverity build and upload.
 DRY_RUN=0
@@ -83,24 +84,38 @@ then
             
             if [[ $DRY_RUN -ne 1 ]]
             then
-                pushd ~/build/CE/platform/build    
-                rm cov-int -r
+                [ ! -d ~/build/CE/platform/build ] && mkdir -p ~/build/CE/platform/build
 
-                find . -name *.ccfxprep -delete
+                pushd ~/build/CE/platform/build
+                echo "Delete cov-int directory."
+                [ -d cov-int ] && rm -r cov-int
+
+                echo "Delete .ccfxprep files."
+                find . -name '*.ccfxprep' -delete
+
+                echo "make clean"
                 make clean -j
-                
-                if [[ -f ~/vcpkg_downloads-$BRANCH_ID.zip ]] 
-                then 
+
+                if [[ -f ~/vcpkg_downloads-$BRANCH_ID.zip ]]
+                then
+                    echo "delete vcpkg_*"
+                    rm -rf vcpkg_*
+
+                    echo "extract vcpkg_download-$BRANCH_ID.zip"
                     res=$( unzip ~/vcpkg_downloads-$BRANCH_ID.zip 2>&1 )
                     [[ $? -ne 0 ]] && myEcho "$res"
                 fi
-                
+
+                echo "cmake ..."
                 cmake -DCONTAINERIZED=$CONTAINERIZED ../HPCC-Platform
-                
+
+                echo "Build with ${NUMBER_OF_BUILD_THREADS} threads ..."
                 ${COVERITY_BIN_DIR}/cov-build   --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
+                echo "  done"
+
                 tar czvf ${REPORT_FILE_NAME} cov-int
                 find . -name *.ccfxprep -delete
-            
+
                 cp -v ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
                 echo "Looking for annotation*.csv file:"
                 res=$(find . -iname '*annotation*.csv' -type f  -exec  cp -v  {}  ${COVERITY_REPORT_PATH}/  \; 2>&1)
@@ -110,7 +125,7 @@ then
                 # When you upload the build can you also include the commit SHA in the version (Gavin)
                 #
                 echo "Get ${COVERITY_TEST_BRANCH} branch SHA"
-               # Need to use the correct path which is PCC-Platform-master-<timestamp>
+                # Need to use the correct path which is PCC-Platform-master-<timestamp>
                 branchDir=$(find ~/build/CE/platform/ -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
                 if [[ -d $branchDir ]]
                 then
