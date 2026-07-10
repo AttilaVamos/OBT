@@ -187,12 +187,12 @@ glibcVersion=$( v=$(ldd --version | head -n 1); v=${v#*\(}; v=${v%)*}; echo $v)
 WriteLog "LD_LIBRARY_PATH:'${LD_LIBRARY_PATH}'" "${OBT_LOG_FILE}"
 WriteLog "GCC    : $gccVersion" "${OBT_LOG_FILE}"
 WriteLog "GLibCC : $glibcVersion" "${OBT_LOG_FILE}"
-WriteLog "CMake  : $( /usr/local/bin/cmake --version | head -n 1)" "${OBT_LOG_FILE}"
-WriteLog "Python : $(python --version )" "${OBT_LOG_FILE}"
+WriteLog "CMake  : $(cmake --version | head -n 1)" "${OBT_LOG_FILE}"
+WriteLog "Python : $(python --version 2>/dev/null || echo none)" "${OBT_LOG_FILE}"
 WriteLog "Python3: $(python3 --version )" "${OBT_LOG_FILE}"
 WriteLog "node   : $(node --version )" "${OBT_LOG_FILE}"
 WriteLog "npm    : $(npm --version )" "${OBT_LOG_FILE}"
-WriteLog "Java   : $(java -version )" "${OBT_LOG_FILE}"
+WriteLog "Java   : $(java -version 2>&1 | head -n 1 )" "${OBT_LOG_FILE}"
 WriteLog "Javac  : $(javac -version )" "${OBT_LOG_FILE}"
 
 
