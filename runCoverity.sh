@@ -5,6 +5,9 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 # Git branch settings
 . ./settings.sh
 
+[[ "$OBT_ID" =~ "OBT-" ]] && IN_OBT=1 || IN_OBT=0
+
+
 [ ! -d ${COVERITY_REPORT_PATH} ] && mkdir -p ${COVERITY_REPORT_PATH}
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
@@ -36,6 +39,7 @@ echo "Today is         : $WEEK_DAY_NAME"
 echo "Test branch is   : $COVERITY_TEST_BRANCH"
 echo "Current branch is: $BRANCH_ID"
 echo "CONTAINERIZED is : $CONTAINERIZED"
+echo "Build is in OBT  : $IN_OBT"
 
 if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BRANCH ) ]]
 then
@@ -81,10 +85,11 @@ then
         
             export VCPKG_BINARY_SOURCES="clear;nuget,GitHub,readwrite"
             export VCPKG_NUGET_REPOSITORY=https://github.com/hpcc-systems/vHPCC-Platformcpkg
+            VCPKG_ARCHIVE="vcpkg_downloads-$BRANCH_ID-coverity.zip"
             
             if [[ $DRY_RUN -ne 1 ]]
             then
-                [ ! -d ~/build/CE/platform/build ] && mkdir -p ~/build/CE/platform/build
+                [ ! -d ~/build/CE/platform/build ] && mkdir -p ~/build/CE/platform/build || rm -rf ~/build/CE/platform/build/*
 
                 pushd ~/build/CE/platform/build
                 echo "Delete cov-int directory."
@@ -96,12 +101,12 @@ then
                 echo "make clean"
                 make clean -j
 
-                if [[ -f ~/vcpkg_downloads-$BRANCH_ID.zip ]]
+                if [[ -f ~/$VCPKG_ARCHIVE ]]
                 then
                     echo "delete vcpkg_*"
                     rm -rf vcpkg_*
 
-                    echo "extract vcpkg_download-$BRANCH_ID.zip"
+                    echo "extract $VCPKG_ARCHIVE"
                     res=$( unzip ~/vcpkg_downloads-$BRANCH_ID.zip 2>&1 )
                     [[ $? -ne 0 ]] && myEcho "$res"
                 fi
@@ -111,12 +116,21 @@ then
 
                 echo "Build with ${NUMBER_OF_BUILD_THREADS} threads ..."
                 ${COVERITY_BIN_DIR}/cov-build   --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
-                echo "  done"
+                retCode=$?
+                echo "RetCode: $retCode"
+                if [[ $retCode -ne 0 ]]
+                then
+                    echo "Build failed with $retCode"
+                    echo "Exit."
+                    exit -1
+                else
+                    echo "  done"
+                fi
 
                 tar czvf ${REPORT_FILE_NAME} cov-int
                 find . -name *.ccfxprep -delete
 
-                cp -v ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
+                mv -v ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
                 echo "Looking for annotation*.csv file:"
                 res=$(find . -iname '*annotation*.csv' -type f  -exec  cp -v  {}  ${COVERITY_REPORT_PATH}/  \; 2>&1)
                 echo "  res: $res"
