@@ -816,9 +816,9 @@ then
             buildResult=FAILED
             echo "Result:FAILED" >   $TARGET_DIR/build_summary
             WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
-            echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >> $TARGET_DIR/build_summary}
-            echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >> $TARGET_DIR/build_summary
-            echo "Package:$( SecToTimeStr ${PKG_TIME} )" >> $TARGET_DIR/build_summary
+            echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )"                      >> $TARGET_DIR/build_summary
+            echo "Build:$( SecToTimeStr ${BUILD_TIME} )"                      >> $TARGET_DIR/build_summary
+            echo "Package:$( SecToTimeStr ${PKG_TIME} )"                      >> $TARGET_DIR/build_summary
             echo "Altogether:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> $TARGET_DIR/build_summary
             exit 2
         else
@@ -899,17 +899,17 @@ then
     date=$( date "+%Y-%m-%d %H:%M:%S")
     WriteLog "Build end at ${date}" "${PERF_TEST_LOG}"
     WHOLE_BUILD_TIME=$(( $(date +%s) - $BUILD_START_TIME_STAMP ))
-    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >> ${BUILD_LOG_FILE}
-    echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >> ${BUILD_LOG_FILE}
-    echo "Package:$( SecToTimeStr ${PKG_TIME} )" >> ${BUILD_LOG_FILE}
+    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )"            >> ${BUILD_LOG_FILE}
+    echo "Build:$( SecToTimeStr ${BUILD_TIME} )"            >> ${BUILD_LOG_FILE}
+    echo "Package:$( SecToTimeStr ${PKG_TIME} )"            >> ${BUILD_LOG_FILE}
     echo "Elaps:$( SecToTimeStr ${WHOLE_BUILD_TIME} )" >> ${BUILD_LOG_FILE}
     cp ${GIT_2DAYS_LOG}  $TARGET_DIR/
     cp ${BUILD_LOG_FILE}  $TARGET_DIR/build.log
 
-    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )" >>  $TARGET_DIR/build_summary
-    echo "Build:$( SecToTimeStr ${BUILD_TIME} )" >>  $TARGET_DIR/build_summary
-    echo "Package:$( SecToTimeStr ${PKG_TIME} )" >>  $TARGET_DIR/build_summary
-    echo "Altogether:$( SecToTimeStr ${WHOLE_BUILD_TIME} )"  $TARGET_DIR/build_summary
+    echo "CMake:$( SecToTimeStr ${CMAKE_TIME} )"                       >> $TARGET_DIR/build_summary
+    echo "Build:$( SecToTimeStr ${BUILD_TIME} )"                       >> $TARGET_DIR/build_summary
+    echo "Package:$( SecToTimeStr ${PKG_TIME} )"                       >> $TARGET_DIR/build_summary
+    echo "Altogether:$( SecToTimeStr ${WHOLE_BUILD_TIME} )"  >> $TARGET_DIR/build_summary
 
     HPCC_PACKAGE=$( find . -maxdepth 1 -name 'hpccsystems-platform-community*' -type f )
     

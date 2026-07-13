@@ -310,9 +310,18 @@ RTE_TIMEOUT="--timeout 1200"
 #RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl'
 #RTE_QUICK_TEST_SET='despray.ecl'
 RTE_QUICK_TEST_SET='pipe* httpcall* soapcall* roxie* badindex.ecl cryptoplugin_pke_lfn.ecl external.ecl javalibrary* library*'  # To generate errors as well
+RTE_QUICK_TEST_SET='genjoin* teststdlib*'
 
 #RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,proxy'
 RTE_EXCLUSIONS='--ef pipefail.ecl -e embedded-r,embedded-js,3rdpartyservice,mongodb,spray,proxy'
+
+# Strictly for debug (this script or RTE) only feature because it messing-up the
+# log file proccessing andresult generation
+# Effective only in ecl-test query mode (based on the generated log size)
+# Keep or restore them to "info" value
+RTE_SETUP_LOGLEVEL="info"
+RTE_LOGLEVEL="info"
+
 
 INTERFACE=$(ip -o link show | awk -F': ' '{ print $2 }' | grep '^en')
 LOCAL_IP="$(ip addr show $INTERFACE | grep 'inet\b' | awk '{ print $2 }' | cut -d/ -f1)"
@@ -329,6 +338,10 @@ INTERACTIVE=0
 FULL_REGRESSION=1
 TAG='<latest>'
 VERBOSE=0
+
+# Strictly for debug (this script or RTE) only feature becasue it doesn't clean-up(yet)
+# So the PODs and Minkube are left running if its value is '1'
+START_ONLY=0
 
 while [ $# -gt 0 ]
 do
@@ -411,10 +424,13 @@ PrintSetting "RTE_CONFIG" "$logFile"
 PrintSetting "RTE_SETUP_PQ" "$logFile"
 PrintSetting "RTE_PQ" "$logFile"
 PrintSetting "RTE_TIMEOUT" "$logFile"
+PrintSetting "RTE_SETUP_LOGLEVEL" "$logFile"
+PrintSetting "RTE_LOGLEVEL" "$logFile"
 PrintSetting "INTERACTIVE" "$logFile"
 PrintSetting "FULL_REGRESSION" "$logFile"
 PrintSetting "TAG" "$logFile"
 PrintSetting "VERBOSE" "$logFile"
+PrintSetting "START_ONLY" "$logFile"
 PrintSetting "LOCAL_IP" "$logFile"
 PrintSetting "HOST_HARDWARE" "$logFile"
 PrintSetting "MINIKUBE_OVERRIDE_SETTINGS" "$logFile"
@@ -789,9 +805,6 @@ then
     PODS_START_RESULT_SUFFIX_STR="$NUMBER_OF_RUNNING_PODS/${expected} PODs are up."
     PODS_START_RESULT_REPORT_STR="$PODS_START_RESULT_STR in $PODS_START_TIME_STR, $PODS_START_RESULT_SUFFIX_STR"
     WriteLog "  $PODS_START_RESULT_REPORT_STR" "$logFile"
-   
-    pushd $RTE_DIR > /dev/null
-    WriteLog "cwd: $(pwd)" "$logFile"
     
     TIME_STAMP=$(date +%s)
     WriteLog "Start ECLWatch." "$logFile"
@@ -805,6 +818,7 @@ then
     WriteLog "ip: $ip" "$logFile"
     port=$( echo $uri | cut -d ':' -f 2 )
     WriteLog "port: $port" "$logFile"
+
     #echo "Press <Enter> to continue"
     #read
     ECLWATCH_START_TIME=$(( $(date +%s) - $TIME_STAMP ))
@@ -812,13 +826,24 @@ then
     ECLWATCH_START_RESULT_STR="Done"
     ECLWATCH_START_RESULT_REPORT_STR="$ECLWATCH_START_RESULT_STR in $ECLWATCH_START_TIME_STR"
     WriteLog "  $ECLWATCH_START_RESULT_REPORT_STR" "$logFile"
+
+    if [[ $START_ONLY -eq 1 ]]
+    then
+        WriteLog "It was a start only attempt, exit." "$logFile"
+        WriteLog "All created resources and the Minikube are still up and running!" "$logFile"
+        exit 0
+    fi
+
+    pushd $RTE_DIR > /dev/null
+    WriteLog "cwd: $(pwd)" "$logFile"
     
     WriteLog "Run tests." "$logFile"
-     [[ $DEBUG == 1 ]] && pwd
+    [[ $DEBUG == 1 ]] && pwd
 
     setupPass=1
     WriteLog "Run regression setup ..." "$logFile"
-    res=$( ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_SETUP_PQ --timeout 900 --loglevel info 2>&1 )
+    SETUP_CMD=" ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_SETUP_PQ --timeout 900 -fanalyzeWorkunit=false --loglevel $RTE_SETUP_LOGLEVEL"
+    res=$( ${SETUP_CMD}  2>&1 )
     retCode=$?
     isError=$( echo "${res}" | egrep -c 'Fail ' )
     WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
@@ -876,13 +901,14 @@ then
         then
             WriteLog "Run Regression Suite ..." "$logFile"
             # For full regression on hthor
-            REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info"
-            res=$( ./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info 2>&1 )
+            REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info -fanalyzeWorkunit=false"
+            res=$( ${REGRESS_CMD} 2>&1 )
         else
             # For sanity testing on all engines
             WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
-            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET"
-            res=$( ./ecl-test query --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info $RTE_QUICK_TEST_SET 2>&1 )
+            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel $RTE_LOGLEVEL -fanalyzeWorkunit=false $RTE_QUICK_TEST_SET"
+            res=$( ${REGRESS_CMD} 2>&1 )
+            [[ "$RTE_LOGLEVEL" == "debug" ]] && WriteLog "-------------------------------------------\nResult:\n${res}\n-----------------------------------\n" "$logFile"
         fi
 
         retCode=$?
