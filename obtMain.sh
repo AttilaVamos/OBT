@@ -177,6 +177,14 @@ trap ControlC SIGINT
 trap ControlC SIGTERM
 trap ControlC SIGKILL
 
+# Set the locale language to en_US.UTF-8
+res=$( sudo localectl set-locale LAND=en_US.UTF-8 2>&1)
+retCode=$?
+if [[ $retCode -ne 0 ]]
+then
+    export LANG="en_US.UTF-8"
+    sudo update-locale
+fi
 
 export PATH=$PATH:/usr/local/bin:/bin:/usr/local/sbin:/sbin:/usr/sbin:/mnt/disk1/home/vamosax/bin:
 WriteLog "path:'${PATH}'" "${OBT_LOG_FILE}"
@@ -194,7 +202,7 @@ WriteLog "node   : $(node --version )" "${OBT_LOG_FILE}"
 WriteLog "npm    : $(npm --version )" "${OBT_LOG_FILE}"
 WriteLog "Java   : $(java -version 2>&1 | head -n 1 )" "${OBT_LOG_FILE}"
 WriteLog "Javac  : $(javac -version )" "${OBT_LOG_FILE}"
-
+WriteLog "Lang   : $LANG" "${OBT_LOG_FILE}"
 
 STARTUP_MSG=""
 
