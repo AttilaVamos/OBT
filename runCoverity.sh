@@ -7,6 +7,18 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 [[ "$OBT_ID" =~ "OBT-" ]] && IN_OBT=1 || IN_OBT=0
 
+CLEAN_UP=1
+[[ "$1" == "-no-cleanup" ]] && CLEAN_UP=0
+
+# Strictly for debug, because it will be so sloow
+# Default value set in settings.sh
+#NUMBER_OF_BUILD_THREADS=1
+
+# Comment-out and/or update if VCPKG fails to download/build a package
+CMAKE_EXTRA_PARAM=" -D USE_LIBMEMCACHED=OFF -D SUPPRESS_LIBMEMCACHED=ON"
+
+# If it is 1 (default) then upload the result
+DO_UPLOAD=1
 
 [ ! -d ${COVERITY_REPORT_PATH} ] && mkdir -p ${COVERITY_REPORT_PATH}
 RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
@@ -89,19 +101,27 @@ then
             
             if [[ $DRY_RUN -ne 1 ]]
             then
-                [ ! -d ~/build/CE/platform/build ] && mkdir -p ~/build/CE/platform/build || rm -rf ~/build/CE/platform/build/*
+                if [ ! -d $COVERITY_BUILD_PATH ]
+                then
+                    mkdir -p $COVERITY_BUILD_PATH
+                else
+                    [[ $CLEAN_UP -eq 1 ]] && rm -rf $COVERITY_BUILD_PATH/*
+                fi
 
-                pushd ~/build/CE/platform/build
+                pushd $COVERITY_BUILD_PATH
                 echo "Delete cov-int directory."
                 [ -d cov-int ] && rm -r cov-int
 
                 echo "Delete .ccfxprep files."
                 find . -name '*.ccfxprep' -delete
 
-                echo "make clean"
-                make clean -j
+                if [[ $CLEAN_UP -eq 1 ]]
+                then
+                    echo "make clean"
+                    make clean -j
+                fi
 
-                if [[ -f ~/$VCPKG_ARCHIVE ]]
+                if [[ -f ~/$VCPKG_ARCHIVE && ($CLEAN_UP -eq 1) ]]
                 then
                     echo "delete vcpkg_*"
                     rm -rf vcpkg_*
@@ -112,7 +132,7 @@ then
                 fi
 
                 echo "cmake ..."
-                cmake -DCONTAINERIZED=$CONTAINERIZED ../HPCC-Platform
+                cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo -DCONTAINERIZED=$CONTAINERIZED $CMAKE_EXTRA_PARAM ../HPCC-Platform
 
                 echo "Build with ${NUMBER_OF_BUILD_THREADS} threads ..."
                 ${COVERITY_BIN_DIR}/cov-build   --dir cov-int make -j ${NUMBER_OF_BUILD_THREADS}
@@ -127,10 +147,21 @@ then
                     echo "  done"
                 fi
 
+                if [[ $CLEAN_UP -eq 1 ]]
+                then
+                    echo "make clean"
+                    make clean -j
+
+                    echo "delete vcpkg_*"
+                    rm -rf vcpkg_*
+                fi
+
+                echo "Generating report file..."
                 tar czvf ${REPORT_FILE_NAME} cov-int
                 find . -name *.ccfxprep -delete
-
                 mv -v ${REPORT_FILE_NAME} ${COVERITY_REPORT_PATH}/.
+                echo "  Done."
+
                 echo "Looking for annotation*.csv file:"
                 res=$(find . -iname '*annotation*.csv' -type f  -exec  cp -v  {}  ${COVERITY_REPORT_PATH}/  \; 2>&1)
                 echo "  res: $res"
@@ -147,11 +178,12 @@ then
                     branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
                     popd
                 else
-                    echo "$branchDir not found"
-                    branchCrc="NotFound"
+                    pushd $COVERITY_SOURCE_PATH
+                    branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+                    popd
                 fi
 
-                echo ${branchCrc}
+                echo "Commit ID: ${branchCrc}"
 
                 echo "Send Email to ${RECEIVERS}"
                 echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}
@@ -160,6 +192,13 @@ then
                 echo "Uploading started"
                 echo "REPORT_FILE_NAME: '$REPORT_FILE_NAME'"
                 echo "PROJECT_ID      : '$PROJECT_ID'"
+
+                # To prevent upload, only for debug
+                if [[ $DO_UPLOAD -eq 0 ]]
+                then
+                    echo "Upload disabled, exit."
+                    exit -1
+                fi
 
                 echo "Get upload parameters:"
                 res=$(curl -X POST -d version="${BRANCH_ID}-SHA:${branchCrc}" -d description="Upload by $OBT_ID" -d email=attila.vamos@gmail.com -d token=$COVERITY_TOKEN -d file_name="${REPORT_FILE_NAME}" https://scan.coverity.com/projects/$PROJECT_ID/builds/init )
@@ -197,8 +236,11 @@ then
                     fi
                 fi
 
-                echo "Clean-up, remove the generated cov-int directory"
-                rm -rf cov-int
+                if [[ $CLEAN_UP -eq 1 ]]
+                then
+                    echo "Clean-up, remove the generated cov-int directory"
+                    rm -rf cov-int
+                fi
                 popd
             fi
        fi

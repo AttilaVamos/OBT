@@ -9,7 +9,6 @@
 
 # To enable to specify different coverity result file date than the today's date
 # use "yyyy-mm-dd" format
-# TO-DO: do it nicer and enable to specify source path to get the corret commit ID
 #
 if [ "$1." == "." ]
 then
@@ -64,23 +63,28 @@ RECEIVERS=attila.vamos@lexisnexisrisk.com,attila.vamos@gmail.com
 
 echo "Start Coverity scan upload."
 
+
+#TO_DO need to fix this if coverity build executed in not OBT environment.
+
 # To upload
 # When you upload the build can you also include the commit SHA in the version (Gavin)
 #
 echo "Get ${COVERITY_TEST_BRANCH} branch SHA"
 # Need to use the correct path which is PCC-Platform-master-<timestamp>
-branchDir=$(find ~/build/CE/platform/ -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
+branchDir=$(find ~/build/CE/platform/  -maxdepth 1 -iname 'HPCC-Platform-'$COVERITY_TEST_BRANCH'*' -type d )
 if [[ -d $branchDir ]]
 then
     pushd $branchDir
     branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
     popd   
 else
-    echo "$branchDir not found"
-    branchCrc="NotFound"
+    pushd $COVERITY_SOURCE_PATH
+    branchCrc=$( git log -1 | grep '^commit' | cut -s -d' ' -f 2)
+    popd
 fi
 
 echo ${branchCrc}
+
 
 echo "Send Email to ${RECEIVERS}"
 echo -e "Hi,\n\nCoverity analysis at ${COVERITY_REPORT_PATH}/${REPORT_FILE_NAME} is ready to upload.\nversion=\"${BRANCH_ID}-SHA:${branchCrc}\"\n\nThanks\n\nOBT" | mailx -s "Today coverity result" -u root  ${RECEIVERS}

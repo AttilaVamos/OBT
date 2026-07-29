@@ -244,7 +244,7 @@ SubmoduleUpdate()
                    break
                fi
 
-               res=$( echo "${line}" | egrep -c -i '^fatal|^error|Killed|failed' )
+               res=$( echo "${line}" | egrep -c -i '^fatal|^error|Killed|failed|no content' )
                if [ $res -ne 0 ]
                then
                    err=$RECOVERABLE_ERROR
