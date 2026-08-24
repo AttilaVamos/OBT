@@ -10,12 +10,16 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 CLEAN_UP=1
 [[ "$1" == "-no-cleanup" ]] && CLEAN_UP=0
 
+[[ -z $COVERITY_BUILD_PATH ]] && COVERITY_BUILD_PATH=$BUILD_HOME
+[[ -z $COVERITY_SOURCE_PATH ]] && COVERITY_SOURCE_PATH=$SOURCE_HOME
+VCPKG_ARCHIVE="vcpkg_downloads-$BRANCH_ID-coverity.zip"
+
 # Strictly for debug, because it will be so sloow
 # Default value set in settings.sh
 #NUMBER_OF_BUILD_THREADS=1
 
 # Comment-out and/or update if VCPKG fails to download/build a package
-CMAKE_EXTRA_PARAM=" -D USE_LIBMEMCACHED=OFF -D SUPPRESS_LIBMEMCACHED=ON"
+#CMAKE_EXTRA_PARAM=" -D USE_LIBMEMCACHED=OFF -D SUPPRESS_LIBMEMCACHED=ON"
 
 # If it is 1 (default) then upload the result
 DO_UPLOAD=1
@@ -52,6 +56,10 @@ echo "Test branch is   : $COVERITY_TEST_BRANCH"
 echo "Current branch is: $BRANCH_ID"
 echo "CONTAINERIZED is : $CONTAINERIZED"
 echo "Build is in OBT  : $IN_OBT"
+echo "Source path      : $COVERITY_SOURCE_PATH"
+echo "Build path       : $COVERITY_BUILD_PATH"
+echo "VCPKG archive    : $VCPKG_ARCHIVE"
+
 
 if [[ ( $WEEK_DAY -eq $COVERITY_TEST_DAY ) && ( $BRANCH_ID -eq $COVERITY_TEST_BRANCH ) ]]
 then
@@ -96,11 +104,11 @@ then
         else
         
             export VCPKG_BINARY_SOURCES="clear;nuget,GitHub,readwrite"
-            export VCPKG_NUGET_REPOSITORY=https://github.com/hpcc-systems/vHPCC-Platformcpkg
-            VCPKG_ARCHIVE="vcpkg_downloads-$BRANCH_ID-coverity.zip"
+            export VCPKG_NUGET_REPOSITORY=https://github.com/hpcc-systems/vcpkg
             
             if [[ $DRY_RUN -ne 1 ]]
             then
+                echo "Create/clean-up build directory ($COVERITY_BUILD_PATH)."
                 if [ ! -d $COVERITY_BUILD_PATH ]
                 then
                     mkdir -p $COVERITY_BUILD_PATH
