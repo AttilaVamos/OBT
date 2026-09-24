@@ -135,7 +135,7 @@ then
                     rm -rf vcpkg_*
 
                     echo "extract $VCPKG_ARCHIVE"
-                    res=$( unzip ~/vcpkg_downloads-$BRANCH_ID.zip 2>&1 )
+                    res=$( unzip ~/$VCPKG_ARCHIVE 2>&1 )
                     [[ $? -ne 0 ]] && myEcho "$res"
                 fi
 
@@ -159,6 +159,36 @@ then
                 then
                     echo "make clean"
                     make clean -j
+
+                    echo "Start '$VCPKG_ARCHIVE' handling..."
+		            rm -rf vcpkg_downloads/tools vcpkg_downloads/temp vcpkg_installed/vcpkg/vcpkg-lock.json
+		            [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
+		            
+		            changesInInstalled=1
+		            changesInDownloads=1
+		            if [[ -f ~/${VCPKG_ARCHIVE} ]]
+		            then
+		                cp -fv ~/${VCPKG_ARCHIVE} .
+		                changesInInstalled=$( zip -ru $VCPKG_ARCHIVE vcpkg_installed/* )
+		                echo "Changes in installed: '$changesInInstalled'."
+			                        
+		                changesInDownloads=$( zip -u $VCPKG_ARCHIVE vcpkg_downloads/* )
+		                echo "Changes in downloads: '$changesInDownloads'."
+		                
+		                rm -v ./${VCPKG_ARCHIVE}
+		            fi
+
+		            if [[ -n "$changesInInstalled" || -n "$changesInDownloads" ]]
+		            then
+		                # Don't use the local vcpkg_downloads-${BRANCH_VERSION}.zip  file updated above,
+		                # because it can contain older version of components along with the new one and
+		                # its size can grows more than necessary.
+		                echo "Something changed, generate a new '~/${VCPKG_ARCHIVE}'."
+		                [[ -f ~/${VCPKG_ARCHIVE} ]] && echo "Clean-up: $(rm -v ~/${VCPKG_ARCHIVE}) 2>&1)."
+		                zip -r ~/${VCPKG_ARCHIVE} vcpkg_installed/* vcpkg_downloads/*
+		            else
+		                echo -e"Nothing changed neither in vcpkg_installed nor in vcpkg_dowloads,\nso, keep the original '~/${VCPKG_ARCHIVE}'."
+		            fi     
 
                     echo "delete vcpkg_*"
                     rm -rf vcpkg_*

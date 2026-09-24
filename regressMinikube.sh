@@ -33,6 +33,8 @@ usage()
     WriteLog "                     Regression Suite, only a subset." "/dev/null"
     WriteLog " -t <tag>          - Manually specify the tag" "/dev/null"
     WriteLog "                     (e.g.: 9.4.0-rc7) to be test." "/dev/null"
+    WriteLog " -p                - Run Performance Suite instead of" "/dev/null"
+    WriteLog "                     Regression Suite." "/dev/null"
     WriteLog " -c <num_of_cores> - Set Minikube CPUs to <num_of_cores>."  "/dev/null"
     WriteLog " -m <memory_in_MB> - Set Minikube memory to <memory_in_MB>."  "/dev/null"
     WriteLog " -o                - Override Minikube CPUs and memory"   "/dev/null"
@@ -297,6 +299,27 @@ else
 
     NUMBER_OF_CPUS=$(( $( grep 'core\|processor' /proc/cpuinfo | awk '{print $3}' | sort -nru | head -1 ) + 1 ))
     MEMORY=$(( $( free | grep -i "mem" | awk '{ print $2}' )/ ( 1024 ** 2 ) ))
+    
+    # Control to Regression Test Engine Setup phase
+	# 0 - skip Regression Test Engine setup execution (dry run to test framework)
+	# 1 - execute RTE to run Performance Suite
+	EXECUTE_PERFORMANCE_SUITE_SETUP=1
+
+	# Control to Regression Test Engine
+	# 0 - skip Regression Test Engine execution (dry run to test framework)
+	# 1 - execute RTE to run Performance Suite
+	EXECUTE_PERFORMANCE_SUITE=1
+
+	# timeout in seconds (>0) in Regression Engine
+	PERF_TIMEOUT=1200
+	
+  	PERF_TEST_ROOT="$HOME/perftest"
+  	PERF_TEST_HOME=${PERF_TEST_ROOT}/PerformanceTesting/PerformanceTesting
+
+  	PERF_QUERY_LIST='15aa*'
+  	PERF_QUERY_LIST='01a*'
+ 	TARGET_PLATFORM="roxie-workunit"
+  	TARGET_PLATFORM="thor" 
 fi
 
 HOST_HARDWARE=$( printf "CPU/Cores: %s, RAM: %s GB" "$NUMBER_OF_CPUS" "$MEMORY")
@@ -335,9 +358,10 @@ MINIKUBE_DELETE_BEFORE_DEPLOY=0
 #set -x
 DEBUG=0
 INTERACTIVE=0
-FULL_REGRESSION=1
+FULL_TEST=1
 TAG='<latest>'
 VERBOSE=0
+TEST_SUITE="regress"
 
 # Strictly for debug (this script or RTE) only feature becasue it doesn't clean-up(yet)
 # So the PODs and Minkube are left running if its value is '1'
@@ -356,11 +380,14 @@ do
         I)  INTERACTIVE=1
             ;;
                
-        Q)  FULL_REGRESSION=0
+        Q)  FULL_TEST=0
             ;;
 
         T)  shift
             TAG=$1
+            ;;
+            
+        P)  TEST_SUITE="performance"
             ;;
 
         O)  MINIKUBE_OVERRIDE_SETTINGS=1
@@ -404,7 +431,7 @@ do
 done
 
 RTE_SETUP_PQ="--pq $RTE_PQ"
-RTE_PQ="--pq $RTE_PQ"
+[ "$TEST_SUITE" == "regress" ] && RTE_PQ="--pq $RTE_PQ" ||  RTE_PQ="--pq 1"
 
 PrintSetting "START_CMD" "$logFile"
 PrintSetting "SOURCE_DIR" "$logFile"
@@ -426,8 +453,9 @@ PrintSetting "RTE_PQ" "$logFile"
 PrintSetting "RTE_TIMEOUT" "$logFile"
 PrintSetting "RTE_SETUP_LOGLEVEL" "$logFile"
 PrintSetting "RTE_LOGLEVEL" "$logFile"
+PrintSetting "TEST_SUITE" "$logFile"
 PrintSetting "INTERACTIVE" "$logFile"
-PrintSetting "FULL_REGRESSION" "$logFile"
+PrintSetting "FULL_TEST" "$logFile"
 PrintSetting "TAG" "$logFile"
 PrintSetting "VERBOSE" "$logFile"
 PrintSetting "START_ONLY" "$logFile"
@@ -442,6 +470,7 @@ TARGET_HARDWARE=$( printf "CPU/Cores: %s, RAM: %s GB" "$MINIKUBE_CPUS" "$(( $MIN
                                             PrintSetting "TARGET_HARDWARE" "$logFile" \
                                             )
 PrintSetting "MINIKUBE_DELETE_BEFORE_DEPLOY" "$logFile"
+
 
 WriteLog "Update helm repo..." "$logFile"
 TIME_STAMP=$(date +%s)
@@ -839,119 +868,246 @@ then
     
     WriteLog "Run tests." "$logFile"
     [[ $DEBUG == 1 ]] && pwd
-
-    setupPass=1
-    WriteLog "Run regression setup ..." "$logFile"
-    SETUP_CMD=" ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_SETUP_PQ --timeout 900 -fanalyzeWorkunit=false --loglevel $RTE_SETUP_LOGLEVEL"
-    res=$( ${SETUP_CMD}  2>&1 )
-    retCode=$?
-    isError=$( echo "${res}" | egrep -c 'Fail ' )
-    WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
-     if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
+    
+    if [ "$TEST_SUITE" == "regress" ]
     then
-        WriteLog "$res" "$logFile"
-        getLogs=1
-        setupPass=0
-        SETUP_RESULT_STR="FAILED"
+
+	    setupPass=1
+	    WriteLog "Run regression setup ..." "$logFile"
+	    SETUP_CMD=" ./ecl-test setup --server $ip:$port --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_SETUP_PQ --timeout 900 -fanalyzeWorkunit=false --loglevel $RTE_SETUP_LOGLEVEL"
+	    res=$( ${SETUP_CMD}  2>&1 )
+	    retCode=$?
+	    isError=$( echo "${res}" | egrep -c 'Fail ' )
+	    WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+	    if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
+	    then
+		WriteLog "$res" "$logFile"
+		getLogs=1
+		setupPass=0
+		SETUP_RESULT_STR="FAILED"
+	    else
+		SETUP_RESULT_STR="PASSED"
+	    fi
+	    
+	    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+	    WriteLog "$_res" "$logFile"
+	    declare -A queries passes fails time_str 
+	    declare -a errors=()
+	    declare -a engines=()
+	    SETUP_RESULT_REPORT_STR=''
+	    action="SETUP"
+	    ProcessLog "$res" SETUP_RESULT_REPORT_STR $action  "$logFile"
+	    WriteLog "action: '$action'" "$logFile"
+	    WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
+
+	    
+	    NUMBER_OF_PUBLISHED=0
+	    if [[ $setupPass -eq 1 ]]
+	    then
+		# Experimental code for publish Queries to Roxie
+		WriteLog "Publish queries to Roxie ..." "$logFile"
+		# To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
+		pushd $SUITEDIR/ecl
+		TIME_STAMP=$(date +%s)
+		# New RTE deploys queries to roxie
+	#        while read query
+	#        do
+	#            WriteLog "Query: $query" "$logFile"
+	#            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
+	#            WriteLog "$res" "$logFile"
+	#            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
+	#        done< <(egrep -l '\/\/publish' setup/*.ecl)
+	#        
+		QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
+		popd
+		QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
+		QUERIES_PUBLISH_RESULT_STR="Done"
+		QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
+		QUERIES_PUBLISH_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
+		WriteLog "  $QUERIES_PUBLISH_REPORT_STR" "$logFile"
+
+		REGRESS_START_TIME=$( date "+%H:%M:%S")
+		REGRESS_RESULT_REPORT_STR=''
+		# Regression stage
+		if [[ $FULL_TEST -eq 1 ]]
+		then
+		    WriteLog "Run Regression Suite ..." "$logFile"
+		    # For full regression on hthor
+		    REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info -fanalyzeWorkunit=false"
+		    res=$( ${REGRESS_CMD} 2>&1 )
+		else
+		    # For sanity testing on all engines
+		    WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
+		    REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel $RTE_LOGLEVEL -fanalyzeWorkunit=false $RTE_QUICK_TEST_SET"
+		    res=$( ${REGRESS_CMD} 2>&1 )
+		    [[ "$RTE_LOGLEVEL" == "debug" ]] && WriteLog "-------------------------------------------\nResult:\n${res}\n-----------------------------------\n" "$logFile"
+		fi
+
+		retCode=$?
+		isError=$( echo "${res}" | egrep -c 'Fail ' )
+		WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+		if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
+		then
+		    getLogs=1
+		    REGRESS_RESULT_STR="FAILED"
+		    WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
+		    WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
+		    if [[ $retCode -ne 0 ]]
+		    then
+		        # RTE itself reported error, log the problem
+		        WriteLog "$res" "$logFile"
+		        REGRESS_RESULT_REPORT_STR="$res"
+		    else
+		        # Report the failed tet cases
+		        _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+		        WriteLog "$_res" "$logFile"
+		        REGRESS_RESULT_REPORT_STR="$_res"
+		    fi
+		else
+		    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+		    WriteLog "$_res" "$logFile"
+		    REGRESS_RESULT_STR="PASSED"
+		fi
+		
+		action="REGRESS"
+		ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action  "$logFile"
+		WriteLog "action: '$action'" "$logFile"
+		[[ $DEBUG == 1 ]] && WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
+	    
+	    else
+		WriteLog "Setup is failed, skip regression tessting." "$logFile"
+		QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
+		QUERIES_PUBLISH_TIME=0
+		QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
+		QUERIES_PUBLISH_REPORT_STR="Skipped based on setup error"
+		
+		REGRESS_START_TIME=$( date "+%H:%M:%S")
+		REGRESS_RESULT_STR="Skipped based on setup error"
+		REGRESS_RESULT_REPORT_STR="$REGRESS_RESULT_STR"
+	    fi
     else
-        SETUP_RESULT_STR="PASSED"
-    fi
-    
-    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
-    WriteLog "$_res" "$logFile"
-    declare -A queries passes fails time_str 
-    declare -a errors=()
-    declare -a engines=()
-    SETUP_RESULT_REPORT_STR=''
-    action="SETUP"
-    ProcessLog "$res" SETUP_RESULT_REPORT_STR $action  "$logFile"
-    WriteLog "action: '$action'" "$logFile"
-    WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"
+    	WriteLog "Performance test. Comming soon." "$logFile"
+    	pushd $OBT_BIN_DIR > /dev/null
+    	[ -f ./cloneRepo.sh ] && . $OBT_BIN_DIR/cloneRepo.sh
+    	popd > /dev/null
 
-    
-    NUMBER_OF_PUBLISHED=0
-    if [[ $setupPass -eq 1 ]]
-    then
-        # Experimental code for publish Queries to Roxie
-        WriteLog "Publish queries to Roxie ..." "$logFile"
-        # To proper publish we need in SUITEDIR/ecl to avoid compile error for new queries
-        pushd $SUITEDIR/ecl
-        TIME_STAMP=$(date +%s)
-        # New RTE deploys queries to roxie
-#        while read query
-#        do
-#            WriteLog "Query: $query" "$logFile"
-#            res=$( ecl publish -t roxie --server $ip --port $port $query 2>&1 )
-#            WriteLog "$res" "$logFile"
-#            NUMBER_OF_PUBLISHED=$(( NUMBER_OF_PUBLISHED + 1 ))
-#        done< <(egrep -l '\/\/publish' setup/*.ecl)
-#        
-        QUERIES_PUBLISH_TIME=$(( $(date +%s) - $TIME_STAMP ))
-        popd
-        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
-        QUERIES_PUBLISH_RESULT_STR="Done"
-        QUERIES_PUBLISH_RESULT_SUFFIX_STR="$NUMBER_OF_PUBLISHED queries published to Roxie."
-        QUERIES_PUBLISH_REPORT_STR="$QUERIES_PUBLISH_RESULT_STR in $QUERIES_PUBLISH_TIME_STR, $QUERIES_PUBLISH_RESULT_SUFFIX_STR"
-        WriteLog "  $QUERIES_PUBLISH_REPORT_STR" "$logFile"
+    	[ ! -e $PERF_TEST_ROOT ] && mkdir -p $PERF_TEST_ROOT
+    	rm -rf ${PERF_TEST_ROOT}/*
+    	
+    	WriteLog "Pwd: $(pwd) target: '$TARGET_PLATFORM'" "$logFile"
 
-        REGRESS_START_TIME=$( date "+%H:%M:%S")
-        REGRESS_RESULT_REPORT_STR=''
-        # Regression stage
-        if [[ $FULL_REGRESSION -eq 1 ]]
-        then
-            WriteLog "Run Regression Suite ..." "$logFile"
-            # For full regression on hthor
-            REGRESS_CMD="./ecl-test run --server $ip:$port $RTE_EXCLUSIONS --suiteDir $SUITEDIR --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel info -fanalyzeWorkunit=false"
-            res=$( ${REGRESS_CMD} 2>&1 )
-        else
-            # For sanity testing on all engines
-            WriteLog "Run regression quick sanity chceck with ($RTE_QUICK_TEST_SET)" "$logFile"
-            REGRESS_CMD="./ecl-test query --server $ip:$port --suiteDir $SUITEDIR $RTE_EXCLUSIONS --config $RTE_CONFIG $RTE_PQ $RTE_TIMEOUT --loglevel $RTE_LOGLEVEL -fanalyzeWorkunit=false $RTE_QUICK_TEST_SET"
-            res=$( ${REGRESS_CMD} 2>&1 )
-            [[ "$RTE_LOGLEVEL" == "debug" ]] && WriteLog "-------------------------------------------\nResult:\n${res}\n-----------------------------------\n" "$logFile"
-        fi
+	    WriteLog "Get test from github ${TARGET_PLATFORM}" "$logFile"
+	    PERF_TEST_CLONED=0
 
-        retCode=$?
-        isError=$( echo "${res}" | egrep -c 'Fail ' )
-        WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
-        if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
-        then
-            getLogs=1
-            REGRESS_RESULT_STR="FAILED"
-            WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
-            WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
-            if [[ $retCode -ne 0 ]]
-            then
-                # RTE itself reported error, log the problem
-                WriteLog "$res" "$logFile"
-                REGRESS_RESULT_REPORT_STR="$res"
-            else
-                # Report the failed tet cases
-                _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
-                WriteLog "$_res" "$logFile"
-                REGRESS_RESULT_REPORT_STR="$_res"
-            fi
-        else
-            _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
-            WriteLog "$_res" "$logFile"
-            REGRESS_RESULT_STR="PASSED"
-        fi
-        
-        action="REGRESS"
-        ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action  "$logFile"
-        WriteLog "action: '$action'" "$logFile"
-        [[ $DEBUG == 1 ]] && WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
-    
-    else
-        WriteLog "Setup is failed, skip regression tessting." "$logFile"
-        QUERIES_PUBLISH_RESULT_STR="Skipped based on setup error"
-        QUERIES_PUBLISH_TIME=0
-        QUERIES_PUBLISH_TIME_STR="$QUERIES_PUBLISH_TIME sec $(SecToTimeStr $QUERIES_PUBLISH_TIME)"
-        QUERIES_PUBLISH_REPORT_STR="Skipped based on setup error"
-        
-        REGRESS_START_TIME=$( date "+%H:%M:%S")
-        REGRESS_RESULT_STR="Skipped based on setup error"
-        REGRESS_RESULT_REPORT_STR="$REGRESS_RESULT_STR"
+	    pushd $PERF_TEST_ROOT
+    	cRes=$( git clone  https://github.com/hpcc-systems/PerformanceTesting.git )
+		if [[ (0 -ne  $?) || ( ! -d $PERF_TEST_ROOT ) || ( $(ls -l $PERF_TEST_ROOT/PerformanceTesting/ | egrep -v total |wc -l ) -eq 0 ) ]]
+		then
+			WriteLog "Repo clone failed ! Result is: ${cRes}" "$logFile"
+		else
+			WriteLog "Repo clone success !" "$logFile"
+			PERF_TEST_CLONED=1
+		fi
+		popd
+    	
+    	WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "$logFile"
+		WriteLog "TEST_ENGINE_HOME: ${REGRESSION_TEST_ENGINE_HOME}" "$logFile"
+
+		SETUP_CMD="./ecl-test setup --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000 -fanalyzeWorkunit=false --server $ip:$port --config $RTE_CONFIG $RTE_SETUP_PQ -fanalyzeWorkunit=false --loglevel $RTE_SETUP_LOGLEVEL ${JOB_NAME_SUFFIX}"
+
+		WriteLog "CMD: '${SETUP_CMD}'" "$logFile"
+		if [[ ${EXECUTE_PERFORMANCE_SUITE_SETUP} -ne 0 ]]
+		then
+			res=$( ${SETUP_CMD}  2>&1 )
+			retCode=$?
+			isError=$( echo "${res}" | egrep -c 'Fail ' )
+			WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+			if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]] 
+			then
+				WriteLog "$res" "$logFile"
+				getLogs=1
+				setupPass=0
+				SETUP_RESULT_STR="FAILED"
+			else
+				SETUP_RESULT_STR="PASSED"
+			fi
+			
+			_res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+			WriteLog "$_res" "$logFile"
+			declare -A queries passes fails time_str 
+			declare -a errors=()
+			declare -a engines=()
+			SETUP_RESULT_REPORT_STR=''
+			action="SETUP"
+			ProcessLog "$res" SETUP_RESULT_REPORT_STR $action  "$logFile"
+			WriteLog "action: '$action'" "$logFile"
+			WriteLog "SETUP_RESULT_REPORT_STR:\n$SETUP_RESULT_REPORT_STR" "$logFile"		
+		else
+		    WriteLog "Skip performance test setup execution!" "$logFile"
+		    WriteLog "                                      " "$logFile"        
+		fi
+
+		#
+		#---------------------------
+		#
+		# Run performance tests
+		#
+		WriteLog "Run performance tests on ${TARGET_PLATFORM} pwd:${myPwd}" "$logFile"
+		
+		#cd ${REGRESSION_TEST_ENGINE_HOME}    
+
+		WriteLog "PERF_TEST_HOME  : ${PERF_TEST_HOME}" "$logFile"
+		WriteLog "TEST_ENGINE_HOME: ${REGRESSION_TEST_ENGINE_HOME}" "$logFile"
+		
+		if [[ $FULL_TEST -eq 0 ]]
+		then
+		    PERF_CMD="./ecl-test query -t ${TARGET_PLATFORM} --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000  -fanalyzeWorkunit=false  ${PERF_EXCLUDE_CLASS} ${JOB_NAME_SUFFIX} --server $ip:$port --config $RTE_CONFIG $RTE_PQ --loglevel $RTE_SETUP_LOGLEVEL ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT} ${PERF_QUERY_LIST}"
+		else
+		    PERF_CMD="./ecl-test run -t ${TARGET_PLATFORM} --suiteDir ${PERF_TEST_HOME} --timeout ${PERF_TIMEOUT} -fthorConnectTimeout=36000  -fanalyzeWorkunit=false  ${PERF_EXCLUDE_CLASS} ${JOB_NAME_SUFFIX} --server $ip:$port --config $RTE_CONFIG $RTE_PQ --loglevel $RTE_SETUP_LOGLEVEL ${PERF_FLUSH_DISK_CACHE} ${PERF_RUNCOUNT}"
+		fi
+
+		WriteLog "CMD: '${PERF_CMD}'" "$logFile"
+		
+		if [[ ${EXECUTE_PERFORMANCE_SUITE} -eq 1 ]]
+		then
+		    res=$( ${PERF_CMD} 2>&1 )
+		    
+		    retCode=$( echo $? )
+		    isError=$( echo "${res}" | egrep -c 'Fail ' )
+			WriteLog "retCode: ${retCode}, isError: ${isError}" "$logFile"
+			if [[ ${retCode} -ne 0  || ${isError} -ne 0 ]]
+			then
+				getLogs=1
+				REGRESS_RESULT_STR="FAILED"
+				WriteLog "cmd: '$REGRESS_CMD'" "$logFile"
+				WriteLog "pwd: '$(pwd)', dirs: '$(dirs)'" "$logFile"
+				if [[ $retCode -ne 0 ]]
+				then
+				    # RTE itself reported error, log the problem
+				    WriteLog "$res" "$logFile"
+				    REGRESS_RESULT_REPORT_STR="$res"
+				else
+				    # Report the failed test cases
+				    _res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+				    WriteLog "$_res" "$logFile"
+				    REGRESS_RESULT_REPORT_STR="$_res"
+				fi
+			else
+				_res=$(echo "$res" | egrep 'Suite:|Queries:|Passing:|Failure:|Elapsed|Fail ' )
+				WriteLog "$_res" "$logFile"
+				REGRESS_RESULT_STR="PASSED"
+			fi
+			
+			action="REGRESS"
+			ProcessLog "$res" REGRESS_RESULT_REPORT_STR $action  "$logFile"
+			WriteLog "action: '$action'" "$logFile"
+			[[ $DEBUG == 1 ]] && WriteLog "REGRESS_RESULT_REPORT_STR:\n$REGRESS_RESULT_REPORT_STR" "$logFile"
+				
+		else
+		    WriteLog "Skip performance test suite execution!" "$logFile"
+		    WriteLog "                                      " "$logFile"        
+		fi
+    	getLogs=0
     fi
 
     if [[ -n "$QUERY_STAT2_DIR" ]]

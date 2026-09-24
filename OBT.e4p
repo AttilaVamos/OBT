@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project OBT -->
-<!-- Saved: 2026-05-29, 21:56:35 -->
+<!-- Saved: 2026-09-22, 17:12:44 -->
 <!-- Copyright (C) 2026 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -72,8 +72,8 @@
     <Source>build_pf.sh</Source>
     <Source>bundleTest.sh</Source>
     <Source>calcTrend.py</Source>
+    <Source>calcTrend2-parallel.py</Source>
     <Source>calcTrend2.py</Source>
-    <Source>calcTrend2.py3</Source>
     <Source>cassandraStress.sh</Source>
     <Source>checkCassandra.sh</Source>
     <Source>checkCoreGen.sh</Source>
