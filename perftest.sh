@@ -847,7 +847,7 @@ then
                     WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${PERF_TEST_LOG}"
                     # We need relative paths to use this archive in Smoketest as well
                     pushd ${BUILD_HOME}
-                    rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
+                    rm -rf vcpkg_downloads/tools vcpkg_downloads/temp vcpkg_buildtrees
                     [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
 
                     changesInInstalled=1
