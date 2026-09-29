@@ -847,7 +847,8 @@ then
                     WriteLog "Check the content of vcpkg_downloads-${BASE_VERSION}.zip file" "${PERF_TEST_LOG}"
                     # We need relative paths to use this archive in Smoketest as well
                     pushd ${BUILD_HOME}
-                    rm -rf vcpkg_downloads/tools vcpkg_downloads/temp vcpkg_buildtrees
+                    WriteLog "  VCPKG directories:\n$(ls -ld vcpkg_*)" "${PERF_TEST_LOG}"
+                    rm -rf vcpkg_downloads/tools vcpkg_downloads/temp
                     [[ -f vcpkg_installed/vcpkg/compiler-file-hash-cache.json ]] && rm -rf  vcpkg_installed/vcpkg
 
                     changesInInstalled=1
@@ -884,7 +885,7 @@ then
                 
                 WriteLog "Clean-up 'build/vcpkg_*', '_CPack_Packages' and 'esp' '$RELEASE_TYPE' directories to save disk space." "${PERF_TEST_LOG}"
                 WriteLog "Before: $(df -h . | egrep -v 'Files')" "${PERF_TEST_LOG}"
-                for d in vcpkg_downloads vcpkg_installed _CPack_Packages esp $RELEASE_TYPE
+                for d in vcpkg_downloads vcpkg_installed vcpkg_buildtrees _CPack_Packages esp $RELEASE_TYPE
                 do
                     WriteLog "rm -rf $d" "${PERF_TEST_LOG}"
                     rm -rf $d
