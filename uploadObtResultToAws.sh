@@ -27,7 +27,8 @@ echo "==============================================" >> ~/diskState.log
 
 rsync -va -e "ssh -i ${SSH_KEYFILE} ${SSH_OPTIONS}"  ~/diskState.log  $SSH_USER@${SSH_TARGET}:/home/$SSH_USER/OBT/${OBT_ID}/
 ./fixJson.sh . > fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
-./uploadObtResultToGists.sh >uploadObtResultToGists-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
+# Disable it based on the problem with push to gists with token
+#./uploadObtResultToGists.sh >uploadObtResultToGists-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
 
 if [[ -d ~/Perfstat ]]
 then

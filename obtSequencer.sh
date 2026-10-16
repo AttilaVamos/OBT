@@ -262,9 +262,10 @@ then
         echo "Upload regressMinikube-*.log, .report and .json as well ..."
         rsync -va -e "ssh -i ~/HPCC-Platform-Smoketest.pem" /home/centos/build/bin/regressMinikube-*.[jlr]* centos@$SmoketestSchedulerIp:/home/centos/AWS-Minikube/
 
-        echo "Upload regressMinikube-*.json to a result gists in GitHub as well ..."
+        echo "Upload regressMinikube-*.json to GitHub as well ..."
         ./fixJson.sh . > fixJson-$(date "+%Y-%m-%d_%H-%M-%S").log   2>&1
-        ./uploadObtResultToGists.sh
+        #Disable it based on the problem with push to gists with token
+        #./uploadObtResultToGists.sh
         
         ./uploadObtResultToGitHub.sh
 

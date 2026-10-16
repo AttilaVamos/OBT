@@ -1173,11 +1173,14 @@ KillCheckDiskSpace "${OBT_LOG_FILE}"
 sleep 10
 
 pushd ${OBT_BIN_DIR}
+# Disable it based on the problem with push to gists with token
 WriteLog "Upload results to Gists" "${OBT_LOG_FILE}"
-res=$( ./uploadObtResultToGists.sh 2>&1)
-retCode=$?
-WriteLog "retCode: $retCode" "${OBT_LOG_FILE}"
-WriteLog "res:'$res'" "${OBT_LOG_FILE}"
+WriteLog "  Skp it based on the problem with push to gists with token" "${OBT_LOG_FILE}"
+#res=$( ./uploadObtResultToGists.sh 2>&1)
+#retCode=$?
+#WriteLog "retCode: $retCode" "${OBT_LOG_FILE}"
+#WriteLog "res:'$res'" "${OBT_LOG_FILE}"
+
 
 WriteLog "Upload results to GitHub" "${OBT_LOG_FILE}"
 res=$( ./uploadObtResultToGitHub.sh 2>&1)
