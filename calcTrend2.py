@@ -795,7 +795,7 @@ class TrendReport(object):
        
        
             # Plot the data
-            ax.plot(dates2, self.results2[cluster][test]['Values2'][-dataPoints:], label=cluster, linestyle = '--', color=diagramColors['value'])
+            ax.plot(dates2, self.results2[cluster][test]['Values2'][-dataPoints:], label=cluster, marker ='.', linestyle = '--', color=diagramColors['value'])
             #ax.plot_date(dates2, self.results[cluster][test]['Values'][-dataPoints:], linestyle = '--', color=diagramColors['value'])
 
             # plot the mean
@@ -1214,7 +1214,7 @@ class TrendReport(object):
 
                         # plot the data
                         dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
-                        ax.plot(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
+                        ax.plot(dates2, dataSet, label=cluster,  marker ='.', linestyle = '--', color=clusterColors[cluster])
 
                         # plot the trend
                         clusterTrendLabel = '%s-trend (%0.3f sec/day, alpha:%0.3f, beta:%0.3f)' % ( cluster,  self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['beta'])
