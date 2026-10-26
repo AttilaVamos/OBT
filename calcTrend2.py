@@ -795,7 +795,7 @@ class TrendReport(object):
        
        
             # Plot the data
-            ax.plot_date(dates2, self.results2[cluster][test]['Values2'][-dataPoints:], label=cluster, linestyle = '--', color=diagramColors['value'])
+            ax.plot(dates2, self.results2[cluster][test]['Values2'][-dataPoints:], label=cluster, linestyle = '--', color=diagramColors['value'])
             #ax.plot_date(dates2, self.results[cluster][test]['Values'][-dataPoints:], linestyle = '--', color=diagramColors['value'])
 
             # plot the mean
@@ -827,32 +827,32 @@ class TrendReport(object):
             if not self.disableMovingAverage1 and False:
                 movingAverage1Label = 'Moving average with %d days window' % (self.movingAverageWindow1)
                 movingAverages = self.calcMovingAverage(self.movingAverageWindow1, self.results2[cluster][test]['Values2'][-dataPoints:])
-                ax.plot_date(dates2, movingAverages, label=movingAverage1Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage1'])
+                ax.plot(dates2, movingAverages, label=movingAverage1Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage1'])
 
             # plot the moving average 2 (default: on 30 days)
             if not self.disableMovingAverage2:
                 movingAverage2Label = 'Moving average with %d days window' % (self.movingAverageWindow2)
                 movingAverages = self.calcMovingAverage(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:], dates2, test, cluster)
-                ax.plot_date(dates2, movingAverages, label=movingAverage2Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage2'])
+                ax.plot(dates2, movingAverages, label=movingAverage2Label, marker ='.', linestyle = '-', color=diagramColors['movingAverage2'])
 
             # plot the moving std dev 2 (default: on 30 days)
             if True:
                 movingStdDev2Label = 'Moving stddev with %d days window' % (self.movingAverageWindow2)
                 movingStdDevs = self.calcMovingStdDev(self.movingAverageWindow2, self.results2[cluster][test]['Values2'][-dataPoints:])
                 movingStdDevsPositive = list( map(add, movingStdDevs, movingAverages) ) # Add movingStdDevs and movingAverages by elements 
-                ax.plot_date(dates2, movingStdDevsPositive, label=movingStdDev2Label, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
+                ax.plot(dates2, movingStdDevsPositive, label=movingStdDev2Label, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
 
                 movingStdDevsNegative = list( map(sub, movingAverages, movingStdDevs) ) # Substract movingStdDevs from movingAverages by elements 
-                ax.plot_date(dates2, movingStdDevsNegative, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
+                ax.plot(dates2, movingStdDevsNegative, marker ='.', linestyle = ':', color=diagramColors['movingAverage2'])
 
 
             # Plot the min values
             if self.enableMin:
-                ax.plot_date(dates2, self.results2[cluster][test]['min'][-dataPoints:], label='Min', marker ='2', linestyle = '--', color=diagramColors['min'])
+                ax.plot(dates2, self.results2[cluster][test]['min'][-dataPoints:], label='Min', marker ='2', linestyle = '--', color=diagramColors['min'])
                 
             # Plot the max values
             if self.enableMax:
-                ax.plot_date(dates2, self.results2[cluster][test]['max'][-dataPoints:], label='Max', marker ='1', linestyle = '--', color=diagramColors['max'])
+                ax.plot(dates2, self.results2[cluster][test]['max'][-dataPoints:], label='Max', marker ='1', linestyle = '--', color=diagramColors['max'])
             
             # Plot the loop values
             # Experimental
@@ -863,7 +863,7 @@ class TrendReport(object):
                 for loop in (1, 2):
                     values = [ d[loop] if loop in d else 0 for d in self.results2[cluster][test]['loops'][-dataPoints:] ]
                     loopLabel = "Loop-%d" % (loop)
-                    ax.plot_date(dates2, values, label=loopLabel, linestyle = (markers[loop], (2, (loop +1), (loop +1), (loop +1) )), color=colours[loop])
+                    ax.plot(dates2, values, label=loopLabel, linestyle = (markers[loop], (2, (loop +1), (loop +1), (loop +1) )), color=colours[loop])
             
             if self.enableBaseLine:
                 # plot the base line it there is a value (test added after the baseline file generated there is no value)
@@ -881,7 +881,7 @@ class TrendReport(object):
                     PrintException("Unexpected error: '%s'.\n" % (repr(e)))
 
             # Format X labels ans ticks
-            dateFmt = mpl.dates.DateFormatter('%Y-%m-%d')
+            dateFmt = mpl.dates.DateFormatter('%Y-%m-%d %a')
             ax.xaxis.set_major_formatter(dateFmt)
             daysLoc = mpl.dates.DayLocator(interval=max( 1, int(dataPoints/30)))
             hoursLoc = mpl.dates.HourLocator(interval=6)
@@ -1214,7 +1214,7 @@ class TrendReport(object):
 
                         # plot the data
                         dataSet =  self.clusterTrends[cluster]['Totals'][-dataPoints:]
-                        ax.plot_date(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
+                        ax.plot(dates2, dataSet, label=cluster, linestyle = '--', color=clusterColors[cluster])
 
                         # plot the trend
                         clusterTrendLabel = '%s-trend (%0.3f sec/day, alpha:%0.3f, beta:%0.3f)' % ( cluster,  self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['alpha'], self.clusterTrends[cluster]['thirtyDays']['beta'])
@@ -1223,7 +1223,7 @@ class TrendReport(object):
                         ax.plot(x1, y1, label=clusterTrendLabel, marker ='.', linestyle = '-', color=clusterColors[cluster])
 
                         # X axis tick and format
-                        dateFmt = mpl.dates.DateFormatter('%Y-%m-%d')
+                        dateFmt = mpl.dates.DateFormatter('%Y-%m-%d %a')
                         ax.xaxis.set_major_formatter(dateFmt)
                         daysLoc = mpl.dates.DayLocator()
                         hoursLoc = mpl.dates.HourLocator(interval=6)
