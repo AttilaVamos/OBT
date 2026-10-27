@@ -157,10 +157,10 @@ then
     [[ "$BASE_VERSION" != "master" ]] && BASE_VERSION=$BASE_VERSION.x
 
     # If diagrams are split into 4 then the copy needs to be cp -v ~/*diagrams.zip
-    echo "Copy  '~/diagrams.zip' into  'Performance/${OBT_ID}/${BASE_VERSION}'."
+    echo "Copy  '~/*Diagrams.zip' into  'Performance/${OBT_ID}/${BASE_VERSION}'."
     [[ ! -d Performance/${OBT_ID}/${BRANCH_ID} ]] && mkdir -p Performance/${OBT_ID}/${BASE_VERSION}
 
-    res=$(cp -v ~/diagrams.zip Performance/${OBT_ID}/${BASE_VERSION}/diagrams.zip  2>&1)
+    res=$(cp -v ~/*Diagrams.zip Performance/${OBT_ID}/${BASE_VERSION}/  2>&1)
     retCode=$?
 
     [[ $DEBUG -ne 0 || $retCode -ne 0 ]] && echo "ret code: $retCode"
